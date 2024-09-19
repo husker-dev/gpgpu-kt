@@ -1,4 +1,4 @@
-package com.huskerdev.gpkt.opencl
+package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
@@ -6,7 +6,6 @@ import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import org.jocl.cl_kernel
 import org.jocl.cl_program
-import kotlin.math.max
 
 class OCLProgram(
     private val cl: OpenCL,
@@ -18,21 +17,16 @@ class OCLProgram(
     init {
         val buffer = StringBuffer()
         stringifyScope(ast, buffer)
-        println(buffer.toString())
 
         program = cl.compileProgram(buffer.toString())
         kernel = cl.createKernel(program, "_m")
     }
 
-    override fun execute(vararg mapping: Pair<String, Source>) {
-        var maxSize = 0L
+    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
         mapping.forEach { (key, value) ->
-            if(key !in buffers)
-                throw Exception("Buffer $key is not defined in program")
             cl.setArgument(kernel, buffers.indexOf(key), value as OCLSource)
-            maxSize = max(maxSize, value.length.toLong())
         }
-        cl.executeKernel(kernel, maxSize)
+        cl.executeKernel(kernel, instances.toLong())
     }
 
     override fun stringifyFunction(function: Function, buffer: StringBuffer, additionalModifier: String?){

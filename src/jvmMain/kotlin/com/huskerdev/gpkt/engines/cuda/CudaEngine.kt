@@ -1,4 +1,4 @@
-package com.huskerdev.gpkt.cuda
+package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.GPEngine
 import com.huskerdev.gpkt.GPType

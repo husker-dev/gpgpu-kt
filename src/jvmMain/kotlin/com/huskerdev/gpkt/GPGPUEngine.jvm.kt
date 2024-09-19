@@ -1,8 +1,8 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.cuda.Cuda
-import com.huskerdev.gpkt.cuda.CudaEngine
-import com.huskerdev.gpkt.opencl.OCLEngine
+import com.huskerdev.gpkt.engines.cuda.Cuda
+import com.huskerdev.gpkt.engines.cuda.CudaEngine
+import com.huskerdev.gpkt.engines.opencl.OCLEngine
 
 
 internal actual fun createSupportedInstance(vararg expectedEngine: GPType): GPEngine? {

@@ -123,11 +123,10 @@ fun parseExpression(
                         val type = Type.map[lexemes[i+1].text] ?:
                             throw compilationError("Cannot cast to unknown type '${lexemes[i+1].text}'", lexemes[i+1], codeBlock)
 
-                        val right = parseExpression(scope, lexemes, codeBlock, i+3)!!
+                        val right = parseExpression(scope, lexemes, codeBlock, i+3, to)!!
                         if(type !in Type.castMap || right.type !in Type.castMap[type]!!)
                             throw compilationError("Cannot cast '${right.type.text}' to '${type.text}'", lexemes[i+1], codeBlock)
-
-                        return CastExpression(type, right, i, 2 + right.lexemeLength)
+                        return CastExpression(type, right, i, 3 + right.lexemeLength)
                     }
                 }
             }

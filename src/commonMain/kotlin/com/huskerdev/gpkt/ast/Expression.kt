@@ -48,6 +48,15 @@ class AxExpression(
     override val lexemeLength: Int
 ): OperatorExpression(operator)
 
+// Ax
+class XBExpression(
+    operator: Operator,
+    override val type: Type,
+    val right: Expression,
+    override val lexemeIndex: Int,
+    override val lexemeLength: Int
+): OperatorExpression(operator)
+
 // A[]
 class ArrayAccessExpression(
     val array: Field,

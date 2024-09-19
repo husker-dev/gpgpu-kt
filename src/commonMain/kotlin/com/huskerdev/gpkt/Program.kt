@@ -5,12 +5,13 @@ import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
+import com.huskerdev.gpkt.ast.types.Type
 
-abstract class Program {
-    abstract fun execute(vararg mapping: Pair<String, Source>)
+interface Program {
+    fun execute(instances: Int, vararg mapping: Pair<String, Source>)
 }
 
-abstract class SimpleCProgram(ast: Scope): Program() {
+abstract class SimpleCProgram(ast: Scope): Program {
     protected val buffers = ast.fields.filter {
         Modifiers.IN in it.modifiers ||
         Modifiers.OUT in it.modifiers
@@ -149,8 +150,11 @@ abstract class SimpleCProgram(ast: Scope): Program() {
         }
         if(expression is FieldExpression)
             buffer.append(expression.field.name)
-        if(expression is ConstExpression)
+        if(expression is ConstExpression) {
             buffer.append(expression.lexeme.text)
+            if(expression.type == Type.FLOAT)
+                buffer.append("f")
+        }
         if(expression is BracketExpression){
             buffer.append("(")
             stringifyExpression(expression.wrapped, buffer)

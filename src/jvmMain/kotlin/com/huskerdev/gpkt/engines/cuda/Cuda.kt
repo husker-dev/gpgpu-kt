@@ -1,5 +1,6 @@
-package com.huskerdev.gpkt.cuda
+package com.huskerdev.gpkt.engines.cuda
 
+import com.huskerdev.gpkt.Source
 import jcuda.CudaException
 import jcuda.Pointer
 import jcuda.Sizeof
@@ -79,7 +80,7 @@ class Cuda {
         return function
     }
 
-    fun launch(function: CUfunction, count: Int, sources: List<CudaSource>){
+    fun launch(function: CUfunction, count: Int, sources: List<Source>){
         val blockSizeX = 256
         val gridSizeX: Int = (count + blockSizeX - 1) / blockSizeX
 
@@ -88,7 +89,7 @@ class Cuda {
             blockSizeX, 1, 1,
             0, null,
             Pointer.to(*sources.map {
-                Pointer.to(it.ptr)
+                Pointer.to((it as CudaSource).ptr)
             }.toTypedArray()), null
         )
         cuCtxSynchronize()

@@ -1,4 +1,4 @@
-package com.huskerdev.gpkt.opencl
+package com.huskerdev.gpkt.engines.opencl
 
 import org.jocl.*
 import org.jocl.CL.*

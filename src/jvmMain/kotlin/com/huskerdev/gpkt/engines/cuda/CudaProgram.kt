@@ -1,4 +1,4 @@
-package com.huskerdev.gpkt.cuda
+package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
@@ -6,7 +6,6 @@ import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import jcuda.driver.CUfunction
 import jcuda.driver.CUmodule
-import kotlin.math.max
 
 
 class CudaProgram(
@@ -22,23 +21,12 @@ class CudaProgram(
         stringifyScope(ast, buffer)
         buffer.append("}")
 
-        println(buffer.toString())
-
         module = cuda.compileToModule(buffer.toString())
         function = cuda.getFunctionPointer(module, "_m")
     }
 
-    override fun execute(vararg mapping: Pair<String, Source>) {
-        val sources = mutableListOf<CudaSource>()
-        var maxSize = 0
-        mapping.forEach { (key, value) ->
-            if(key !in buffers)
-                throw Exception("Buffer $key is not defined in program")
-            maxSize = max(maxSize, value.length)
-            sources += value as CudaSource
-        }
-        cuda.launch(function, maxSize, sources)
-    }
+    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) =
+        cuda.launch(function, instances, mapping.map { it.second }.toList())
 
     override fun stringifyFunction(function: Function, buffer: StringBuffer, additionalModifier: String?){
         if(function.name == "main") {

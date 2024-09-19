@@ -1,6 +1,7 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.engines.cpu.CPUEngine
 
 
 internal expect fun createSupportedInstance(vararg expectedEngine: GPType): GPEngine?
@@ -12,9 +13,11 @@ abstract class GPEngine(
         @JvmStatic fun create(
             vararg expectedEngine: GPType = arrayOf(
                 GPType.CUDA,
-                GPType.OpenCL
+                GPType.OpenCL,
+                GPType.Interpreter
             )
-        ) = createSupportedInstance(*expectedEngine)
+        ) = createSupportedInstance(*expectedEngine) ?:
+            if(GPType.Interpreter in expectedEngine) CPUEngine() else null
     }
 
     fun compile(code: String) =
@@ -28,5 +31,6 @@ abstract class GPEngine(
 
 enum class GPType {
     OpenCL,
-    CUDA
+    CUDA,
+    Interpreter
 }

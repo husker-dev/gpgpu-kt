@@ -51,7 +51,7 @@ fun parseForStatement(
     }
 
     // body
-    val body = Scope(scope, Type.VOID).apply {
+    val body = Scope(scope).apply {
         if(initialization is FieldStatement)
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")

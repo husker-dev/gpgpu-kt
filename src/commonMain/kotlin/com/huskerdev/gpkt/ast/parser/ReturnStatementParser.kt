@@ -32,7 +32,7 @@ fun parseReturnStatement(
         expression
     }else null
 
-    i += (scope.returnStatement?.expression?.lexemeLength ?: 0)
+    i += (expression?.lexemeLength ?: 0) + 1
 
     return ReturnStatement(expression, from, i - from)
 }
