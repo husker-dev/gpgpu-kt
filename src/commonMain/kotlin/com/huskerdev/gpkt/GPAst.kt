@@ -6,7 +6,7 @@ import com.huskerdev.gpkt.ast.lexer.processLexemes
 import com.huskerdev.gpkt.ast.parser.parseScope
 
 
-class GPGPUAst {
+class GPAst {
     companion object {
         @JvmStatic fun parse(text: String): Scope {
             val lexemes = processLexemes(text)

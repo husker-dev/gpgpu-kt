@@ -15,10 +15,10 @@ fun parseScope(scope: Scope, lexemes: List<Lexeme>, codeBlock: String, from: Int
     try {
         while (i < to) {
             val lexeme = lexemes[i]
-            //println("current: ${lexeme.text}")
+            //println("current: ${lexemes.subList(i, min(to, i+3)).joinToString(" ") { it.text }}")
 
             if(lexeme.text == "}"){
-                if(scope.returnType != Type.VOID && scope.returnStatement == null)
+                if(scope.returnType != null && scope.returnType != Type.VOID && scope.returnStatement == null)
                     throw compilationError("Expected return statement", lexeme, codeBlock)
                 return i + 1
             }

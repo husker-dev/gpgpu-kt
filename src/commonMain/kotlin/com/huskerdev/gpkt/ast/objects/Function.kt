@@ -15,6 +15,8 @@ class Function(
     val arguments = mutableListOf<Field>()
     val argumentsTypes = mutableListOf<Type>()
 
+    override val returnType = super.returnType!!
+
     fun addArgument(argument: Field, lexeme: Lexeme, codeBlock: String){
         arguments += argument
         argumentsTypes += argument.type

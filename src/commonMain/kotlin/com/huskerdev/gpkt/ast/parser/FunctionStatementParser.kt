@@ -59,5 +59,5 @@ fun parseFunctionStatement(
     scope.addFunction(function, nameLexeme, codeBlock)
     i = parseScope(function, lexemes, codeBlock, i+2, lexemes.size)
 
-    return FunctionStatement(function, from, i)
+    return FunctionStatement(function, from, i - from)
 }

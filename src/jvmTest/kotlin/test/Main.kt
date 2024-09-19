@@ -1,18 +1,25 @@
 package test
 
-import com.huskerdev.gpkt.GPGPUEngine
+import com.huskerdev.gpkt.GPEngine
+import com.huskerdev.gpkt.GPType
 
 
 fun main(){
-    val engine = GPGPUEngine.create()!!
+    val engine = GPEngine.create(GPType.OpenCL)!!
+    println("engine: ${engine.type}")
 
     val program = engine.compile("""
         in float[] arr1, arr2;
         out float[] result;
         
-        void main(int i){
-            result[i] = (float)i;
+        float add(float left, float right){
+            return left + right;
         }
+        
+        void main(int i){
+            result[i] = add(arr1[i], arr2[i]);
+        }
+        
     """.trimIndent())
 
     val arr1 = engine.alloc(exampleArray())
@@ -31,4 +38,4 @@ fun main(){
 
 
 // 1 2 3 4 5 6 7 8
-fun exampleArray() = FloatArray(1_000_000) { it.toFloat() }
+fun exampleArray() = FloatArray(10_000_000) { it.toFloat() }

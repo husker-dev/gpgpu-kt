@@ -15,7 +15,15 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
+                // JOCL (OpenCL)
                 implementation("org.jocl:jocl:2.0.4")
+
+                // JCuda (Cuda)
+                implementation("org.jcuda:jcuda:12.0.0"){
+                    isTransitive = false
+                }
+                implementation("org.jcuda:jcuda-natives:12.0.0:windows-x86_64")
+                implementation("org.jcuda:jcuda-natives:12.0.0:linux-x86_64")
             }
         }
     }

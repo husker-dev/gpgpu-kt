@@ -1,56 +1,60 @@
-package com.huskerdev.gpkt.opencl
+package com.huskerdev.gpkt.cuda
 
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
-import org.jocl.cl_kernel
-import org.jocl.cl_program
+import jcuda.driver.CUfunction
+import jcuda.driver.CUmodule
 import kotlin.math.max
 
-class OCLProgram(
-    private val cl: OpenCL,
+
+class CudaProgram(
+    private val cuda: Cuda,
     ast: Scope
 ): SimpleCProgram(ast) {
-    private val program: cl_program
-    private val kernel: cl_kernel
+    private val module: CUmodule
+    private val function: CUfunction
 
     init {
         val buffer = StringBuffer()
+        buffer.append("extern \"C\"{")
         stringifyScope(ast, buffer)
+        buffer.append("}")
+
         println(buffer.toString())
 
-        program = cl.compileProgram(buffer.toString())
-        kernel = cl.createKernel(program, "_m")
+        module = cuda.compileToModule(buffer.toString())
+        function = cuda.getFunctionPointer(module, "_m")
     }
 
     override fun execute(vararg mapping: Pair<String, Source>) {
-        var maxSize = 0L
+        val sources = mutableListOf<CudaSource>()
+        var maxSize = 0
         mapping.forEach { (key, value) ->
             if(key !in buffers)
                 throw Exception("Buffer $key is not defined in program")
-            cl.setArgument(kernel, buffers.indexOf(key), value as OCLSource)
-            maxSize = max(maxSize, value.length.toLong())
+            maxSize = max(maxSize, value.length)
+            sources += value as CudaSource
         }
-        cl.executeKernel(kernel, maxSize)
+        cuda.launch(function, maxSize, sources)
     }
 
     override fun stringifyFunction(function: Function, buffer: StringBuffer, additionalModifier: String?){
-        if(function.name == "main"){
-            buffer.append("__kernel ")
+        if(function.name == "main") {
+            buffer.append("__global__ ")
             stringifyModifiers(function.modifiers, buffer)
             buffer.append(function.returnType.text)
             buffer.append(" ")
             buffer.append("_m")
             buffer.append("(")
             buffer.append(buffers.joinToString(",") {
-                "__global float*${it}"
+                "float*${it}"
             })
             buffer.append("){")
-            buffer.append("int ${function.arguments[0].name}=get_global_id(0);")
+            buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
             stringifyScope(function, buffer, function.arguments)
             buffer.append("}")
-        } else super.stringifyFunction(function, buffer, additionalModifier)
+        }else super.stringifyFunction(function, buffer, "__device__")
     }
-
 }

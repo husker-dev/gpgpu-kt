@@ -79,11 +79,20 @@ fun parseExpression(
                         val argumentTypes = mutableListOf<Type>()
 
                         var r = i+2
-                        while(lexemes[r].text != ")"){
+                        while(r < to){
                             val argument = parseExpression(scope, lexemes, codeBlock, r)!!
                             arguments += argument
                             argumentTypes += argument.type
+
                             r += argument.lexemeLength
+                            val next = lexemes[r]
+                            if(next.text == ",") {
+                                r++
+                                continue
+                            } else if(next.text == ")") {
+                                r++
+                                break
+                            } else throw compilationError("Unexpected symbol '${next.text}'", next, codeBlock)
                         }
                         val function = scope.findDefinedFunction(lexeme.text, argumentTypes) ?:
                             throw functionIsNotDefined(lexeme.text, argumentTypes, lexeme, codeBlock)
@@ -104,7 +113,7 @@ fun parseExpression(
                         if(indexExpression.type != Type.INT)
                             throw expectedTypeException(Type.INT, indexExpression.type, lexemes[i+1], codeBlock)
 
-                        return ArrayAccessExpression(array.field, indexExpression, i-1, 2 + indexExpression.lexemeLength)
+                        return ArrayAccessExpression(array.field, indexExpression, i-1, 3 + indexExpression.lexemeLength)
                     }
                 }
             }

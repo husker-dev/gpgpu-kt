@@ -74,7 +74,10 @@ class OpenCL {
     }
 
     fun compileProgram(code: String): cl_program{
-        val program = clCreateProgramWithSource(context, 1, arrayOf(code), null, null)
+        val error = IntArray(1)
+        val program = clCreateProgramWithSource(context, 1, arrayOf(code), null, error)
+        if(error[0] != 0)
+            println("[ERROR] Failed to compile OpenCL program (error code: ${error[0]})")
         clBuildProgram(program, 0, null, null, null, null)
         return program
     }
@@ -84,7 +87,7 @@ class OpenCL {
 
     fun executeKernel(kernel: cl_kernel, workGroupSize: Long) {
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
-            longArrayOf(workGroupSize), longArrayOf(1), 0, null, null);
+            longArrayOf(workGroupSize), longArrayOf(1), 0, null, null)
     }
 
     fun setArgument(kernel: cl_kernel, index: Int, source: OCLSource){
