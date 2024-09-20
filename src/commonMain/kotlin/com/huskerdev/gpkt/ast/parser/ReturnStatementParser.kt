@@ -34,5 +34,5 @@ fun parseReturnStatement(
 
     i += (expression?.lexemeLength ?: 0) + 1
 
-    return ReturnStatement(expression, from, i - from)
+    return ReturnStatement(scope, expression, from, i - from)
 }

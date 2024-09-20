@@ -30,7 +30,8 @@ fun parseForStatement(
 
     // Head scope
     val headScope = Scope(scope, Type.VOID)
-    i = parseScope(headScope, lexemes, codeBlock, i+1, r)
+    i = parseScope(headScope, lexemes, codeBlock, i+1, r) + 1
+
     if(headScope.statements.size < 2)
         throw compilationError("Expected at least two statements", lexemes[i], codeBlock)
 
@@ -46,7 +47,7 @@ fun parseForStatement(
 
     // block 3
     val iteration = headScope.statements.getOrElse(2) {
-        EmptyStatement(condition.lexemeIndex + condition.lexemeLength, 0)
+        EmptyStatement(scope, condition.lexemeIndex + condition.lexemeLength, 0)
     }
 
     // body
@@ -54,9 +55,9 @@ fun parseForStatement(
         if(initialization is FieldStatement)
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")
-            parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
+            parseScope(this, lexemes, codeBlock, i + 1, to)
+        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock))
     }
 
-    return ForStatement(initialization, condition, iteration, body, from, i - from)
+    return ForStatement(scope, initialization, condition, iteration, body, from, i - from)
 }

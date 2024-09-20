@@ -15,10 +15,20 @@ fun parseExpression(
     to: Int = findExpressionEnd(from, lexemes, codeBlock)
 ): Expression? {
     //println("parse: " + lexemes.subList(from, to).joinToString(" ") { it.text })
-    if(lexemes[from].text == "(" && lexemes[to-1].text == ")")
-        return parseExpression(scope, lexemes, codeBlock, from+1, to-1)?.run {
-            BracketExpression(this, from, to-1)
+
+    if(lexemes[from].text == "("){
+        var brackets = 1
+        var r = from
+        while(brackets != 0 && r < to){
+            val text = lexemes[++r].text
+            if(text == "(") brackets++
+            if(text == ")") brackets--
         }
+        if(r == to-1)
+            return parseExpression(scope, lexemes, codeBlock, from+1, to-1)?.run {
+                BracketExpression(this, from, to - from)
+            }
+    }
 
     if(to - from == 0)
         return null
@@ -93,20 +103,22 @@ fun parseExpression(
                     val arguments = mutableListOf<Expression>()
                     val argumentTypes = mutableListOf<Type>()
 
-                    var r = from+2
-                    while(r < to){
-                        val argument = parseExpression(scope, lexemes, codeBlock, r)!!
-                        arguments += argument
-                        argumentTypes += argument.type
+                    if(lexemes[from+2].text != ")") {
+                        var r = from + 2
+                        while (r < to) {
+                            val argument = parseExpression(scope, lexemes, codeBlock, r)!!
+                            arguments += argument
+                            argumentTypes += argument.type
 
-                        r += argument.lexemeLength
-                        val next = lexemes[r]
-                        if(next.text == ",") {
-                            r++
-                            continue
-                        } else if(next.text == ")")
-                            break
-                        else throw compilationError("Unexpected symbol '${next.text}'", next, codeBlock)
+                            r += argument.lexemeLength
+                            val next = lexemes[r]
+                            if (next.text == ",") {
+                                r++
+                                continue
+                            } else if (next.text == ")")
+                                break
+                            else throw compilationError("Unexpected symbol '${next.text}'", next, codeBlock)
+                        }
                     }
                     val function = scope.findDefinedFunction(lexeme.text, argumentTypes)
                         ?: throw functionIsNotDefined(lexeme.text, argumentTypes, lexeme, codeBlock)

@@ -7,7 +7,7 @@ const val FLAG_LOGICAL_TYPES = 4
 const val FLAG_FIELD_TYPE = 8
 const val FLAG_INT_TYPE = 16
 
-const val FLAG_RETURNS_BOOLEAN = 16
+const val FLAG_RETURNS_BOOLEAN = 32
 
 
 enum class Operator(

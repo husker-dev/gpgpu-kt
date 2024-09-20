@@ -2,6 +2,8 @@ package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
+import com.huskerdev.gpkt.ast.FieldStatement
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import jcuda.driver.CUfunction
@@ -46,5 +48,15 @@ class CudaProgram(
             stringifyScope(function, buffer, function.arguments)
             buffer.append("}")
         }else super.stringifyFunction(function, buffer, "__device__")
+    }
+
+    override fun stringifyFieldStatement(
+        fieldStatement: FieldStatement,
+        buffer: StringBuilder,
+        ignoredFields: List<Field>?
+    ) {
+        if(fieldStatement.scope.parentScope == null)
+            buffer.append("__constant__ ")
+        super.stringifyFieldStatement(fieldStatement, buffer, ignoredFields)
     }
 }

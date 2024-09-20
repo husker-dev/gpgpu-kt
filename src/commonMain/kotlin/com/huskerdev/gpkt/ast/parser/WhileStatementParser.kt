@@ -26,5 +26,5 @@ fun parseWhileStatement(
             parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
         else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
     }
-    return WhileStatement(condition, body, from, i - from)
+    return WhileStatement(scope, condition, body, from, i - from)
 }

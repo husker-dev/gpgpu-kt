@@ -21,9 +21,15 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    js()
+    js {
+        browser()
+    }
 
     sourceSets {
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+
         jvmMain {
             dependencies {
                 // JOCL (OpenCL)

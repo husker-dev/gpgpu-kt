@@ -6,12 +6,14 @@ import com.huskerdev.gpkt.ast.objects.Scope
 
 
 interface Statement{
+    val scope: Scope
     val lexemeIndex: Int
     val lexemeLength: Int
     val returns: Boolean
 }
 
 class ExpressionStatement(
+    override val scope: Scope,
     val expression: Expression
 ): Statement {
     override val lexemeIndex = expression.lexemeIndex
@@ -20,6 +22,7 @@ class ExpressionStatement(
 }
 
 class FunctionStatement(
+    override val scope: Scope,
     val function: Function,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
@@ -28,6 +31,7 @@ class FunctionStatement(
 }
 
 class EmptyStatement(
+    override val scope: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ) : Statement {
@@ -35,6 +39,7 @@ class EmptyStatement(
 }
 
 class FieldStatement(
+    override val scope: Scope,
     val fields: List<Field>,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
@@ -43,6 +48,7 @@ class FieldStatement(
 }
 
 class ReturnStatement(
+    override val scope: Scope,
     val expression: Expression?,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
@@ -51,6 +57,7 @@ class ReturnStatement(
 }
 
 class BreakStatement(
+    override val scope: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ): Statement {
@@ -58,6 +65,7 @@ class BreakStatement(
 }
 
 class ContinueStatement(
+    override val scope: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ): Statement {
@@ -65,6 +73,7 @@ class ContinueStatement(
 }
 
 class IfStatement(
+    override val scope: Scope,
     val condition: Expression,
     val body: Scope,
     val elseBody: Scope?,
@@ -75,6 +84,7 @@ class IfStatement(
 }
 
 class WhileStatement(
+    override val scope: Scope,
     val condition: Expression,
     val body: Scope,
     override val lexemeIndex: Int,
@@ -84,6 +94,7 @@ class WhileStatement(
 }
 
 class ForStatement(
+    override val scope: Scope,
     val initialization: Statement,
     val condition: Statement,
     val iteration: Statement,

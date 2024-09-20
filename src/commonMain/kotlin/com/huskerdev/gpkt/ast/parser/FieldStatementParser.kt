@@ -68,5 +68,5 @@ fun parseFieldStatement(
     // If declaration wasn't ended with ';', then flush
     if(field != null)
         fields += field
-    return FieldStatement(fields, from, i - from)
+    return FieldStatement(scope, fields, from, i - from)
 }

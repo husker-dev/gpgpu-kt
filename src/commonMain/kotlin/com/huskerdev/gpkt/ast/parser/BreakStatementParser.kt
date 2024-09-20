@@ -19,5 +19,5 @@ fun parseBreakStatement(
     if(!scope.isInIterableScope())
         throw compilationError("'break' can only be used inside iterator", next, codeBlock)
 
-    return BreakStatement(from, i - from)
+    return BreakStatement(scope, from, i - from)
 }

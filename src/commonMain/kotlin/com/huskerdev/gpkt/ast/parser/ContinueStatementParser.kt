@@ -19,5 +19,5 @@ fun parseContinueStatement(
     if(!scope.isInIterableScope())
         throw compilationError("'continue' can only be used inside iterator", next, codeBlock)
 
-    return ContinueStatement(from, i - from)
+    return ContinueStatement(scope, from, i - from)
 }

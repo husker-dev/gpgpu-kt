@@ -21,9 +21,10 @@ fun parseScope(
     try {
         while (i < to) {
             val lexeme = lexemes[i]
+            val text = lexeme.text
             //println("current: ${lexemes.subList(i, kotlin.math.min(to, i+3)).joinToString(" ") { it.text }}")
 
-            if(lexeme.text == "}"){
+            if(text == "}"){
                 if(scope.returnType != null && scope.returnType != Type.VOID && !scope.statements.any { it.returns })
                     throw compilationError("Expected return statement", lexeme, codeBlock)
                 return i + 1
@@ -31,14 +32,14 @@ fun parseScope(
 
             val statement: Statement = if(lexeme.type == Lexeme.Type.SPECIAL){
                 when {
-                    lexeme.text == ";" -> EmptyStatement(i, 1)
-                    lexeme.text == "return" -> parseReturnStatement(scope, lexemes, codeBlock, i)
-                    lexeme.text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i)
-                    lexeme.text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i)
-                    lexeme.text == "for" -> parseForStatement(scope, lexemes, codeBlock, i, to)
-                    lexeme.text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, i)
-                    lexeme.text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, i)
-                    (lexeme.text in primitives || lexeme.text in modifiers) -> {
+                    text == ";" -> EmptyStatement(scope, i, 1)
+                    text == "return" -> parseReturnStatement(scope, lexemes, codeBlock, i)
+                    text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i)
+                    text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i)
+                    text == "for" -> parseForStatement(scope, lexemes, codeBlock, i, to)
+                    text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, i)
+                    text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, i)
+                    (text in primitives || text in modifiers) -> {
                         var r = i
                         while(lexemes[r].type != Lexeme.Type.NAME && r < to)
                             r++
@@ -46,10 +47,10 @@ fun parseScope(
                         if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, i, to)
                         else parseFieldStatement(scope, lexemes, codeBlock, i, to)
                     }
-                    else -> throw compilationError("Not implemented", lexeme, codeBlock)
+                    else -> throw compilationError("Unexpected symbol: '${text}'", lexeme, codeBlock)
                 }
             } else
-                ExpressionStatement(parseExpression(scope, lexemes, codeBlock, i)!!)
+                ExpressionStatement(scope, parseExpression(scope, lexemes, codeBlock, i)!!)
 
             scope.addStatement(statement, codeBlock)
             i += statement.lexemeLength
@@ -59,5 +60,5 @@ fun parseScope(
         e.printStackTrace()
         throw unexpectedEofException(lexemes.last(), codeBlock)
     }
-    return i
+    return to
 }

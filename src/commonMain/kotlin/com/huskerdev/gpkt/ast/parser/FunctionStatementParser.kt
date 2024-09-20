@@ -59,8 +59,7 @@ fun parseFunctionStatement(
     if(lexemes[i+1].text != "{")
         throw compilationError("Expected function block", lexemes[i+1], codeBlock)
 
-    scope.addFunction(function, nameLexeme, codeBlock)
     i = parseScope(function, lexemes, codeBlock, i+2, lexemes.size)
 
-    return FunctionStatement(function, from, i - from)
+    return FunctionStatement(scope, function, from, i - from)
 }
