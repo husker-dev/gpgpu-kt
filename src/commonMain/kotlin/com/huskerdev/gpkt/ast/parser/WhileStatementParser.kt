@@ -24,7 +24,7 @@ fun parseWhileStatement(
     val body = Scope(scope, iterable = true).apply {
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(lexemes, i)) + 1
+        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
     }
     return WhileStatement(condition, body, from, i - from)
 }

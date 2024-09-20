@@ -35,15 +35,15 @@ fun parseScope(
                     lexeme.text == "return" -> parseReturnStatement(scope, lexemes, codeBlock, i)
                     lexeme.text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i)
                     lexeme.text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i)
-                    lexeme.text == "for" -> parseForStatement(scope, lexemes, codeBlock, i)
+                    lexeme.text == "for" -> parseForStatement(scope, lexemes, codeBlock, i, to)
                     lexeme.text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, i)
                     lexeme.text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, i)
                     (lexeme.text in primitives || lexeme.text in modifiers) -> {
                         var r = i
-                        while(lexemes[r].type != Lexeme.Type.NAME)
+                        while(lexemes[r].type != Lexeme.Type.NAME && r < to)
                             r++
 
-                        if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, i)
+                        if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, i, to)
                         else parseFieldStatement(scope, lexemes, codeBlock, i, to)
                     }
                     else -> throw compilationError("Not implemented", lexeme, codeBlock)

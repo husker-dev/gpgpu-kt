@@ -24,7 +24,7 @@ fun parseIfStatement(
     fun parseBlock() = Scope(scope).apply {
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(lexemes, i))
+        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock))
     }
     val body = parseBlock()
     val elseBody: Scope? = if(lexemes[i].text == "else") {

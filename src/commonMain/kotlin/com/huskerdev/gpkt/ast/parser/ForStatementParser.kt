@@ -10,7 +10,8 @@ fun parseForStatement(
     scope: Scope,
     lexemes: List<Lexeme>,
     codeBlock: String,
-    from: Int
+    from: Int,
+    to: Int
 ): ForStatement{
     var i = from + 1
     if(lexemes[i].text != "(")
@@ -19,11 +20,13 @@ fun parseForStatement(
     // Find closing bracket
     var r = i
     var brackets = 1
-    while(brackets != 0){
+    while(brackets != 0 && r < to){
         val text = lexemes[++r].text
         if(text == "(" || text == "{" || text == "[") brackets++
         if(text == ")" || text == "}" || text == "]") brackets--
     }
+    if(brackets != 0)
+        throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
     // Head scope
     val headScope = Scope(scope, Type.VOID)
@@ -52,7 +55,7 @@ fun parseForStatement(
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(lexemes, i)) + 1
+        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
     }
 
     return ForStatement(initialization, condition, iteration, body, from, i - from)

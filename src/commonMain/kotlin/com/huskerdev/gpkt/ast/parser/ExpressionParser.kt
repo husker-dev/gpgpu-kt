@@ -12,7 +12,7 @@ fun parseExpression(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int = findExpressionEnd(lexemes, from)
+    to: Int = findExpressionEnd(from, lexemes, codeBlock)
 ): Expression? {
     //println("parse: " + lexemes.subList(from, to).joinToString(" ") { it.text })
     if(lexemes[from].text == "(" && lexemes[to-1].text == ")")
@@ -38,7 +38,7 @@ fun parseExpression(
             Operator.Usage.AxB -> {
                 val token = operator.token
                 foreachLexemeIgnoringBrackets(from, to, lexemes) { i, lexeme ->
-                    if (i != from && lexeme.text == token) {
+                    if (i != from && i != to-1 && lexeme.text == token) {
                         val left = parseExpression(scope, lexemes, codeBlock, from, i)!!
                         val right = parseExpression(scope, lexemes, codeBlock, i + 1, to)!!
 
@@ -116,7 +116,7 @@ fun parseExpression(
             }
             Operator.Usage.ARRAY_ACCESS -> {
                 if(lexemes[to-1].text == "]"){
-                    val leftBracket = findExpressionStart(lexemes, to-2)
+                    val leftBracket = findExpressionStart(to-2, lexemes, codeBlock)
                     if(lexemes[leftBracket].text != "[")
                         throw compilationError("Expected [", lexemes[leftBracket], codeBlock)
 
@@ -155,36 +155,32 @@ fun parseExpression(
 }
 
 
-fun findExpressionEnd(lexemes: List<Lexeme>, from: Int): Int{
+fun findExpressionEnd(from: Int, lexemes: List<Lexeme>, codeBlock: String): Int{
     var brackets = 0
     var endIndex = from
     while(endIndex < lexemes.size) {
         val lexeme = lexemes[endIndex++]
         val text = lexeme.text
-        if (brackets == 0 && (text == "," || text == ";" || text == ")" || text == "]")) {
-            endIndex--
-            break
-        }
+        if (brackets == 0 && (text == "," || text == ";" || text == ")" || text == "]"))
+            return endIndex - 1
         if (text == "[" || text == "(" || text == "{") brackets++
         if (text == "]" || text == ")" || text == "}") brackets--
     }
-    return endIndex
+    throw compilationError("Expected ';'", lexemes.last(), codeBlock)
 }
 
-fun findExpressionStart(lexemes: List<Lexeme>, from: Int): Int{
+fun findExpressionStart(from: Int, lexemes: List<Lexeme>, codeBlock: String): Int{
     var brackets = 0
     var startIndex = from
     while(startIndex < lexemes.size) {
         val lexeme = lexemes[startIndex--]
         val text = lexeme.text
-        if (brackets == 0 && (text == "," || text == ";" || text == "(" || text == "[")) {
-            startIndex++
-            break
-        }
+        if (brackets == 0 && (text == "," || text == ";" || text == "(" || text == "["))
+            return startIndex + 1
         if (text == "[" || text == "(" || text == "{") brackets++
         if (text == "]" || text == ")" || text == "}") brackets--
     }
-    return startIndex
+    throw compilationError("Unexpected", lexemes.last(), codeBlock)
 }
 
 fun createConstExpression(index: Int, lexeme: Lexeme, codeBlock: String) = when (lexeme.type) {

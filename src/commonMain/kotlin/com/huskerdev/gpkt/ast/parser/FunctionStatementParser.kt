@@ -14,7 +14,8 @@ fun parseFunctionStatement(
     scope: Scope,
     lexemes: List<Lexeme>,
     codeBlock: String,
-    from: Int
+    from: Int,
+    to: Int
 ): FunctionStatement {
     var i = from
 
@@ -39,6 +40,8 @@ fun parseFunctionStatement(
 
     // Getting parameters
     while(lexemes[i].text != ")"){
+        if(i >= to)
+            throw compilationError("Expected ')'", lexemes.last(), codeBlock)
         if(lexemes[i].text !in primitives)
             throw compilationError("Expected argument type", lexemes[i], codeBlock)
         var argType = Type.map[lexemes[i].text]!!

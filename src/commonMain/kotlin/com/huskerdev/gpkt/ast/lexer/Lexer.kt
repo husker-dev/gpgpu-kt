@@ -51,15 +51,17 @@ fun processLexemes(block: String): List<Lexeme> {
                     if (!inComment && line[i + 1] == '/') { // Line comment
                         flush(lineIndex, i)
                         i = line.length
+                        continue
                     } else if (!inComment && line[i + 1] == '*') { // Multi-line comment begin
                         flush(lineIndex, i)
                         inComment = true
                         i += 2
+                        continue
                     } else if (inComment && line[i - 1] == '*') { // Multi-line comment end
                         inComment = false
                         i += 2
+                        continue
                     }
-                    continue
                 }
                 if (inComment) {
                     i++
@@ -93,7 +95,6 @@ fun processLexemes(block: String): List<Lexeme> {
                 i++
             }
             flush(lineIndex, i)
-
         }
     }catch (e: IndexOutOfBoundsException){
         throw unexpectedEofException(lexemes.last(), block)

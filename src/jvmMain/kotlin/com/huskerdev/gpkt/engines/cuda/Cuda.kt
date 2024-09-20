@@ -9,6 +9,7 @@ import jcuda.driver.JCudaDriver.*
 import jcuda.nvrtc.JNvrtc
 import jcuda.nvrtc.JNvrtc.*
 import jcuda.nvrtc.nvrtcProgram
+import jcuda.runtime.JCuda.cudaDeviceSynchronize
 
 
 class Cuda {
@@ -92,6 +93,6 @@ class Cuda {
                 Pointer.to((it as CudaSource).ptr)
             }.toTypedArray()), null
         )
-        cuCtxSynchronize()
+        cudaDeviceSynchronize()
     }
 }
