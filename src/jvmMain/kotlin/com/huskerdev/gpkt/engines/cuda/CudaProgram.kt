@@ -28,6 +28,8 @@ class CudaProgram(
     override fun execute(instances: Int, vararg mapping: Pair<String, Source>) =
         cuda.launch(function, instances, mapping.map { it.second }.toList())
 
+    override fun dealloc() = Unit
+
     override fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String?){
         if(function.name == "main") {
             buffer.append("__global__ ")

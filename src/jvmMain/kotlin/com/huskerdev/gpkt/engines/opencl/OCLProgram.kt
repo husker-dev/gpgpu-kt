@@ -29,6 +29,11 @@ class OCLProgram(
         cl.executeKernel(kernel, instances.toLong())
     }
 
+    override fun dealloc() {
+        cl.dealloc(program)
+        cl.dealloc(kernel)
+    }
+
     override fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String?){
         if(function.name == "main"){
             buffer.append("__kernel ")

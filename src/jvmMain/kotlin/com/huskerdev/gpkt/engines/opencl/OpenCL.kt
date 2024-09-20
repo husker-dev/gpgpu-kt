@@ -65,6 +65,12 @@ class OpenCL {
     fun dealloc(mem: cl_mem) =
         clReleaseMemObject(mem)
 
+    fun dealloc(program: cl_program) =
+        clReleaseProgram(program)
+
+    fun dealloc(kernel: cl_kernel) =
+        clReleaseKernel(kernel)
+
     fun read(mem: cl_mem, length: Int) = FloatArray(length).apply {
         clEnqueueReadBuffer(
             commandQueue, mem, CL_TRUE, 0,

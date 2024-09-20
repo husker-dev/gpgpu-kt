@@ -27,4 +27,6 @@ class CPUProgram(
             executable.execute(variables)
         }
     }
+
+    override fun dealloc() = Unit
 }

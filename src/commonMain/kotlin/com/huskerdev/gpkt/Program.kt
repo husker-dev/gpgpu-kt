@@ -9,6 +9,7 @@ import com.huskerdev.gpkt.ast.types.Type
 
 interface Program {
     fun execute(instances: Int, vararg mapping: Pair<String, Source>)
+    fun dealloc()
 }
 
 abstract class SimpleCProgram(ast: Scope): Program {
