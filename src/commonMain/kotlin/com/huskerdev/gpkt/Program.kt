@@ -92,7 +92,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
 
         if(modifiers.isNotEmpty())
             buffer.append(modifiers.joinToString(" ", postfix = " ") { it.text })
-        buffer.append(type.text)
+        buffer.append(type.toCType())
         buffer.append(" ")
 
         fieldStatement.fields.forEachIndexed { i, field ->
@@ -118,7 +118,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append(function.name)
         buffer.append("(")
         buffer.append(function.arguments.joinToString(",") {
-            "${it.type.text} ${it.name}"
+            "${it.type.toCType()} ${it.name}"
         })
         buffer.append("){")
         stringifyScope(function, buffer, function.arguments)
@@ -177,4 +177,14 @@ abstract class SimpleCProgram(ast: Scope): Program {
         if(modifiers.isNotEmpty())
             buffer.append(modifiers.joinToString(" ", postfix = " ") { it.text })
     }
+}
+
+fun Type.toCType() = when(this){
+    Type.VOID -> "void"
+    Type.FLOAT -> "float"
+    Type.INT -> "int"
+    Type.BOOLEAN -> "bool"
+    Type.FLOAT_ARRAY -> "float*"
+    Type.INT_ARRAY -> "int*"
+    Type.BOOLEAN_ARRAY -> "bool*"
 }

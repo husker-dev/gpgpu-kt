@@ -6,6 +6,7 @@ import com.huskerdev.gpkt.ast.FieldStatement
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.types.Modifiers
 import jcuda.driver.CUfunction
 import jcuda.driver.CUmodule
 
@@ -55,7 +56,8 @@ class CudaProgram(
         buffer: StringBuilder,
         ignoredFields: List<Field>?
     ) {
-        if(fieldStatement.scope.parentScope == null)
+        val modifiers = fieldStatement.fields[0].modifiers
+        if(Modifiers.IN !in modifiers && Modifiers.OUT !in modifiers && fieldStatement.scope.parentScope == null)
             buffer.append("__constant__ ")
         super.stringifyFieldStatement(fieldStatement, buffer, ignoredFields)
     }

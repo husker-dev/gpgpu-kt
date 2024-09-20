@@ -6,11 +6,9 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 
-fun main(){
-    GPType.entries.forEach {
-        exec(it)
-    }
-}
+// 1 2 3 4 5 6 7 8
+fun exampleArray() = FloatArray(10_000_000) { it.toFloat() }
+
 
 var time = System.nanoTime()
 fun reset(text: String) {
@@ -73,5 +71,9 @@ fun exec(engineType: GPType){
 }
 
 
-// 1 2 3 4 5 6 7 8
-fun exampleArray() = FloatArray(10_000_000) { it.toFloat() }
+
+fun main() {
+    GPType.entries.forEach {
+        exec(it)
+    }
+}
