@@ -134,6 +134,10 @@ abstract class SimpleCProgram(ast: Scope): Program {
             stringifyExpression(expression.left, buffer)
             buffer.append(expression.operator.token)
         }
+        if(expression is XBExpression){
+            buffer.append(expression.operator.token)
+            stringifyExpression(expression.right, buffer)
+        }
         if(expression is ArrayAccessExpression){
             buffer.append(expression.array.name)
             buffer.append("[")

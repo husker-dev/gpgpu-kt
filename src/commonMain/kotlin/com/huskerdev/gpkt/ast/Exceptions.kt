@@ -58,7 +58,7 @@ fun expectedTypeException(expected: Type, actual: Type, lexeme: Lexeme, original
 )
 
 fun cantUseOperatorException(operator: Operator, type: Type, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Use of '${operator.token}' with '${type.text}' is not allowed",
+    text = "Use of '${operator.token}' with type '${type.text}' is not allowed",
     originalCode = originalCode,
     lexeme = lexeme
 )

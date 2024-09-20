@@ -5,6 +5,7 @@ const val FLAG_EQUAL_TYPES = 1
 const val FLAG_NUMERIC_TYPES = 2
 const val FLAG_LOGICAL_TYPES = 4
 const val FLAG_FIELD_TYPE = 8
+const val FLAG_INT_TYPE = 16
 
 const val FLAG_RETURNS_BOOLEAN = 16
 
@@ -27,16 +28,16 @@ enum class Operator(
     BITWISE_AND_ASSIGN(14, Usage.AxB, "&=", FLAG_LOGICAL_TYPES),
     BITWISE_OR_ASSIGN(14, Usage.AxB, "|=", FLAG_LOGICAL_TYPES),
     BITWISE_XOR_ASSIGN(14, Usage.AxB, "^=", FLAG_LOGICAL_TYPES),
-    BITWISE_SHIFT_RIGHT_ASSIGN(14, Usage.AxB, ">>=", FLAG_NUMERIC_TYPES),
-    BITWISE_SHIFT_LEFT_ASSIGN(14, Usage.AxB, "<<=", FLAG_NUMERIC_TYPES),
+    BITWISE_SHIFT_RIGHT_ASSIGN(14, Usage.AxB, ">>=", FLAG_INT_TYPE),
+    BITWISE_SHIFT_LEFT_ASSIGN(14, Usage.AxB, "<<=", FLAG_INT_TYPE),
 
     // Increment/decrement
     INCREASE(2, Usage.Ax, "++", FLAG_FIELD_TYPE),
     DECREASE(2, Usage.Ax, "--", FLAG_FIELD_TYPE),
 
     // Math
-    POSITIVE(2, Usage.xB, "+"),
-    NEGATIVE(2, Usage.xB, "-"),
+    POSITIVE(2, Usage.xB, "+", FLAG_NUMERIC_TYPES),
+    NEGATIVE(2, Usage.xB, "-", FLAG_NUMERIC_TYPES),
     PLUS(4, Usage.AxB, "+", FLAG_NUMERIC_TYPES),
     MINUS(4, Usage.AxB, "-", FLAG_NUMERIC_TYPES),
     MULTIPLY(3, Usage.AxB, "*", FLAG_NUMERIC_TYPES),
@@ -44,15 +45,15 @@ enum class Operator(
     MOD(3, Usage.AxB, "%", FLAG_NUMERIC_TYPES),
 
     // Bitwise
-    BITWISE_AND(8, Usage.AxB, "&", FLAG_NUMERIC_TYPES),
-    BITWISE_OR(10, Usage.AxB, "|", FLAG_NUMERIC_TYPES),
-    BITWISE_XOR(9, Usage.AxB, "^", FLAG_NUMERIC_TYPES),
-    BITWISE_NOT(2, Usage.xB, "~"),
-    BITWISE_SHIFT_RIGHT(5, Usage.AxB, ">>", FLAG_NUMERIC_TYPES),
-    BITWISE_SHIFT_LEFT(5, Usage.AxB, "<<", FLAG_NUMERIC_TYPES),
+    BITWISE_AND(8, Usage.AxB, "&", FLAG_INT_TYPE),
+    BITWISE_OR(10, Usage.AxB, "|", FLAG_INT_TYPE),
+    BITWISE_XOR(9, Usage.AxB, "^", FLAG_INT_TYPE),
+    BITWISE_NOT(2, Usage.xB, "~", FLAG_INT_TYPE),
+    BITWISE_SHIFT_RIGHT(5, Usage.AxB, ">>", FLAG_INT_TYPE),
+    BITWISE_SHIFT_LEFT(5, Usage.AxB, "<<", FLAG_INT_TYPE),
 
     // Logical
-    LOGICAL_NOT(2, Usage.xB, "!"),
+    LOGICAL_NOT(2, Usage.xB, "!", FLAG_LOGICAL_TYPES),
     LOGICAL_AND(11, Usage.AxB, "&&", FLAG_LOGICAL_TYPES),
     LOGICAL_OR(12, Usage.AxB, "||", FLAG_LOGICAL_TYPES),
 
