@@ -27,6 +27,7 @@ fun exampleArray() = FloatArray(1_000_000) { it.toFloat() }
 4. Execute
 ```kotlin
 program.execute(
+    instances = arr1.length,
     "arr1" to arr1,
     "arr2" to arr2,
     "result" to result
