@@ -15,7 +15,7 @@ class OCLProgram(
     private val kernel: cl_kernel
 
     init {
-        val buffer = StringBuffer()
+        val buffer = StringBuilder()
         stringifyScope(ast, buffer)
 
         program = cl.compileProgram(buffer.toString())
@@ -29,7 +29,7 @@ class OCLProgram(
         cl.executeKernel(kernel, instances.toLong())
     }
 
-    override fun stringifyFunction(function: Function, buffer: StringBuffer, additionalModifier: String?){
+    override fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String?){
         if(function.name == "main"){
             buffer.append("__kernel ")
             stringifyModifiers(function.modifiers, buffer)

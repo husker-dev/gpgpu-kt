@@ -7,7 +7,7 @@ import kotlin.math.min
 
 fun processLexemes(block: String): List<Lexeme> {
     val lexemes = mutableListOf<Lexeme>()
-    val buffer = StringBuffer()
+    val buffer = StringBuilder()
     var inComment = false
 
     fun flush(lineIndex: Int, charIndex: Int) {

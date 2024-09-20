@@ -1,5 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform").version("2.0.20")
+    id("maven-publish")
 }
 
 group = "com.huskerdev"
@@ -11,6 +12,7 @@ repositories {
 
 kotlin {
     jvm()
+    js()
 
     sourceSets {
         jvmMain {

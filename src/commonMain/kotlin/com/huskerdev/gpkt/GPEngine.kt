@@ -10,7 +10,7 @@ abstract class GPEngine(
     val type: GPType
 ) {
     companion object {
-        @JvmStatic fun create(
+        fun create(
             vararg expectedEngine: GPType = arrayOf(
                 GPType.CUDA,
                 GPType.OpenCL,

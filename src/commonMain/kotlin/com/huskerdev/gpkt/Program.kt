@@ -17,13 +17,13 @@ abstract class SimpleCProgram(ast: Scope): Program {
         Modifiers.OUT in it.modifiers
     }.map { it.name }.toList()
 
-    protected fun stringifyScope(scope: Scope, buffer: StringBuffer, ignoredFields: List<Field>? = null){
+    protected fun stringifyScope(scope: Scope, buffer: StringBuilder, ignoredFields: List<Field>? = null){
         scope.statements.forEach { statement ->
             stringifyStatement(statement, buffer, true, ignoredFields)
         }
     }
 
-    protected open fun stringifyStatement(statement: Statement, buffer: StringBuffer, expressionSemicolon: Boolean, ignoredFields: List<Field>? = null){
+    protected open fun stringifyStatement(statement: Statement, buffer: StringBuilder, expressionSemicolon: Boolean, ignoredFields: List<Field>? = null){
         when(statement) {
             is ExpressionStatement -> {
                 stringifyExpression(statement.expression, buffer)
@@ -42,7 +42,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         }
     }
 
-    protected open fun stringifyWhileStatement(statement: WhileStatement, buffer: StringBuffer){
+    protected open fun stringifyWhileStatement(statement: WhileStatement, buffer: StringBuilder){
         buffer.append("while(")
         stringifyExpression(statement.condition, buffer)
         buffer.append("){")
@@ -50,7 +50,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append("}")
     }
 
-    protected open fun stringifyForStatement(statement: ForStatement, buffer: StringBuffer){
+    protected open fun stringifyForStatement(statement: ForStatement, buffer: StringBuilder){
         buffer.append("for(")
         stringifyStatement(statement.initialization, buffer, true)
         stringifyStatement(statement.condition, buffer, true)
@@ -60,7 +60,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append("}")
     }
 
-    protected open fun stringifyIfStatement(statement: IfStatement, buffer: StringBuffer){
+    protected open fun stringifyIfStatement(statement: IfStatement, buffer: StringBuilder){
         buffer.append("if(")
         stringifyExpression(statement.condition, buffer)
         buffer.append("){")
@@ -73,7 +73,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         }
     }
 
-    protected open fun stringifyReturnStatement(returnStatement: ReturnStatement, buffer: StringBuffer){
+    protected open fun stringifyReturnStatement(returnStatement: ReturnStatement, buffer: StringBuilder){
         buffer.append("return")
         if(returnStatement.expression != null) {
             buffer.append(" ")
@@ -82,7 +82,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append(";")
     }
 
-    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuffer, ignoredFields: List<Field>?){
+    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, ignoredFields: List<Field>?){
         val modifiers = fieldStatement.fields[0].modifiers
         val type = fieldStatement.fields[0].type
 
@@ -106,7 +106,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         }
     }
 
-    protected open fun stringifyFunction(function: Function, buffer: StringBuffer, additionalModifier: String? = null){
+    protected open fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String? = null){
         if(additionalModifier != null) {
             buffer.append(additionalModifier)
             buffer.append(" ")
@@ -124,7 +124,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append("}")
     }
 
-    protected open fun stringifyExpression(expression: Expression, buffer: StringBuffer){
+    protected open fun stringifyExpression(expression: Expression, buffer: StringBuilder){
         if(expression is AxBExpression){
             stringifyExpression(expression.left, buffer)
             buffer.append(expression.operator.token)
@@ -172,7 +172,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         }
     }
 
-    protected open fun stringifyModifiers(modifiers: List<Modifiers>, buffer: StringBuffer){
+    protected open fun stringifyModifiers(modifiers: List<Modifiers>, buffer: StringBuilder){
         if(modifiers.isNotEmpty())
             buffer.append(modifiers.joinToString(" ", postfix = " ") { it.text })
     }

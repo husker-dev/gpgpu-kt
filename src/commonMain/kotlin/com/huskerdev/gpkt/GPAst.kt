@@ -8,7 +8,7 @@ import com.huskerdev.gpkt.ast.parser.parseScope
 
 class GPAst {
     companion object {
-        @JvmStatic fun parse(text: String): Scope {
+        fun parse(text: String): Scope {
             val lexemes = processLexemes(text)
             //println(lexemes.mapIndexed { index, lexeme -> "$index:${lexeme.text}" }.joinToString(" "))
 
