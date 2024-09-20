@@ -8,7 +8,13 @@ import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Type
 
 
-fun parseScope(scope: Scope, lexemes: List<Lexeme>, codeBlock: String, from: Int, to: Int): Int{
+fun parseScope(
+    scope: Scope,
+    lexemes: List<Lexeme>,
+    codeBlock: String,
+    from: Int,
+    to: Int
+): Int {
     //println("==== SCOPE: ${from}-${to} ====")
 
     var i = from
@@ -18,7 +24,7 @@ fun parseScope(scope: Scope, lexemes: List<Lexeme>, codeBlock: String, from: Int
             //println("current: ${lexemes.subList(i, kotlin.math.min(to, i+3)).joinToString(" ") { it.text }}")
 
             if(lexeme.text == "}"){
-                if(scope.returnType != null && scope.returnType != Type.VOID && scope.returnStatement == null)
+                if(scope.returnType != null && scope.returnType != Type.VOID && !scope.statements.any { it.returns })
                     throw compilationError("Expected return statement", lexeme, codeBlock)
                 return i + 1
             }
@@ -30,6 +36,8 @@ fun parseScope(scope: Scope, lexemes: List<Lexeme>, codeBlock: String, from: Int
                     lexeme.text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i)
                     lexeme.text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i)
                     lexeme.text == "for" -> parseForStatement(scope, lexemes, codeBlock, i)
+                    lexeme.text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, i)
+                    lexeme.text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, i)
                     (lexeme.text in primitives || lexeme.text in modifiers) -> {
                         var r = i
                         while(lexemes[r].type != Lexeme.Type.NAME)

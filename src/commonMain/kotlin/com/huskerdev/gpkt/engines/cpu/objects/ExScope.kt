@@ -4,6 +4,7 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 
+
 class ExScope(
     val scope: Scope,
     private val parentScope: ExScope? = null
@@ -49,7 +50,12 @@ class ExScope(
             }
             is WhileStatement -> {
                 while(executeExpression(this, it.condition).get() == true){
-                    ExScope(it.body, this).execute()?.apply { return this }
+                    val res = ExScope(it.body, this).execute()
+                    if(res != null) {
+                        if (res == BreakMarker) break
+                        if (res == ContinueMarker) continue
+                        return res
+                    }
                 }
             }
             is ForStatement -> {
@@ -60,10 +66,17 @@ class ExScope(
                 val body = ExScope(scope.scope, scope)
 
                 while(condition !is ExpressionStatement || executeExpression(scope, condition.expression).get() == true){
-                    body.execute()?.apply { return this }
+                    val res = body.execute()
+                    if(res != null) {
+                        if (res == BreakMarker) break
+                        if (res == ContinueMarker) continue
+                        return res
+                    }
                     scope.evalStatement(it.iteration)
                 }
             }
+            is BreakStatement -> return BreakMarker
+            is ContinueStatement -> return ContinueMarker
             else -> throw UnsupportedOperationException("Unsupported statement '$it'")
         }
         return null

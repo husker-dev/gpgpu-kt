@@ -37,6 +37,8 @@ abstract class SimpleCProgram(ast: Scope): Program {
             is ForStatement -> stringifyForStatement(statement, buffer)
             is WhileStatement -> stringifyWhileStatement(statement, buffer)
             is EmptyStatement -> buffer.append(";")
+            is BreakStatement -> buffer.append("break;")
+            is ContinueStatement -> buffer.append("continue;")
         }
     }
 

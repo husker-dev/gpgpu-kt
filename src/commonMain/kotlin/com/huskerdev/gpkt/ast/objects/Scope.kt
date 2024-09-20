@@ -6,14 +6,15 @@ import com.huskerdev.gpkt.ast.types.Type
 
 open class Scope(
     val parentScope: Scope?,
-    open val returnType: Type? = null
+    open val returnType: Type? = null,
+    val iterable: Boolean = false
 ) {
     val statements = mutableListOf<Statement>()
 
     val fields = mutableListOf<Field>()
     val functions = mutableListOf<Function>()
 
-    var returnStatement: ReturnStatement? = null
+    var returns = false
 
     fun findDefinedField(name: String): Field? =
         fields.firstOrNull { it.name == name } ?: parentScope?.findDefinedField(name)
@@ -25,6 +26,10 @@ open class Scope(
 
     fun findReturnType(): Type =
         returnType ?: parentScope?.findReturnType() ?: Type.VOID
+
+    fun isInIterableScope(): Boolean = if(iterable)
+        true
+    else parentScope?.isInIterableScope() ?: false
 
     private fun checkAvailableName(name: String, lexeme: Lexeme, codeBlock: String){
         if(findDefinedFunction(name) != null)
@@ -45,8 +50,8 @@ open class Scope(
 
     fun addStatement(statement: Statement, codeBlock: String){
         statements += statement
-        if(statement is ReturnStatement && returnType != null)
-            returnStatement = statement
+        if(statement is ReturnStatement)
+            returns = true
 
         if(statement is FieldStatement){
             statement.fields.forEach { field ->

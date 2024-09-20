@@ -29,3 +29,6 @@ class ExArrayAccessValue(
         else -> throw UnsupportedOperationException("Can't get element in $array")
     }
 }
+
+object BreakMarker: ExValue(null)
+object ContinueMarker: ExValue(null)

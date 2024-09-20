@@ -21,7 +21,7 @@ fun parseWhileStatement(
         throw expectedTypeException(Type.BOOLEAN, condition.type, lexemes[i+1], codeBlock)
     i += condition.lexemeLength + 2
 
-    val body = Scope(scope).apply {
+    val body = Scope(scope, iterable = true).apply {
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
         else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(lexemes, i)) + 1

@@ -43,7 +43,6 @@ fun exec(engineType: GPType){
                 return v1 + v2;
             else
                 return v1 * v2;
-            return 0.0;
         }
         
         void main(int i){

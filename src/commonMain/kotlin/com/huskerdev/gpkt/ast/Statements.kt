@@ -8,6 +8,7 @@ import com.huskerdev.gpkt.ast.objects.Scope
 interface Statement{
     val lexemeIndex: Int
     val lexemeLength: Int
+    val returns: Boolean
 }
 
 class ExpressionStatement(
@@ -15,30 +16,53 @@ class ExpressionStatement(
 ): Statement {
     override val lexemeIndex = expression.lexemeIndex
     override val lexemeLength = expression.lexemeLength + 1
+    override val returns = false
 }
 
 class FunctionStatement(
     val function: Function,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = false
+}
 
 class EmptyStatement(
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-) : Statement
+) : Statement {
+    override val returns = false
+}
 
 class FieldStatement(
     val fields: List<Field>,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = false
+}
 
 class ReturnStatement(
     val expression: Expression?,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = true
+}
+
+class BreakStatement(
+    override val lexemeIndex: Int,
+    override val lexemeLength: Int
+): Statement {
+    override val returns = false
+}
+
+class ContinueStatement(
+    override val lexemeIndex: Int,
+    override val lexemeLength: Int
+): Statement {
+    override val returns = false
+}
 
 class IfStatement(
     val condition: Expression,
@@ -46,14 +70,18 @@ class IfStatement(
     val elseBody: Scope?,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = body.returns && (elseBody == null || elseBody.returns)
+}
 
 class WhileStatement(
     val condition: Expression,
     val body: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = false
+}
 
 class ForStatement(
     val initialization: Statement,
@@ -62,4 +90,6 @@ class ForStatement(
     val body: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
-): Statement
+): Statement {
+    override val returns = false
+}

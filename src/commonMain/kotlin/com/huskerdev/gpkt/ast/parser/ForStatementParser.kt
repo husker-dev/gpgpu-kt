@@ -28,22 +28,18 @@ fun parseForStatement(
     // Head scope
     val headScope = Scope(scope, Type.VOID)
     i = parseScope(headScope, lexemes, codeBlock, i+1, r)
-
-    /*
-    val semicolons = headScope.statements.size
-    if(semicolons != 2)
-        throw compilationError("Expected three statements", lexemes[i+2], codeBlock)
-     */
+    if(headScope.statements.size < 2)
+        throw compilationError("Expected at least two statements", lexemes[i], codeBlock)
 
     // block 1
     val initialization = headScope.statements[0]
 
     // block 2
     val condition = headScope.statements[1]
-    /*
-    if(condition !is ExpressionStatement || !condition.expression.type.isLogical)
-        throw compilationError("Expected boolean in condition", lexemes[i+1], codeBlock)
-     */
+    if(condition !is ExpressionStatement && condition !is EmptyStatement)
+        throw compilationError("Condition must be 'boolean' expression or empty", lexemes[condition.lexemeIndex], codeBlock)
+    if(condition is ExpressionStatement && condition.expression.type != Type.BOOLEAN)
+        throw expectedTypeException(Type.BOOLEAN, condition.expression.type, lexemes[condition.lexemeIndex], codeBlock)
 
     // block 3
     val iteration = headScope.statements.getOrElse(2) {
@@ -51,7 +47,7 @@ fun parseForStatement(
     }
 
     // body
-    val body = Scope(scope).apply {
+    val body = Scope(scope, iterable = true).apply {
         if(initialization is FieldStatement)
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")
