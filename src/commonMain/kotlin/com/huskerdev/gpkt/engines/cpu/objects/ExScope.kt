@@ -110,7 +110,7 @@ class ExScope(
     private fun addFunction(name: String, scope: ExScope){
         functions!![name] = scope
         if(name == "main")
-            scope.execute(hashMapOf("i" to fields!!["__i"]!!))
+            scope.execute(hashMapOf("i" to fields!!["__i__"]!!))
     }
 
     fun findField(name: String): ExField? =

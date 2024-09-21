@@ -23,7 +23,7 @@ fun main() {
         }
         
         void main(int i){
-            result[i] = sma(arr1, i, 3);
+            result[i] = sma(arr1, i, 10);
         }
     """.trimIndent())
 
@@ -36,5 +36,6 @@ fun main() {
     )
 
     val r = result.read()
-    println(r.toList().subList(0, 20))
+    println(r.toList().take(20))
+    println(r.toList().takeLast(20))
 }
