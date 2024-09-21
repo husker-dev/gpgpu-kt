@@ -56,7 +56,7 @@ fun parseForStatement(
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i + 1, to)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock))
+        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
     }
 
     return ForStatement(scope, initialization, condition, iteration, body, from, i - from)

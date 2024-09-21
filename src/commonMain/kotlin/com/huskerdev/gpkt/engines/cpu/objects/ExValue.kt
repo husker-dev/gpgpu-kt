@@ -24,8 +24,8 @@ class ExArrayAccessValue(
         return this
     }
     override fun get(): Any = when (array) {
-        is FloatArray -> array[index]
-        is IntArray -> array[index]
+        is FloatArray -> array.getOrElse(index) { 0f }
+        is IntArray -> array.getOrElse(index) { 0 }
         else -> throw UnsupportedOperationException("Can't get element in $array")
     }
 }

@@ -6,9 +6,10 @@ import com.huskerdev.gpkt.ast.types.Modifiers
 
 
 class ExScope(
-    val scope: Scope,
+    val scope: Scope?,
     private val parentScope: ExScope? = null
 ) {
+    private var began = false
     private var fields: MutableMap<String, ExField>? = null
     private var functions: MutableMap<String, ExScope>? = null
 
@@ -16,14 +17,32 @@ class ExScope(
         fields: MutableMap<String, ExField> = hashMapOf(),
         functions: MutableMap<String, ExScope> = hashMapOf(),
     ): ExValue? {
+        begin(fields, functions)
+        scope?.statements?.forEach { statement ->
+            evalStatement(statement)?.apply {
+                end()
+                return this
+            }
+        }
+        end()
+        return null
+    }
+
+    private fun begin(
+        fields: MutableMap<String, ExField> = hashMapOf(),
+        functions: MutableMap<String, ExScope> = hashMapOf(),
+    ){
+        if(began) return
+        began = true
         this.fields = fields
         this.functions = functions
-        scope.statements.forEach { statement ->
-            evalStatement(statement)?.apply { return this }
-        }
+    }
+
+    private fun end(){
+        if(!began) return
+        began = false
         this.fields = null
         this.functions = null
-        return null
     }
 
     private fun evalStatement(it: Statement): ExValue? {
@@ -59,21 +78,23 @@ class ExScope(
                 }
             }
             is ForStatement -> {
-                val scope = ExScope(it.body, this)
-                scope.evalStatement(it.initialization)
+                val forScope = ExScope(null, this)
+                forScope.begin()
+                forScope.evalStatement(it.initialization)
 
                 val condition = it.condition
-                val body = ExScope(scope.scope, scope)
+                val body = ExScope(it.body, forScope)
 
-                while(condition !is ExpressionStatement || executeExpression(scope, condition.expression).get() == true){
+                while(condition !is ExpressionStatement || executeExpression(forScope, condition.expression).get() == true){
                     val res = body.execute()
                     if(res != null) {
                         if (res == BreakMarker) break
                         if (res == ContinueMarker) continue
                         return res
                     }
-                    scope.evalStatement(it.iteration)
+                    forScope.evalStatement(it.iteration)
                 }
+                forScope.end()
             }
             is BreakStatement -> return BreakMarker
             is ContinueStatement -> return ContinueMarker
