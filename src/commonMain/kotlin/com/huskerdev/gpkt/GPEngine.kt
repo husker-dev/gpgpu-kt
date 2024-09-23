@@ -32,5 +32,6 @@ abstract class GPEngine(
 enum class GPType {
     OpenCL,
     CUDA,
-    Interpreter
+    Interpreter,
+    Javac
 }

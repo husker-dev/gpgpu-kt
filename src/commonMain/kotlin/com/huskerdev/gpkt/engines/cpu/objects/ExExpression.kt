@@ -234,18 +234,19 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
     if(expression is FieldExpression) {
         return scope.findField(expression.field.name)!!.value!!
     }
-
     if(expression is FunctionCallExpression) {
         val arguments = expression.function.arguments.mapIndexed { i, arg ->
             arg.name to ExField(arg.type, ExValue(executeExpression(scope, expression.arguments[i]).get()))
         }.toMap().toMutableMap()
         return scope.findFunction(expression.function.name)!!.execute(arguments)!!
     }
-
     if(expression is ArrayAccessExpression) {
         val array = scope.findField(expression.array.name)!!.value!!.get()!!
         val index = executeExpression(scope, expression.index).get() as Int
         return ExArrayAccessValue(array, index)
     }
-    throw UnsupportedOperationException("Unsupported expression")
+    if(expression is BracketExpression)
+        return executeExpression(scope, expression.wrapped)
+
+    throw UnsupportedOperationException("Unsupported expression: $expression")
 }
