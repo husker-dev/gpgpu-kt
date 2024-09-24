@@ -4,7 +4,7 @@ import com.huskerdev.gpkt.Source
 import org.jocl.cl_mem
 
 
-class OCLSource(
+class OpenCLSource(
     private val cl: OpenCL,
     val data: cl_mem,
     override val length: Int

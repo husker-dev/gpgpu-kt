@@ -7,6 +7,7 @@ import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
+import jcuda.Pointer
 import jcuda.driver.CUfunction
 import jcuda.driver.CUmodule
 
@@ -28,8 +29,17 @@ class CudaProgram(
         function = cuda.getFunctionPointer(module, "_m")
     }
 
-    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) =
-        cuda.launch(function, instances, mapping.map { it.second }.toList())
+    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
+        val map = hashMapOf(*mapping)
+
+        val countVal = Pointer.to(intArrayOf(instances))
+        val arrays = buffers.map {
+            if(it !in map) throw Exception("Source '$it' have not been set")
+            else (map[it] as CudaSource).ptr
+        }.toTypedArray()
+
+        cuda.launch(function, instances, countVal, *arrays)
+    }
 
     override fun dealloc() = Unit
 
@@ -41,11 +51,10 @@ class CudaProgram(
             buffer.append(" ")
             buffer.append("_m")
             buffer.append("(")
-            buffer.append(buffers.joinToString(",") {
-                "float*${it}"
-            })
+            buffer.append((arrayOf("int __c") + buffers.map { "float*${it}" }).joinToString(", "))
             buffer.append("){")
             buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
+            buffer.append("if(${function.arguments[0].name}>__c)return;")
             stringifyScope(function, buffer, function.arguments)
             buffer.append("}")
         }else super.stringifyFunction(function, buffer, "__device__")

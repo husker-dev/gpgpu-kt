@@ -7,9 +7,7 @@ import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.objects.ExField
 import com.huskerdev.gpkt.engines.cpu.objects.ExScope
 import com.huskerdev.gpkt.engines.cpu.objects.ExValue
-
-expect val threads: Int
-expect fun runThread(f: () -> Unit): AbstractThread
+import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 
 class CPUProgram(
@@ -21,46 +19,21 @@ class CPUProgram(
             it.first to ExField(Type.FLOAT_ARRAY, ExValue(array))
         }.toMutableMap()
 
-        if(threads == 1){
-            execPeriod(variables, 0, instances)
-        } else if(instances > threads) {
-            val instancesPerThread = instances / threads
-            val threadList = arrayListOf<AbstractThread>()
-            for (i in 0 until threads) {
-                val fromIndex = i * instancesPerThread
-                threadList += runThread {
-                    execPeriod(variables, fromIndex, fromIndex + instancesPerThread)
-                }
-            }
-            threadList.forEach { it.waitEnd() }
-        }else {
-            val threadList = arrayListOf<AbstractThread>()
-            for(i in 0 until instances){
-                threadList += runThread {
-                    execPeriod(variables, i, i+1)
-                }
-            }
-            threadList.forEach { it.waitEnd() }
-        }
-    }
+        splitThreadInvocation(instances) { from, to ->
+            val scope = ExScope(ast)
+            val iteration = ExField(Type.INT, ExValue(null))
+            val threadLocalVariables = hashMapOf(
+                "__i__" to iteration
+            )
+            threadLocalVariables.putAll(variables)
 
-    private fun execPeriod(variables: MutableMap<String, ExField>, from: Int, to: Int){
-        val scope = ExScope(ast)
-        val iteration = ExField(Type.INT, ExValue(null))
-        val threadLocalVariables = hashMapOf(
-            "__i__" to iteration
-        )
-        threadLocalVariables.putAll(variables)
-
-        for(step in from until to){
-            iteration.value!!.set(step)
-            scope.execute(threadLocalVariables)
+            for(step in from until to){
+                iteration.value!!.set(step)
+                scope.execute(threadLocalVariables)
+            }
         }
     }
 
     override fun dealloc() = Unit
 }
 
-interface AbstractThread {
-    fun waitEnd()
-}

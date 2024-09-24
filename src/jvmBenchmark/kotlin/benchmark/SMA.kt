@@ -1,6 +1,6 @@
 package benchmark
 
-import com.huskerdev.gpkt.GPEngine
+import com.huskerdev.gpkt.GPDevice
 
 val candles = 1000
 
@@ -9,7 +9,7 @@ val maxPeriod = 500
 
 
 class GP(
-    engine: GPEngine
+    engine: GPDevice
 ) {
     private var data = engine.alloc(FloatArray(candles) { it.toFloat() })
     private var result = engine.alloc(candles * (maxPeriod - minPeriod))

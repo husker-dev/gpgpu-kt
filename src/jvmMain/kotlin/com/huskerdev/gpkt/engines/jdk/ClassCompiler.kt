@@ -13,6 +13,12 @@ import javax.tools.*
 class ClassCompiler {
 
     companion object {
+        val supported = try {
+            ToolProvider.getSystemJavaCompiler() != null
+        }catch (e: Exception){
+            false
+        }
+
         fun compileClass(source: String, classPath: String): Class<*>{
             val compiler = ToolProvider.getSystemJavaCompiler()
             val stdManager = compiler.getStandardFileManager(null, null, null)

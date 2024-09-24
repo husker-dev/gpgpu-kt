@@ -7,7 +7,7 @@ import com.huskerdev.gpkt.ast.objects.Scope
 import org.jocl.cl_kernel
 import org.jocl.cl_program
 
-class OCLProgram(
+class OpenCLProgram(
     private val cl: OpenCL,
     ast: Scope
 ): SimpleCProgram(ast) {
@@ -23,8 +23,10 @@ class OCLProgram(
     }
 
     override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
-        mapping.forEach { (key, value) ->
-            cl.setArgument(kernel, buffers.indexOf(key), value as OCLSource)
+        val map = hashMapOf(*mapping)
+        buffers.forEachIndexed { i, it ->
+            if(it !in map) throw Exception("Source '$it' have not been set")
+            cl.setArgument(kernel, i, map[it] as OpenCLSource)
         }
         cl.executeKernel(kernel, instances.toLong())
     }

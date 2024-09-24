@@ -1,17 +1,20 @@
 package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.Source
+import jcuda.Pointer
 import jcuda.driver.CUdeviceptr
 
 class CudaSource(
     private val cuda: Cuda,
-    val ptr: CUdeviceptr,
+    private val devicePtr: CUdeviceptr,
     override val length: Int
 ): Source {
+    val ptr: Pointer = Pointer.to(devicePtr)
+
     override fun read() =
-        cuda.read(ptr, length)
+        cuda.read(devicePtr, length)
 
     override fun dealloc() {
-        cuda.dealloc(ptr)
+        cuda.dealloc(devicePtr)
     }
 }

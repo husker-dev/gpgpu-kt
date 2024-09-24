@@ -1,6 +1,6 @@
 package benchmark
 
-import com.huskerdev.gpkt.GPEngine
+import com.huskerdev.gpkt.GPDevice
 import com.huskerdev.gpkt.GPType
 import org.openjdk.jmh.annotations.*
 
@@ -11,7 +11,7 @@ open class SMA_CL {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPEngine.create(GPType.OpenCL)!!)
+        gp = GP(GPDevice.create(requestedType = arrayOf(GPType.OpenCL))!!)
     }
 
     @Benchmark

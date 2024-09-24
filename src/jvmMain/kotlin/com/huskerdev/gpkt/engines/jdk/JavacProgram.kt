@@ -8,8 +8,7 @@ import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
-import com.huskerdev.gpkt.engines.cpu.AbstractThread
-import com.huskerdev.gpkt.engines.cpu.runThread
+import com.huskerdev.gpkt.utils.splitThreadInvocation
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
@@ -57,42 +56,16 @@ class JavacProgram(ast: Scope): Program {
             else (map[it] as JavacSource).array
         }
 
-        val threads = Runtime.getRuntime().availableProcessors()
-
-        if(threads == 1){
-            execPeriod(arrays, 0, instances)
-        } else if(instances > threads) {
-            val instancesPerThread = instances / threads
-            val threadList = arrayListOf<AbstractThread>()
-            for (i in 0 until threads) {
-                val fromIndex = i * instancesPerThread
-                threadList += runThread {
-                    execPeriod(arrays, fromIndex, fromIndex + instancesPerThread)
-                }
+        splitThreadInvocation(instances) { from, to ->
+            try {
+                execMethod.invoke(null, *(listOf(from, to) + arrays).toTypedArray())
+            }catch (e: InvocationTargetException){
+                throw e.targetException
             }
-            threadList.forEach { it.waitEnd() }
-        }else {
-            val threadList = arrayListOf<AbstractThread>()
-            for(i in 0 until instances){
-                threadList += runThread {
-                    execPeriod(arrays, i, i+1)
-                }
-            }
-            threadList.forEach { it.waitEnd() }
         }
     }
-
-    private fun execPeriod(arrays: List<FloatArray>, from: Int, to: Int) {
-        try {
-            execMethod.invoke(null, *(listOf(from, to) + arrays).toTypedArray())
-        }catch (e: InvocationTargetException){
-            throw e.targetException
-        }
-    }
-
 
     override fun dealloc() = Unit
-
 
     // Stringify
 

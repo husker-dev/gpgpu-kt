@@ -1,4 +1,5 @@
-package com.huskerdev.gpkt.engines.cpu
+package com.huskerdev.gpkt.utils
+
 
 import kotlin.concurrent.thread
 

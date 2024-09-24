@@ -1,4 +1,4 @@
-package com.huskerdev.gpkt.engines.cpu
+package com.huskerdev.gpkt.utils
 
 actual val threads = 1
 
