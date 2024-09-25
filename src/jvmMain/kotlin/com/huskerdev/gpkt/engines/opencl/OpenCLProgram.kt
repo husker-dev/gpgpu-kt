@@ -4,6 +4,7 @@ import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import org.jocl.cl_kernel
 import org.jocl.cl_program
 
@@ -19,7 +20,7 @@ class OpenCLProgram(
         stringifyScope(ast, buffer)
 
         program = cl.compileProgram(buffer.toString())
-        kernel = cl.createKernel(program, "_m")
+        kernel = cl.createKernel(program, "__m")
     }
 
     override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
@@ -36,22 +37,19 @@ class OpenCLProgram(
         cl.dealloc(kernel)
     }
 
-    override fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String?){
+    override fun stringifyFunction(function: Function, buffer: StringBuilder){
         if(function.name == "main"){
-            buffer.append("__kernel ")
-            stringifyModifiers(function.modifiers, buffer)
-            buffer.append(function.returnType.text)
-            buffer.append(" ")
-            buffer.append("_m")
-            buffer.append("(")
-            buffer.append(buffers.joinToString(",") {
-                "__global float*${it}"
-            })
-            buffer.append("){")
+            appendCFunctionHeader(
+                buffer = buffer,
+                modifiers = listOf("__kernel"),
+                type = function.returnType.text,
+                name = "__m",
+                args = buffers.map { "__global float*${it}" }
+            )
             buffer.append("int ${function.arguments[0].name}=get_global_id(0);")
-            stringifyScope(function, buffer, function.arguments)
+            stringifyScope(function, buffer)
             buffer.append("}")
-        } else super.stringifyFunction(function, buffer, additionalModifier)
+        } else super.stringifyFunction(function, buffer)
     }
 
 }

@@ -1,11 +1,12 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.utils.appendCFieldHeader
+import com.huskerdev.gpkt.utils.appendCFunctionHeader
 
 interface Program {
     fun execute(instances: Int, vararg mapping: Pair<String, Source>)
@@ -18,21 +19,20 @@ abstract class SimpleCProgram(ast: Scope): Program {
         Modifiers.OUT in it.modifiers
     }.map { it.name }.toList()
 
-    protected fun stringifyScope(scope: Scope, buffer: StringBuilder, ignoredFields: List<Field>? = null){
+    protected fun stringifyScope(scope: Scope, buffer: StringBuilder){
         scope.statements.forEach { statement ->
-            stringifyStatement(statement, buffer, true, ignoredFields)
+            stringifyStatement(buffer, statement)
         }
     }
 
-    protected open fun stringifyStatement(statement: Statement, buffer: StringBuilder, expressionSemicolon: Boolean, ignoredFields: List<Field>? = null){
+    protected open fun stringifyStatement(
+        buffer: StringBuilder,
+        statement: Statement
+    ){
         when(statement) {
-            is ExpressionStatement -> {
-                stringifyExpression(statement.expression, buffer)
-                if(expressionSemicolon)
-                    buffer.append(";")
-            }
+            is ExpressionStatement -> stringifyExpression(buffer, statement.expression, true)
             is FunctionStatement -> stringifyFunction(statement.function, buffer)
-            is FieldStatement -> stringifyFieldStatement(statement, buffer, ignoredFields)
+            is FieldStatement -> stringifyFieldStatement(statement, buffer)
             is ReturnStatement -> stringifyReturnStatement(statement, buffer)
             is IfStatement -> stringifyIfStatement(statement, buffer)
             is ForStatement -> stringifyForStatement(statement, buffer)
@@ -43,34 +43,63 @@ abstract class SimpleCProgram(ast: Scope): Program {
         }
     }
 
+    protected open fun stringifyExpression(
+        buffer: StringBuilder,
+        expression: Expression,
+        semicolon: Boolean = false
+    ){
+        when(expression){
+            is AxBExpression -> stringifyAxBExpression(buffer, expression)
+            is AxExpression -> stringifyAxExpression(buffer, expression)
+            is XBExpression -> stringifyXBExpression(buffer, expression)
+            is ArrayAccessExpression -> stringifyArrayAccessExpression(buffer, expression)
+            is FunctionCallExpression -> stringifyFunctionCallExpression(buffer, expression)
+            is ConstExpression -> stringifyConstExpression(buffer, expression)
+            is BracketExpression -> stringifyBracketExpression(buffer, expression)
+            is CastExpression -> stringifyCastExpression(buffer, expression)
+            is FieldExpression -> stringifyFieldExpression(buffer, expression)
+        }
+        if(semicolon)
+            buffer.append(";")
+    }
+
+    /* ================== *\
+           Statements
+    \* ================== */
+
     protected open fun stringifyWhileStatement(statement: WhileStatement, buffer: StringBuilder){
         buffer.append("while(")
-        stringifyExpression(statement.condition, buffer)
-        buffer.append("){")
+        stringifyExpression(buffer, statement.condition)
+        buffer.append(")")
+        if(statement.body.statements.size > 1) buffer.append("{")
         stringifyScope(statement.body, buffer)
-        buffer.append("}")
+        if(statement.body.statements.size > 1) buffer.append("}")
     }
 
     protected open fun stringifyForStatement(statement: ForStatement, buffer: StringBuilder){
         buffer.append("for(")
-        stringifyStatement(statement.initialization, buffer, true)
-        stringifyStatement(statement.condition, buffer, true)
-        stringifyStatement(statement.iteration, buffer, false)
-        buffer.append("){")
+        stringifyStatement(buffer, statement.initialization)
+        if(statement.condition != null) stringifyExpression(buffer, statement.condition)
+        buffer.append(";")
+        if(statement.iteration != null) stringifyExpression(buffer, statement.iteration)
+        buffer.append(")")
+        if(statement.body.statements.size > 1) buffer.append("{")
         stringifyScope(statement.body, buffer)
-        buffer.append("}")
+        if(statement.body.statements.size > 1) buffer.append("}")
     }
 
     protected open fun stringifyIfStatement(statement: IfStatement, buffer: StringBuilder){
         buffer.append("if(")
-        stringifyExpression(statement.condition, buffer)
-        buffer.append("){")
+        stringifyExpression(buffer, statement.condition)
+        buffer.append(")")
+        if(statement.body.statements.size > 1) buffer.append("{")
         stringifyScope(statement.body, buffer)
-        buffer.append("}")
+        if(statement.body.statements.size > 1) buffer.append("}")
         if(statement.elseBody != null){
-            buffer.append("else{")
+            buffer.append("else")
+            if(statement.elseBody.statements.size > 1) buffer.append("{")
             stringifyScope(statement.elseBody, buffer)
-            buffer.append("}")
+            if(statement.elseBody.statements.size > 1) buffer.append("}")
         }
     }
 
@@ -78,113 +107,105 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append("return")
         if(returnStatement.expression != null) {
             buffer.append(" ")
-            stringifyExpression(returnStatement.expression, buffer)
+            stringifyExpression(buffer, returnStatement.expression)
         }
         buffer.append(";")
     }
 
-    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, ignoredFields: List<Field>?){
+    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder){
         val modifiers = fieldStatement.fields[0].modifiers
         val type = fieldStatement.fields[0].type
-
         if(Modifiers.IN in modifiers || Modifiers.OUT in modifiers)
             return
 
-        if(modifiers.isNotEmpty())
-            buffer.append(modifiers.joinToString(" ", postfix = " ") { it.text })
-        buffer.append(type.toCType())
-        buffer.append(" ")
-
-        fieldStatement.fields.forEachIndexed { i, field ->
-            buffer.append(field.name)
-            if(field.initialExpression != null){
-                buffer.append("=")
-                stringifyExpression(field.initialExpression, buffer)
-            }
-            if(i == fieldStatement.fields.lastIndex)
-                buffer.append(";")
-            else buffer.append(",")
-        }
+        appendCFieldHeader(
+            buffer = buffer,
+            modifiers = modifiers.map { it.text },
+            type = type.toCType(fieldStatement.scope.parentScope == null),
+            fields = fieldStatement.fields,
+            expressionGen = { stringifyExpression(buffer, it) }
+        )
     }
 
-    protected open fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String? = null){
-        if(additionalModifier != null) {
-            buffer.append(additionalModifier)
-            buffer.append(" ")
-        }
-        stringifyModifiers(function.modifiers, buffer)
-        buffer.append(function.returnType.text)
-        buffer.append(" ")
-        buffer.append(function.name)
-        buffer.append("(")
-        buffer.append(function.arguments.joinToString(",") {
-            "${it.type.toCType()} ${it.name}"
-        })
-        buffer.append("){")
-        stringifyScope(function, buffer, function.arguments)
+    protected open fun stringifyFunction(function: Function, buffer: StringBuilder){
+        appendCFunctionHeader(
+            buffer = buffer,
+            modifiers = function.modifiers.map { it.text },
+            type = function.returnType.toCType(false),
+            name = function.name,
+            args = function.arguments.map { "${it.type.toCType(false)} ${it.name}" }
+        )
+        stringifyScope(function, buffer)
         buffer.append("}")
     }
 
-    protected open fun stringifyExpression(expression: Expression, buffer: StringBuilder){
-        if(expression is AxBExpression){
-            stringifyExpression(expression.left, buffer)
-            buffer.append(expression.operator.token)
-            stringifyExpression(expression.right, buffer)
-        }
-        if(expression is AxExpression){
-            stringifyExpression(expression.left, buffer)
-            buffer.append(expression.operator.token)
-        }
-        if(expression is XBExpression){
-            buffer.append(expression.operator.token)
-            stringifyExpression(expression.right, buffer)
-        }
-        if(expression is ArrayAccessExpression){
-            buffer.append(expression.array.name)
-            buffer.append("[")
-            stringifyExpression(expression.index, buffer)
-            buffer.append("]")
-        }
-        if(expression is FunctionCallExpression){
-            buffer.append(expression.function.name)
-            buffer.append("(")
-            expression.arguments.forEachIndexed { i, arg ->
-                stringifyExpression(arg, buffer)
-                if(i != expression.arguments.lastIndex)
-                    buffer.append(",")
-            }
-            buffer.append(")")
-        }
-        if(expression is FieldExpression)
-            buffer.append(expression.field.name)
-        if(expression is ConstExpression) {
-            buffer.append(expression.lexeme.text)
-            if(expression.type == Type.FLOAT)
-                buffer.append("f")
-        }
-        if(expression is BracketExpression){
-            buffer.append("(")
-            stringifyExpression(expression.wrapped, buffer)
-            buffer.append(")")
-        }
-        if(expression is CastExpression){
-            buffer.append("(").append(expression.type.text).append(")")
-            stringifyExpression(expression.right, buffer)
-        }
+    /* ================== *\
+           Expressions
+    \* ================== */
+
+    protected open fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression){
+        stringifyExpression(buffer, expression.left)
+        buffer.append(expression.operator.token)
+        stringifyExpression(buffer, expression.right)
     }
 
-    protected open fun stringifyModifiers(modifiers: List<Modifiers>, buffer: StringBuilder){
-        if(modifiers.isNotEmpty())
-            buffer.append(modifiers.joinToString(" ", postfix = " ") { it.text })
+    protected open fun stringifyAxExpression(buffer: StringBuilder, expression: AxExpression){
+        stringifyExpression(buffer, expression.left)
+        buffer.append(expression.operator.token)
+    }
+
+    protected open fun stringifyXBExpression(buffer: StringBuilder, expression: XBExpression){
+        buffer.append(expression.operator.token)
+        stringifyExpression(buffer, expression.right)
+    }
+
+    protected open fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression){
+        buffer.append(expression.array.name)
+        buffer.append("[")
+        stringifyExpression(buffer, expression.index)
+        buffer.append("]")
+    }
+
+    protected open fun stringifyFunctionCallExpression(buffer: StringBuilder, expression: FunctionCallExpression){
+        buffer.append(expression.function.name)
+        buffer.append("(")
+        expression.arguments.forEachIndexed { i, arg ->
+            stringifyExpression(buffer, arg)
+            if(i != expression.arguments.lastIndex)
+                buffer.append(",")
+        }
+        buffer.append(")")
+    }
+
+    protected open fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression){
+        buffer.append(expression.lexeme.text)
+        if(expression.type == Type.FLOAT)
+            buffer.append("f")
+    }
+
+    protected open fun stringifyBracketExpression(buffer: StringBuilder, expression: BracketExpression){
+        buffer.append("(")
+        stringifyExpression(buffer, expression.wrapped)
+        buffer.append(")")
+    }
+
+    protected open fun stringifyCastExpression(buffer: StringBuilder, expression: CastExpression){
+        buffer.append("(").append(expression.type.toCType(false)).append(")")
+        stringifyExpression(buffer, expression.right)
+    }
+
+    protected open fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression){
+        buffer.append(expression.field.name)
+    }
+
+    protected open fun Type.toCType(isGlobal: Boolean) = when(this){
+        Type.VOID -> "void"
+        Type.FLOAT -> "float"
+        Type.INT -> "int"
+        Type.BOOLEAN -> "bool"
+        Type.FLOAT_ARRAY -> "float*"
+        Type.INT_ARRAY -> "int*"
+        Type.BOOLEAN_ARRAY -> "bool*"
     }
 }
 
-fun Type.toCType() = when(this){
-    Type.VOID -> "void"
-    Type.FLOAT -> "float"
-    Type.INT -> "int"
-    Type.BOOLEAN -> "bool"
-    Type.FLOAT_ARRAY -> "float*"
-    Type.INT_ARRAY -> "int*"
-    Type.BOOLEAN_ARRAY -> "bool*"
-}

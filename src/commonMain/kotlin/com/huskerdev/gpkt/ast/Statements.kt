@@ -96,8 +96,8 @@ class WhileStatement(
 class ForStatement(
     override val scope: Scope,
     val initialization: Statement,
-    val condition: Statement,
-    val iteration: Statement,
+    val condition: Expression?,
+    val iteration: Expression?,
     val body: Scope,
     override val lexemeIndex: Int,
     override val lexemeLength: Int

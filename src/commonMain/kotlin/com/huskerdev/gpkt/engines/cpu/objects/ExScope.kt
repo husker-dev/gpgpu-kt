@@ -85,14 +85,15 @@ class ExScope(
                 val condition = it.condition
                 val body = ExScope(it.body, forScope)
 
-                while(condition !is ExpressionStatement || executeExpression(forScope, condition.expression).get() == true){
+                while(condition == null || executeExpression(forScope, condition).get() == true){
                     val res = body.execute()
                     if(res != null) {
                         if (res == BreakMarker) break
                         if (res == ContinueMarker) continue
                         return res
                     }
-                    forScope.evalStatement(it.iteration)
+                    if(it.iteration != null)
+                        executeExpression(forScope, it.iteration)
                 }
                 forScope.end()
             }

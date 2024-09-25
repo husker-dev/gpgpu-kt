@@ -3,10 +3,11 @@ package com.huskerdev.gpkt.engines.cuda
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.Source
 import com.huskerdev.gpkt.ast.FieldStatement
-import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
+import com.huskerdev.gpkt.utils.appendCFieldHeader
+import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import jcuda.Pointer
 import jcuda.driver.CUfunction
 import jcuda.driver.CUmodule
@@ -26,7 +27,7 @@ class CudaProgram(
         buffer.append("}")
 
         module = cuda.compileToModule(buffer.toString())
-        function = cuda.getFunctionPointer(module, "_m")
+        function = cuda.getFunctionPointer(module, "__m")
     }
 
     override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
@@ -43,31 +44,46 @@ class CudaProgram(
 
     override fun dealloc() = Unit
 
-    override fun stringifyFunction(function: Function, buffer: StringBuilder, additionalModifier: String?){
+    override fun stringifyFunction(function: Function, buffer: StringBuilder){
         if(function.name == "main") {
-            buffer.append("__global__ ")
-            stringifyModifiers(function.modifiers, buffer)
-            buffer.append(function.returnType.text)
-            buffer.append(" ")
-            buffer.append("_m")
-            buffer.append("(")
-            buffer.append((arrayOf("int __c") + buffers.map { "float*${it}" }).joinToString(", "))
-            buffer.append("){")
+            appendCFunctionHeader(
+                buffer = buffer,
+                modifiers = listOf("__global__"),
+                type = function.returnType.text,
+                name = "__m",
+                args = listOf("int __c") + buffers.map { "float*${it}" }
+            )
             buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
             buffer.append("if(${function.arguments[0].name}>__c)return;")
-            stringifyScope(function, buffer, function.arguments)
+            stringifyScope(function, buffer)
             buffer.append("}")
-        }else super.stringifyFunction(function, buffer, "__device__")
+        }else {
+            appendCFunctionHeader(
+                buffer = buffer,
+                modifiers = listOf("__device__") + function.modifiers.map { it.text },
+                type = function.returnType.text,
+                name = function.name,
+                args = function.arguments.map { "${it.type.toCType(false)} ${it.name}" }
+            )
+            stringifyScope(function, buffer)
+            buffer.append("}")
+        }
     }
 
     override fun stringifyFieldStatement(
         fieldStatement: FieldStatement,
-        buffer: StringBuilder,
-        ignoredFields: List<Field>?
+        buffer: StringBuilder
     ) {
         val modifiers = fieldStatement.fields[0].modifiers
-        if(Modifiers.IN !in modifiers && Modifiers.OUT !in modifiers && fieldStatement.scope.parentScope == null)
-            buffer.append("__constant__ ")
-        super.stringifyFieldStatement(fieldStatement, buffer, ignoredFields)
+        val type = fieldStatement.fields[0].type
+        if(Modifiers.IN !in modifiers && Modifiers.OUT !in modifiers && fieldStatement.scope.parentScope == null){
+            appendCFieldHeader(
+                buffer = buffer,
+                modifiers = listOf("__constant__") + modifiers.map { it.text },
+                type = type.toCType(true),
+                fields = fieldStatement.fields,
+                expressionGen = { stringifyExpression(buffer, it) }
+            )
+        } else super.stringifyFieldStatement(fieldStatement, buffer)
     }
 }

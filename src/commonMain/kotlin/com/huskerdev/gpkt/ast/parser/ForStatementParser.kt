@@ -40,14 +40,21 @@ fun parseForStatement(
 
     // block 2
     val condition = headScope.statements[1]
-    if(condition !is ExpressionStatement && condition !is EmptyStatement)
-        throw compilationError("Condition must be 'boolean' expression or empty", lexemes[condition.lexemeIndex], codeBlock)
-    if(condition is ExpressionStatement && condition.expression.type != Type.BOOLEAN)
-        throw expectedTypeException(Type.BOOLEAN, condition.expression.type, lexemes[condition.lexemeIndex], codeBlock)
+    val conditionExpression = when {
+        condition is ExpressionStatement && condition.expression.type != Type.BOOLEAN ->
+            throw expectedTypeException(Type.BOOLEAN, condition.expression.type, lexemes[condition.lexemeIndex], codeBlock)
+        condition is EmptyStatement -> null
+        condition is ExpressionStatement -> condition.expression
+        else -> throw compilationError("Condition must be 'boolean' or empty", lexemes[condition.lexemeIndex], codeBlock)
+    }
 
     // block 3
-    val iteration = headScope.statements.getOrElse(2) {
-        EmptyStatement(scope, condition.lexemeIndex + condition.lexemeLength, 0)
+    val iteration = headScope.statements.getOrNull(2)
+    val iterationExpression = when (iteration) {
+        null -> null
+        !is ExpressionStatement ->
+            throw compilationError("Iteration must be expression or empty", lexemes[condition.lexemeIndex], codeBlock)
+        else -> iteration.expression
     }
 
     // body
@@ -59,5 +66,5 @@ fun parseForStatement(
         else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
     }
 
-    return ForStatement(scope, initialization, condition, iteration, body, from, i - from)
+    return ForStatement(scope, initialization, conditionExpression, iterationExpression, body, from, i - from)
 }
