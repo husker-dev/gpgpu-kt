@@ -12,4 +12,6 @@ class Field(
     val modifiers: List<Modifiers>,
     val type: Type,
     val initialExpression: Expression? = null
-)
+) {
+    val isConstant = Modifiers.CONST in modifiers
+}

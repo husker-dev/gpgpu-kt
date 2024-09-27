@@ -1,6 +1,7 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
+import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.Type
 
 class GPCompilationException(
@@ -57,7 +58,7 @@ fun expectedException(expected: String, actual: String, lexeme: Lexeme, original
 )
 
 fun expectedException(expected: String, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Expected '${expected}''",
+    text = "Expected '${expected}'",
     originalCode = originalCode,
     lexeme = lexeme
 )
@@ -94,6 +95,18 @@ fun fieldIsNotDefined(name: String, lexeme: Lexeme, originalCode: String) = comp
 
 fun unknownExpression(lexeme: Lexeme, originalCode: String) = compilationError(
     text = "Unknown expression '${lexeme.text}'",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun operatorUsageException(operator: Operator, with: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Operator '${operator.token}' can be only used with $with",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun constAssignException(lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Cannot assign new value to constant",
     originalCode = originalCode,
     lexeme = lexeme
 )

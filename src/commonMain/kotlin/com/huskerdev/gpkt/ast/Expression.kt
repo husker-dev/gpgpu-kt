@@ -11,6 +11,9 @@ abstract class Expression {
     abstract val type: Type
     abstract val lexemeIndex: Int
     abstract val lexemeLength: Int
+
+    fun canAssign() =
+        this !is FieldExpression || !this.field.isConstant
 }
 
 

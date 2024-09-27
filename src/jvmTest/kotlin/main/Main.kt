@@ -34,7 +34,7 @@ fun main() {
                 return sum / (float)period;
             }
             
-            void main(int i){
+            void main(const int i){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
                 int localCandle = i % (maxPeriod - minPeriod);
             

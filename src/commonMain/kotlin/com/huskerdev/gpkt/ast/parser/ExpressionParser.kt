@@ -26,8 +26,7 @@ fun parseExpression(
         }
         if(r == to-1)
             return parseExpression(scope, lexemes, codeBlock, from+1, to-1)?.run {
-                if(this.lexemeLength == 1) this
-                else BracketExpression(this, from, to - from)
+                BracketExpression(this, from, to - from)
             }
     }
 

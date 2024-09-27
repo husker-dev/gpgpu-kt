@@ -1,9 +1,6 @@
 package com.huskerdev.gpkt.ast.types
 
-import com.huskerdev.gpkt.ast.Expression
-import com.huskerdev.gpkt.ast.FieldExpression
-import com.huskerdev.gpkt.ast.compilationError
-import com.huskerdev.gpkt.ast.expectedTypeException
+import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 
 
@@ -96,27 +93,44 @@ enum class Operator(
         val leftType = left.type
         val rightType = right.type
         when(this){
-            PLUS, MINUS, MULTIPLY, DIVIDE, MOD,
-            PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLY_ASSIGN, DIVIDE_ASSIGN, MOD_ASSIGN
+            PLUS, MINUS, MULTIPLY, DIVIDE, MOD
             -> if(!leftType.isNumber || !rightType.isNumber)
-                throw compilationError("Operator '$token' can be only used with numeric types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "numeric types", operatorLexeme, codeBlock)
 
-            BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_SHIFT_RIGHT_ASSIGN, BITWISE_SHIFT_LEFT_ASSIGN,
             BITWISE_AND, BITWISE_OR, BITWISE_XOR, BITWISE_NOT, BITWISE_SHIFT_RIGHT, BITWISE_SHIFT_LEFT
             -> if(!leftType.isInteger || !rightType.isInteger)
-                throw compilationError("Operator '$token' can be only used with integer types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "integer types", operatorLexeme, codeBlock)
 
             LOGICAL_AND, LOGICAL_OR
             -> if(!leftType.isLogical || !rightType.isLogical)
-                throw compilationError("Operator '$token' can be only used with logical types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "logical types", operatorLexeme, codeBlock)
 
-            ASSIGN
-            -> if(leftType != rightType && !Type.canAssignNumbers(leftType, rightType))
-                throw expectedTypeException(leftType, rightType, rightLexeme, codeBlock)
+            PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLY_ASSIGN, DIVIDE_ASSIGN, MOD_ASSIGN
+            -> {
+                if(!leftType.isNumber || !rightType.isNumber)
+                    throw operatorUsageException(this, "numeric types", operatorLexeme, codeBlock)
+                if(!left.canAssign())
+                    throw constAssignException(operatorLexeme, codeBlock)
+            }
+
+            BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_SHIFT_RIGHT_ASSIGN, BITWISE_SHIFT_LEFT_ASSIGN
+            -> {
+                if(!leftType.isInteger || !rightType.isInteger)
+                    throw operatorUsageException(this, "integer types", operatorLexeme, codeBlock)
+                if(!left.canAssign())
+                    throw constAssignException(operatorLexeme, codeBlock)
+            }
+
+            ASSIGN -> {
+                if (leftType != rightType && !Type.canAssignNumbers(leftType, rightType))
+                    throw expectedTypeException(leftType, rightType, rightLexeme, codeBlock)
+                if(!left.canAssign())
+                    throw constAssignException(operatorLexeme, codeBlock)
+            }
 
             EQUAL, NOT_EQUAL, LESS, GREATER, LESS_OR_EQUAL, GREATER_OR_EQUAL
             -> if(leftType != rightType && !leftType.isNumber && !rightType.isNumber)
-                throw compilationError("Operator '$token' can be only used with equal or numeric types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "equal or numeric types", operatorLexeme, codeBlock)
             else -> throw UnsupportedOperationException()
         }
     }
@@ -129,8 +143,12 @@ enum class Operator(
         val leftType = left.type
         when (this) {
             INCREASE, DECREASE
-            -> if (left !is FieldExpression || !leftType.isNumber)
-                throw compilationError("Operator '$token' can be only used with variables", operatorLexeme, codeBlock)
+            -> {
+                if (left !is FieldExpression || !leftType.isNumber)
+                    throw operatorUsageException(this, "variables", operatorLexeme, codeBlock)
+                if(!left.canAssign())
+                    throw constAssignException(operatorLexeme, codeBlock)
+            }
             else -> throw UnsupportedOperationException()
         }
     }
@@ -144,13 +162,13 @@ enum class Operator(
         when(this){
             POSITIVE, NEGATIVE
             -> if(!rightType.isNumber)
-                throw compilationError("Operator '$token' can be only used with numeric types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "numeric types", operatorLexeme, codeBlock)
             BITWISE_NOT
             -> if(!rightType.isInteger)
-                throw compilationError("Operator '$token' can be only used with integer types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "integer types", operatorLexeme, codeBlock)
             LOGICAL_NOT
             -> if(!rightType.isLogical)
-                throw compilationError("Operator '$token' can be only used with logical types", operatorLexeme, codeBlock)
+                throw operatorUsageException(this, "logical types", operatorLexeme, codeBlock)
             else -> throw UnsupportedOperationException()
         }
     }

@@ -15,6 +15,27 @@ fun parseFieldStatement(
     codeBlock: String,
     from: Int,
     to: Int
+) = parseFieldDeclaration(
+    scope,
+    lexemes,
+    codeBlock,
+    from,
+    to,
+    allowMultipleDeclaration = true,
+    allowDefaultValue = true,
+    endsWithSemicolon = true
+)
+
+
+fun parseFieldDeclaration(
+    scope: Scope,
+    lexemes: List<Lexeme>,
+    codeBlock: String,
+    from: Int,
+    to: Int,
+    allowMultipleDeclaration: Boolean,
+    allowDefaultValue: Boolean,
+    endsWithSemicolon: Boolean
 ): FieldStatement{
     val fields = arrayListOf<Field>()
     var i = from
@@ -27,7 +48,8 @@ fun parseFieldStatement(
     }
 
     // Getting type
-    var type = Type.map[lexemes[i].text]!!
+    var type = Type.map[lexemes[i].text] ?:
+        throw expectedException("type", lexemes[i].text, lexemes[i], codeBlock)
     if(lexemes[i+1].text == "[" && lexemes[i+2].text == "]"){
         type = Type.toArrayType(type)
         i += 2
@@ -35,38 +57,38 @@ fun parseFieldStatement(
     i++
 
     // Iterate over field declarations
-    var field: Field? = null
     while(i < to){
-        if(field != null){
-            val separator = lexemes[i].text
-            if(separator == "," || separator == ";") {
-                fields += field
-                field = null
-            } else throw compilationError("Expected ';' or ','", lexemes[i], codeBlock)
-            i++
-            if(separator == ";")
-                break
-        }
-
         if(lexemes[i].type != Lexeme.Type.NAME)
-            throw compilationError("Expected variable name", lexemes[i], codeBlock)
+            throw expectedException("variable name", lexemes[i], codeBlock)
         val nameLexeme = lexemes[i]
 
         var initialExpression: Expression? = null
         if(lexemes[i+1].text == "="){
+            if(!allowDefaultValue)
+                throw compilationError("Default initialization is not allowed here", lexemes[i+1], codeBlock)
+
             initialExpression = parseExpression(scope, lexemes, codeBlock, i+2) ?:
-                    throw compilationError("expected initial value", lexemes[i+2], codeBlock)
+                throw compilationError("expected initial value", lexemes[i+2], codeBlock)
+
             if(type != initialExpression.type && !Type.canAssignNumbers(type, initialExpression.type))
                 throw expectedTypeException(type, initialExpression.type, lexemes[i+2], codeBlock)
 
             i += initialExpression.lexemeLength + 1
         }
+        fields += Field(nameLexeme, nameLexeme.text, mods, type, initialExpression)
 
-        field = Field(nameLexeme, nameLexeme.text, mods, type, initialExpression)
-        i++
+        if(i >= to)
+            return FieldStatement(scope, fields, from, i - from)
+
+        if(endsWithSemicolon && lexemes[i+1].text == ";")
+            return FieldStatement(scope, fields, from, i - from + 2)
+        else if(lexemes[i+1].text == "," && lexemes[i+2].type == Lexeme.Type.NAME) {
+            if(!allowMultipleDeclaration)
+                throw compilationError("Multiple field declaration is not allowed here", lexemes[i + 1], codeBlock)
+            i += 2
+        }else
+            return FieldStatement(scope, fields, from, i - from + 1)
+
     }
-    // If declaration wasn't ended with ';', then flush
-    if(field != null)
-        fields += field
-    return FieldStatement(scope, fields, from, i - from)
+    throw compilationError("Can not read field declaration", lexemes[from], codeBlock)
 }
