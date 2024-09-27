@@ -88,33 +88,32 @@ class OpenCL(
         commandQueue = clCreateCommandQueueWithProperties(context, device, null, null)
     }
 
-    fun allocate(array: FloatArray): cl_mem = clCreateBuffer(
-        context,
-        CL_MEM_READ_WRITE or CL_MEM_COPY_HOST_PTR,
-        (Sizeof.cl_float * array.size).toLong(), Pointer.to(array),
-        null
+    fun allocate(pointer: Pointer, size: Long): cl_mem = clCreateBuffer(
+        context, CL_MEM_READ_WRITE or CL_MEM_COPY_HOST_PTR,
+        size, pointer, null
     )
 
-    fun allocate(length: Int): cl_mem = clCreateBuffer(
-        context,
-        CL_MEM_READ_WRITE,
-        (Sizeof.cl_float * length).toLong(), null,
-        null
+    fun allocate(size: Int): cl_mem = clCreateBuffer(
+        context, CL_MEM_READ_WRITE,
+        size.toLong(), null, null
     )
 
-    fun dealloc(mem: cl_mem) =
+    fun dealloc(mem: cl_mem) {
         clReleaseMemObject(mem)
+    }
 
-    fun dealloc(program: cl_program) =
+    fun dealloc(program: cl_program) {
         clReleaseProgram(program)
+    }
 
-    fun dealloc(kernel: cl_kernel) =
+    fun dealloc(kernel: cl_kernel) {
         clReleaseKernel(kernel)
+    }
 
-    fun read(mem: cl_mem, length: Int) = FloatArray(length).apply {
+    fun read(ptr: cl_mem, size: Long, dst: Pointer) {
         clEnqueueReadBuffer(
-            commandQueue, mem, CL_TRUE, 0,
-            (length * Sizeof.cl_float).toLong(), Pointer.to(this),
+            commandQueue, ptr, CL_TRUE, 0,
+            size, dst,
             0, null, null
         )
     }
@@ -154,7 +153,7 @@ class OpenCL(
             0, null, null)
     }
 
-    fun setArgument(kernel: cl_kernel, index: Int, source: OpenCLSource){
-        clSetKernelArg(kernel, index, Sizeof.cl_mem.toLong(), Pointer.to(source.data))
+    fun setArgument(kernel: cl_kernel, index: Int, memory: cl_mem){
+        clSetKernelArg(kernel, index, Sizeof.cl_mem.toLong(), Pointer.to(memory))
     }
 }

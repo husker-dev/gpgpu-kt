@@ -1,12 +1,10 @@
 package com.huskerdev.gpkt.engines.cuda
 
+import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
-import com.huskerdev.gpkt.Source
-import com.huskerdev.gpkt.ast.FieldStatement
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.utils.appendCFieldHeader
+import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import jcuda.Pointer
 import jcuda.driver.CUfunction
@@ -30,16 +28,23 @@ class CudaProgram(
         function = cuda.getFunctionPointer(module, "__m")
     }
 
-    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
+    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
 
-        val countVal = Pointer.to(intArrayOf(instances))
-        val arrays = buffers.map {
-            if(it !in map) throw Exception("Source '$it' have not been set")
-            else (map[it] as CudaSource).ptr
+        val instancesVal = Pointer.to(intArrayOf(instances))
+        val arrays = buffers.map { field ->
+            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            when(value){
+                is Float -> Pointer.to(floatArrayOf(value))
+                is Double -> Pointer.to(doubleArrayOf(value))
+                is Long -> Pointer.to(longArrayOf(value))
+                is Int -> Pointer.to(intArrayOf(value))
+                is Byte -> Pointer.to(byteArrayOf(value))
+                is CudaMemoryPointer -> Pointer.to(value.ptr)
+                else -> throw UnsupportedOperationException()
+            }
         }.toTypedArray()
-
-        cuda.launch(function, instances, countVal, *arrays)
+        cuda.launch(function, instances, instancesVal, *arrays)
     }
 
     override fun dealloc() = Unit
@@ -51,7 +56,7 @@ class CudaProgram(
                 modifiers = listOf("__global__"),
                 type = function.returnType.text,
                 name = "__m",
-                args = listOf("int __c") + buffers.map { "float*${it}" }
+                args = listOf("int __c") + buffers.map { toCType(it.type, false, it.name) }
             )
             buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
             buffer.append("if(${function.arguments[0].name}>__c)return;")
@@ -63,27 +68,14 @@ class CudaProgram(
                 modifiers = listOf("__device__") + function.modifiers.map { it.text },
                 type = function.returnType.text,
                 name = function.name,
-                args = function.arguments.map { "${it.type.toCType(false)} ${it.name}" }
+                args = function.arguments.map { "${toCType(it.type, false)} ${it.name}" }
             )
             stringifyScope(function, buffer)
             buffer.append("}")
         }
     }
 
-    override fun stringifyFieldStatement(
-        fieldStatement: FieldStatement,
-        buffer: StringBuilder
-    ) {
-        val modifiers = fieldStatement.fields[0].modifiers
-        val type = fieldStatement.fields[0].type
-        if(Modifiers.IN !in modifiers && Modifiers.OUT !in modifiers && fieldStatement.scope.parentScope == null){
-            appendCFieldHeader(
-                buffer = buffer,
-                modifiers = listOf("__constant__") + modifiers.map { it.text },
-                type = type.toCType(true),
-                fields = fieldStatement.fields,
-                expressionGen = { stringifyExpression(buffer, it) }
-            )
-        } else super.stringifyFieldStatement(fieldStatement, buffer)
-    }
+    override fun toCType(type: Type, isConst: Boolean, name: String) = if(isConst)
+        "__constant__ " + super.toCType(type, false, name)
+    else super.toCType(type, false, name)
 }

@@ -21,13 +21,13 @@ fun parseReturnStatement(
 
     val expression = if(returnType != Type.VOID) {
         val expression = if(
-            next.type == Lexeme.Type.NUMBER ||
-            next.type == Lexeme.Type.NUMBER_FLOATING_POINT ||
+            next.type == Lexeme.Type.INT ||
+            next.type == Lexeme.Type.FLOAT ||
             next.type == Lexeme.Type.LOGICAL
         ) createConstExpression(i, next, codeBlock)
         else parseExpression(scope, lexemes, codeBlock, i)!!
 
-        if (expression.type != returnType)
+        if (expression.type != returnType && Type.canAssignNumbers(expression.type, returnType))
             throw expectedTypeException(returnType, expression.type, next, codeBlock)
         expression
     }else null

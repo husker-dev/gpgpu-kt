@@ -51,7 +51,7 @@ class ExScope(
                 if(Modifiers.IN !in field.modifiers && Modifiers.OUT !in field.modifiers) {
                     addField(field.name, ExField(field.type,
                         if (field.initialExpression != null)
-                            executeExpression(this, field.initialExpression)
+                            executeExpression(this, field.initialExpression).castToType(field.type)
                         else null
                     ))
                 }
@@ -59,7 +59,7 @@ class ExScope(
             is FunctionStatement -> addFunction(it.function.name, ExScope(it.function, this))
             is ExpressionStatement -> executeExpression(this, it.expression)
             is ReturnStatement -> return if(it.expression != null)
-                executeExpression(this, it.expression)
+                executeExpression(this, it.expression).castToType(scope!!.returnType)
             else null
             is IfStatement -> {
                 if(executeExpression(this, it.condition).get() == true)

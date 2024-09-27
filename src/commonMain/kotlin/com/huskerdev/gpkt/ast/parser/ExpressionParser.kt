@@ -26,7 +26,8 @@ fun parseExpression(
         }
         if(r == to-1)
             return parseExpression(scope, lexemes, codeBlock, from+1, to-1)?.run {
-                BracketExpression(this, from, to - from)
+                if(this.lexemeLength == 1) this
+                else BracketExpression(this, from, to - from)
             }
     }
 
@@ -52,22 +53,8 @@ fun parseExpression(
                         val left = parseExpression(scope, lexemes, codeBlock, from, i)!!
                         val right = parseExpression(scope, lexemes, codeBlock, i + 1, to)!!
 
-                        if (operator.flags and FLAG_LOGICAL_TYPES == FLAG_LOGICAL_TYPES) {
-                            if (!left.type.isLogical) throw expectedTypeException(Type.BOOLEAN, left.type, lexeme, codeBlock)
-                            if (!right.type.isLogical) throw expectedTypeException(Type.BOOLEAN, right.type, lexemes[i + 1], codeBlock)
-                        } else if (operator.flags and FLAG_NUMERIC_TYPES == FLAG_NUMERIC_TYPES) {
-                            if (!left.type.isNumber) throw cantUseOperatorException(operator, left.type, lexeme, codeBlock)
-                            if (!right.type.isNumber) throw cantUseOperatorException(operator, right.type, lexemes[i + 1], codeBlock)
-                            if (left.type != right.type) throw expectedTypeException(left.type, right.type, lexemes[i + 1], codeBlock)
-                        } else if (operator.flags and FLAG_INT_TYPE == FLAG_INT_TYPE) {
-                            if (left.type != Type.INT) throw cantUseOperatorException(operator, left.type, lexeme, codeBlock)
-                            if (right.type != Type.INT) throw cantUseOperatorException(operator, right.type, lexemes[i + 1], codeBlock)
-                        } else if (operator.flags and FLAG_EQUAL_TYPES == FLAG_EQUAL_TYPES)
-                            if (left.type != right.type) throw expectedTypeException(left.type, right.type, lexemes[i + 1], codeBlock)
-
-                        val type = if(operator.flags and FLAG_RETURNS_BOOLEAN == FLAG_RETURNS_BOOLEAN)
-                            Type.BOOLEAN
-                        else left.type
+                        operator.checkOpAxB(left, right, lexemes[i], lexemes[i+1], codeBlock)
+                        val type = operator.operateTypeAxB(left.type, right.type)
 
                         return AxBExpression(operator, type, left, right, from, to - from)
                     }
@@ -79,9 +66,10 @@ fun parseExpression(
                 if (lexemes[to-1].text == token) {
                     val left = parseExpression(scope, lexemes, codeBlock, from, to-1)!!
 
-                    if (operator.flags and FLAG_FIELD_TYPE == FLAG_FIELD_TYPE)
-                        if (left !is FieldExpression) throw compilationError("Expected variable", lexemes[from], codeBlock)
-                    return AxExpression(operator, left.type, left, from, to - from)
+                    operator.checkOpAx(left, lexemes[to-1], codeBlock)
+                    val type = operator.operateTypeAx(left.type)
+
+                    return AxExpression(operator, type, left, from, to - from)
                 }
             }
             Operator.Usage.xB -> {
@@ -89,12 +77,11 @@ fun parseExpression(
 
                 if (lexemes[from].text == token) {
                     val right = parseExpression(scope, lexemes, codeBlock, from + 1, to)!!
-                    if (operator.flags and FLAG_LOGICAL_TYPES == FLAG_LOGICAL_TYPES)
-                        if (!right.type.isLogical) throw cantUseOperatorException(operator, right.type, lexemes[from + 1], codeBlock)
-                    if (operator.flags and FLAG_INT_TYPE == FLAG_INT_TYPE)
-                        if (right.type != Type.INT) throw cantUseOperatorException(operator, right.type, lexemes[from + 1], codeBlock)
 
-                    return XBExpression(operator, right.type, right, from, to - from)
+                    operator.checkOpXB(right, lexemes[from], codeBlock)
+                    val type = operator.operateTypeXB(right.type)
+
+                    return XBExpression(operator, type, right, from, to - from)
                 }
             }
             Operator.Usage.FUNCTION -> {
@@ -117,7 +104,7 @@ fun parseExpression(
                                 continue
                             } else if (next.text == ")")
                                 break
-                            else throw compilationError("Unexpected symbol '${next.text}'", next, codeBlock)
+                            else throw unexpectedSymbolException(next.text, next, codeBlock)
                         }
                     }
                     val function = scope.findDefinedFunction(lexeme.text, argumentTypes)
@@ -130,14 +117,14 @@ fun parseExpression(
                 if(lexemes[to-1].text == "]"){
                     val leftBracket = findExpressionStart(to-2, lexemes, codeBlock)
                     if(lexemes[leftBracket].text != "[")
-                        throw compilationError("Expected [", lexemes[leftBracket], codeBlock)
+                        throw expectedException("[", lexemes[leftBracket], codeBlock)
 
                     val array = parseExpression(scope, lexemes, codeBlock, from, leftBracket)!!
                     if(!array.type.isArray || array !is FieldExpression)
-                        throw compilationError("Expected <array> but found '${array.type.text}'", lexemes[from], codeBlock)
+                        throw expectedException("<array>", array.type.text, lexemes[from], codeBlock)
 
                     val indexExpression = parseExpression(scope, lexemes, codeBlock, leftBracket+1)
-                        ?: throw compilationError("Expected index", lexemes[leftBracket+1], codeBlock)
+                        ?: throw expectedException("index", lexemes[leftBracket+1], codeBlock)
                     if(indexExpression.type != Type.INT)
                         throw expectedTypeException(Type.INT, indexExpression.type, lexemes[leftBracket+1], codeBlock)
 
@@ -149,12 +136,12 @@ fun parseExpression(
                     lexemes[from + 1].text in primitives &&
                     lexemes[from + 2].text == ")"
                 ) {
-                    val type = Type.map[lexemes[from+1].text] ?:
-                        throw compilationError("Cannot cast to unknown type '${lexemes[from+1].text}'", lexemes[from+1], codeBlock)
-
                     val right = parseExpression(scope, lexemes, codeBlock, from+3, to)!!
-                    if(type !in Type.castMap || right.type !in Type.castMap[type]!!)
-                        throw compilationError("Cannot cast '${right.type.text}' to '${type.text}'", lexemes[from+3], codeBlock)
+                    val type = Type.map[lexemes[from+1].text] ?:
+                        throw cannotCastException(right.type, lexemes[from+1].text, lexemes[from+1], codeBlock)
+
+                    if(type !in Type.allowedCastMap || right.type !in Type.allowedCastMap[type]!!)
+                        throw cannotCastException(right.type, type, lexemes[from+3], codeBlock)
                     return CastExpression(type, right, from, to - from)
                 }
             }
@@ -178,7 +165,7 @@ fun findExpressionEnd(from: Int, lexemes: List<Lexeme>, codeBlock: String): Int{
         if (text == "[" || text == "(" || text == "{") brackets++
         if (text == "]" || text == ")" || text == "}") brackets--
     }
-    throw compilationError("Expected ';'", lexemes.last(), codeBlock)
+    throw expectedException(";", lexemes.last(), codeBlock)
 }
 
 fun findExpressionStart(from: Int, lexemes: List<Lexeme>, codeBlock: String): Int{
@@ -192,13 +179,16 @@ fun findExpressionStart(from: Int, lexemes: List<Lexeme>, codeBlock: String): In
         if (text == "[" || text == "(" || text == "{") brackets++
         if (text == "]" || text == ")" || text == "}") brackets--
     }
-    throw compilationError("Unexpected", lexemes.last(), codeBlock)
+    throw unknownExpression(lexemes[startIndex], codeBlock)
 }
 
 fun createConstExpression(index: Int, lexeme: Lexeme, codeBlock: String) = when (lexeme.type) {
-    Lexeme.Type.NUMBER                -> ConstExpression(lexeme, Type.INT, index, 1)
-    Lexeme.Type.NUMBER_FLOATING_POINT -> ConstExpression(lexeme, Type.FLOAT, index, 1)
-    Lexeme.Type.LOGICAL               -> ConstExpression(lexeme, Type.BOOLEAN, index, 1)
+    Lexeme.Type.DOUBLE  -> ConstExpression(lexeme, Type.DOUBLE, index, 1)
+    Lexeme.Type.FLOAT   -> ConstExpression(lexeme, Type.FLOAT, index, 1)
+    Lexeme.Type.LONG    -> ConstExpression(lexeme, Type.LONG, index, 1)
+    Lexeme.Type.INT     -> ConstExpression(lexeme, Type.INT, index, 1)
+    Lexeme.Type.BYTE    -> ConstExpression(lexeme, Type.BYTE, index, 1)
+    Lexeme.Type.LOGICAL -> ConstExpression(lexeme, Type.BOOLEAN, index, 1)
     else -> throw unknownExpression(lexeme, codeBlock)
 }
 

@@ -1,4 +1,4 @@
-package benchmark
+package sma.optimization
 
 import com.huskerdev.gpkt.GPDevice
 import com.huskerdev.gpkt.GPType
@@ -6,16 +6,16 @@ import org.openjdk.jmh.annotations.*
 
 
 @State(Scope.Benchmark)
-open class SMA_INTERPRETER {
+open class SMA_OPT_CL {
     private lateinit var gp: GP
 
     @Setup
     open fun prepare() {
-        gp = GP(GPDevice.create(requestedType = arrayOf(GPType.Interpreter))!!)
+        gp = GP(GPDevice.create(requestedType = arrayOf(GPType.OpenCL))!!)
     }
 
     @Benchmark
-    open fun execute() =
+    open fun exec() =
         gp.execute()
 
     @TearDown

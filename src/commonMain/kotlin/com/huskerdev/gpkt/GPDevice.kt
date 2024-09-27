@@ -29,8 +29,20 @@ abstract class GPDevice(
     fun compile(code: String) =
         compile(GPAst.parse(code))
 
-    abstract fun alloc(array: FloatArray): Source
-    abstract fun alloc(length: Int): Source
+    abstract fun allocFloat(array: FloatArray): FloatMemoryPointer
+    abstract fun allocFloat(length: Int): FloatMemoryPointer
+
+    abstract fun allocDouble(array: DoubleArray): DoubleMemoryPointer
+    abstract fun allocDouble(length: Int): DoubleMemoryPointer
+
+    abstract fun allocLong(array: LongArray): LongMemoryPointer
+    abstract fun allocLong(length: Int): LongMemoryPointer
+
+    abstract fun allocInt(array: IntArray): IntMemoryPointer
+    abstract fun allocInt(length: Int): IntMemoryPointer
+
+    abstract fun allocByte(array: ByteArray): ByteMemoryPointer
+    abstract fun allocByte(length: Int): ByteMemoryPointer
 
     abstract fun compile(ast: Scope): Program
 }

@@ -9,16 +9,23 @@ import com.huskerdev.gpkt.utils.appendCFieldHeader
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 
 interface Program {
-    fun execute(instances: Int, vararg mapping: Pair<String, Source>)
+    fun execute(
+        instances: Int,
+        vararg mapping: Pair<String, Any>
+    )
     fun dealloc()
 }
 
-abstract class SimpleCProgram(ast: Scope): Program {
+class FieldNotSetException(name: String): Exception("Field '$name' have not been set")
+
+abstract class BasicProgram(ast: Scope): Program {
     protected val buffers = ast.fields.filter {
         Modifiers.IN in it.modifiers ||
-        Modifiers.OUT in it.modifiers
-    }.map { it.name }.toList()
+                Modifiers.OUT in it.modifiers
+    }.toList()
+}
 
+abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
     protected fun stringifyScope(scope: Scope, buffer: StringBuilder){
         scope.statements.forEach { statement ->
             stringifyStatement(buffer, statement)
@@ -97,7 +104,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         if(statement.body.statements.size > 1) buffer.append("}")
         if(statement.elseBody != null){
             buffer.append("else")
-            if(statement.elseBody.statements.size > 1) buffer.append("{")
+            if(statement.elseBody.statements.size > 1) buffer.append("{") else buffer.append(" ")
             stringifyScope(statement.elseBody, buffer)
             if(statement.elseBody.statements.size > 1) buffer.append("}")
         }
@@ -121,7 +128,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
         appendCFieldHeader(
             buffer = buffer,
             modifiers = modifiers.map { it.text },
-            type = type.toCType(fieldStatement.scope.parentScope == null),
+            type = toCType(type, fieldStatement.scope.parentScope == null),
             fields = fieldStatement.fields,
             expressionGen = { stringifyExpression(buffer, it) }
         )
@@ -131,9 +138,9 @@ abstract class SimpleCProgram(ast: Scope): Program {
         appendCFunctionHeader(
             buffer = buffer,
             modifiers = function.modifiers.map { it.text },
-            type = function.returnType.toCType(false),
+            type = toCType(function.returnType, false),
             name = function.name,
-            args = function.arguments.map { "${it.type.toCType(false)} ${it.name}" }
+            args = function.arguments.map { toCType(it.type, false, it.name) }
         )
         stringifyScope(function, buffer)
         buffer.append("}")
@@ -190,7 +197,7 @@ abstract class SimpleCProgram(ast: Scope): Program {
     }
 
     protected open fun stringifyCastExpression(buffer: StringBuilder, expression: CastExpression){
-        buffer.append("(").append(expression.type.toCType(false)).append(")")
+        buffer.append("(").append(toCType(expression.type, false)).append(")")
         stringifyExpression(buffer, expression.right)
     }
 
@@ -198,14 +205,20 @@ abstract class SimpleCProgram(ast: Scope): Program {
         buffer.append(expression.field.name)
     }
 
-    protected open fun Type.toCType(isGlobal: Boolean) = when(this){
-        Type.VOID -> "void"
-        Type.FLOAT -> "float"
-        Type.INT -> "int"
-        Type.BOOLEAN -> "bool"
-        Type.FLOAT_ARRAY -> "float*"
-        Type.INT_ARRAY -> "int*"
-        Type.BOOLEAN_ARRAY -> "bool*"
+    protected open fun toCType(type: Type, isConst: Boolean, name: String = "") = when(type) {
+        Type.VOID -> if(name.isEmpty()) "void" else "void $name"
+        Type.FLOAT -> if(name.isEmpty()) "float" else "float $name"
+        Type.LONG -> if(name.isEmpty()) "long" else "long $name"
+        Type.INT -> if(name.isEmpty()) "int" else "int $name"
+        Type.DOUBLE -> if(name.isEmpty()) "double" else "double $name"
+        Type.BYTE -> if(name.isEmpty()) "char" else "char $name"
+        Type.BOOLEAN -> if(name.isEmpty()) "bool" else "bool $name"
+        Type.FLOAT_ARRAY -> if(name.isEmpty()) "float*" else "float*$name"
+        Type.LONG_ARRAY -> if(name.isEmpty()) "long*" else "long*$name"
+        Type.INT_ARRAY -> if(name.isEmpty()) "int*" else "int*$name"
+        Type.DOUBLE_ARRAY -> if(name.isEmpty()) "double*" else "double*$name"
+        Type.BYTE_ARRAY -> if(name.isEmpty()) "byte*" else "byte*$name"
+        Type.BOOLEAN_ARRAY -> if(name.isEmpty()) "bool" else "bool*$name"
     }
 }
 

@@ -1,4 +1,4 @@
-package benchmark
+package sma
 
 import com.huskerdev.gpkt.GPDevice
 
@@ -11,8 +11,8 @@ val maxPeriod = 500
 class GP(
     engine: GPDevice
 ) {
-    private var data = engine.alloc(FloatArray(candles) { it.toFloat() })
-    private var result = engine.alloc(candles * (maxPeriod - minPeriod))
+    private var data = engine.allocFloat(FloatArray(candles) { it.toFloat() })
+    private var result = engine.allocFloat(candles * (maxPeriod - minPeriod))
 
     private var program = engine.compile("""
         in float[] data;

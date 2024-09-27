@@ -11,6 +11,7 @@ val operatorTokens = Operator.entries.filter { it.token.isNotEmpty() } .map { it
 
 val spacing = setOf(Char(10), Char(32), '\t')
 val digits = setOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+val digitsHex = setOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 val logical = setOf("true", "false")
 val specials_separators = setOf("(", ")", "{", "}", "[", "]", ";", ",") + operatorTokens
 val specials_keywords = setOf("if", "for", "while", "return", "break", "continue") + primitives + modifiers
@@ -26,8 +27,11 @@ data class Lexeme(
     enum class Type {
         NAME,
         SPECIAL,
-        NUMBER,
-        NUMBER_FLOATING_POINT,
+        INT,
+        LONG,
+        BYTE,
+        FLOAT,
+        DOUBLE,
         LOGICAL
     }
 }

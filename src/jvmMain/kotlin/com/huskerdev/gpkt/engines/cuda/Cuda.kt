@@ -2,7 +2,6 @@ package com.huskerdev.gpkt.engines.cuda
 
 import jcuda.CudaException
 import jcuda.Pointer
-import jcuda.Sizeof
 import jcuda.driver.*
 import jcuda.driver.CUdevice_attribute.CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X
 import jcuda.driver.JCudaDriver.*
@@ -67,27 +66,21 @@ class Cuda(
         maxBlockDimX = buffer[0]
     }
 
-    fun alloc(array: FloatArray): CUdeviceptr {
-        val length = (array.size * Sizeof.FLOAT).toLong()
-        val ptr = CUdeviceptr()
-        cuMemAlloc(ptr, length)
-        cuMemcpyHtoD(ptr, Pointer.to(array), length)
-        return ptr
+    fun alloc(pointer: Pointer, size: Long) = CUdeviceptr().apply {
+        cuMemAlloc(this, size)
+        cuMemcpyHtoD(this, pointer, size)
     }
 
-    fun alloc(length: Int): CUdeviceptr {
-        val ptr = CUdeviceptr()
-        cuMemAlloc(ptr, (length * Sizeof.FLOAT).toLong())
-        return ptr
+    fun alloc(size: Long) = CUdeviceptr().apply {
+        cuMemAlloc(this, size)
     }
 
-    fun dealloc(ptr: CUdeviceptr) =
+    fun dealloc(ptr: CUdeviceptr) {
         cuMemFree(ptr)
+    }
 
-    fun read(ptr: CUdeviceptr, length: Int): FloatArray{
-        val result = FloatArray(length)
-        cuMemcpyDtoH(Pointer.to(result), ptr, (length * Sizeof.FLOAT).toLong())
-        return result
+    fun read(ptr: CUdeviceptr, size: Long, dst: Pointer) {
+        cuMemcpyDtoH(dst, ptr, size)
     }
 
     fun compileToModule(src: String): CUmodule{

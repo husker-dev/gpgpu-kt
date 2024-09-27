@@ -1,4 +1,4 @@
-package benchmark
+package sma
 
 import org.openjdk.jmh.annotations.*
 
@@ -16,7 +16,7 @@ open class SMA_CPU {
     }
 
     @Benchmark
-    open fun execute(): FloatArray {
+    open fun exec(): FloatArray {
         for(i in 0 until size){
             for(period in minPeriod until maxPeriod)
                 result[(period - minPeriod) * size + i] = ema(data, i, period)

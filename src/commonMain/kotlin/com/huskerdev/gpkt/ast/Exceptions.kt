@@ -1,10 +1,9 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.Type
 
-class GPGPUASTException(
+class GPCompilationException(
     text: String,
     val lexeme: Lexeme,
     val codeBlock: String
@@ -23,15 +22,9 @@ fun compilationError(text: String, lexeme: Lexeme, originalCode: String): Except
     if(lexeme.lineIndex < codeLines.lastIndex)
         lines += "${linePrefix(lexeme.lineIndex+2)}${codeLines[lexeme.lineIndex+1]}"
 
-    return GPGPUASTException("ERROR[${lexeme.lineIndex+1},${lexeme.inlineIndex+1}]: $text\n${lines.joinToString("\n")}",
+    return GPCompilationException("ERROR[${lexeme.lineIndex+1},${lexeme.inlineIndex+1}]: $text\n${lines.joinToString("\n")}",
         lexeme, originalCode)
 }
-
-fun compilationError(text: String, lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(
-    text = text,
-    originalCode = originalCode,
-    lexeme = Lexeme("", Lexeme.Type.SPECIAL, lineIndex, inlineIndex)
-)
 
 fun unexpectedEofException(lexeme: Lexeme, originalCode: String) = compilationError(
     text = "Unexpected end of file",
@@ -57,8 +50,32 @@ fun expectedTypeException(expected: Type, actual: Type, lexeme: Lexeme, original
     lexeme = lexeme
 )
 
-fun cantUseOperatorException(operator: Operator, type: Type, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Use of '${operator.token}' with type '${type.text}' is not allowed",
+fun expectedException(expected: String, actual: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Expected '${expected}' but found '${actual}'",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun expectedException(expected: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Expected '${expected}''",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun unexpectedSymbolException(symbol: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Unexpected symbol '${symbol}'",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun cannotCastException(what: Type, to: Type, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Cannot cast '${what.text}' to '${to.text}'",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun cannotCastException(what: Type, to: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Cannot cast '${what.text}' to '${to}'",
     originalCode = originalCode,
     lexeme = lexeme
 )
@@ -79,4 +96,33 @@ fun unknownExpression(lexeme: Lexeme, originalCode: String) = compilationError(
     text = "Unknown expression '${lexeme.text}'",
     originalCode = originalCode,
     lexeme = lexeme
+)
+
+// For lexer
+
+fun compilationError(text: String, lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(
+    text = text,
+    originalCode = originalCode,
+    lexeme = Lexeme("", Lexeme.Type.SPECIAL, lineIndex, inlineIndex)
+)
+
+fun unexpectedSymbolInNumberException(symbol: Char, lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(
+    text = "Unexpected symbol '${symbol}' in number declaration",
+    lineIndex = lineIndex,
+    inlineIndex = inlineIndex,
+    originalCode = originalCode
+)
+
+fun tooLargeNumberException(lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(
+    text = "Too large number",
+    lineIndex = lineIndex,
+    inlineIndex = inlineIndex,
+    originalCode = originalCode
+)
+
+fun tooManyFloatingsException(lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(
+    text = "Too many floating points in number",
+    lineIndex = lineIndex,
+    inlineIndex = inlineIndex,
+    originalCode = originalCode
 )

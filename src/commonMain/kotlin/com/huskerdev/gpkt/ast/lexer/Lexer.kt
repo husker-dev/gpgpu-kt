@@ -1,7 +1,6 @@
 package com.huskerdev.gpkt.ast.lexer
 
-import com.huskerdev.gpkt.ast.compilationError
-import com.huskerdev.gpkt.ast.unexpectedEofException
+import com.huskerdev.gpkt.ast.*
 import kotlin.math.min
 
 
@@ -10,6 +9,99 @@ fun processLexemes(block: String): List<Lexeme> {
     val buffer = StringBuilder()
     var inComment = false
 
+    fun parseNumber(text: String, lineIndex: Int, startIndex: Int, block: String): Pair<Lexeme.Type, String>{
+        val lowerText = text.lowercase()
+
+        // Check for Hex or Bin
+        if(text.length > 2 && text[0] == '0'){
+            if(lowerText[1] == 'x'){
+                // Check for illegal symbols
+                for(i in 2 until lowerText.length)
+                    if(!(lowerText[i] in digitsHex || (text[i] == '_' && i > 2 && i < lowerText.length)))
+                        throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+
+                val actualText = lowerText.substring(2).replace("_", "")
+                val actualLength = actualText.length
+                return when {
+                    actualLength <= 2 -> Lexeme.Type.BYTE to actualText.toByte(16).toString()
+                    actualLength <= 8 -> Lexeme.Type.INT to actualText.toLong(16).toInt().toString()
+                    actualLength <= 16 -> Lexeme.Type.LONG to actualText.toLong(16).toString()
+                    else -> throw tooLargeNumberException(lineIndex, startIndex, block)
+                }
+            }else if(lowerText[1] == 'b'){
+                // Check for illegal symbols
+                for(i in 2 until text.length)
+                    if(!(text[i] == '0' || text[i] == '1' ||
+                        (text[i] == '_' && i > 2 && i < lowerText.length)
+                    )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+
+                val actualText = text.substring(2).replace("_", "")
+                val actualLength = actualText.length
+                return when {
+                    actualLength <= 8 -> Lexeme.Type.BYTE to actualText.toByte(2).toString()
+                    actualLength <= 32 -> Lexeme.Type.INT to actualText.toLong(2).toInt().toString()
+                    actualLength <= 64 -> Lexeme.Type.LONG to actualText.toLong(2).toString()
+                    else -> throw tooLargeNumberException(lineIndex, startIndex, block)
+                }
+            }
+        }
+
+        // Check for Long
+        if(lowerText[lowerText.lastIndex] == 'l') {
+            // Check for illegal symbols
+            lowerText.forEachIndexed { i, char ->
+                if(!(char in digits ||
+                    (char == '_' && i > 0 && i < lowerText.length-2) ||
+                    (char == 'l' && i == lowerText.lastIndex)
+                )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+            }
+            return Lexeme.Type.LONG to text.replace("_", "").substring(0, text.lastIndex)
+        }
+
+        // Check for Float
+        if(lowerText[lowerText.lastIndex] == 'f') {
+            if("." in text && text.length == 2)
+                throw unexpectedSymbolInNumberException(text[0], lineIndex, startIndex, block)
+            // Check for illegal symbols
+            lowerText.forEachIndexed { i, char ->
+                if(!(char in digits ||
+                    (char == '_' && i > 0 && i < lowerText.length-2) ||
+                    char == '.' ||
+                    (char == 'f' && i == lowerText.lastIndex)
+                )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+            }
+            // Check for floating points
+            if(text.indexOf('.') != text.lastIndexOf('.'))
+                throw tooManyFloatingsException(lineIndex, startIndex + text.lastIndexOf('.'), block)
+            return Lexeme.Type.FLOAT to text.replace("_", "").substring(0, text.lastIndex)
+        }
+
+        // Check for Double
+        if("." in text){
+            if(text.length == 1)
+                throw unexpectedSymbolInNumberException(text[0], lineIndex, startIndex, block)
+            // Check for illegal symbols
+            lowerText.forEachIndexed { i, char ->
+                if(!(char in digits ||
+                    char == '.' ||
+                    (char == '_' && i > 0 && i < lowerText.length-1)
+                )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+            }
+            if(text.indexOf('.') != text.lastIndexOf('.'))
+                throw tooManyFloatingsException(lineIndex, startIndex + text.lastIndexOf('.'), block)
+            return Lexeme.Type.DOUBLE to text.replace("_", "")
+        }
+
+        // > Check for Int
+        // Check for illegal symbols
+        lowerText.forEachIndexed { i, char ->
+            if (!(char in digits ||
+                (char == '_' && i > 0 && i < lowerText.length)
+            )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
+        }
+        return Lexeme.Type.INT to text.replace("_", "")
+    }
+
     fun flush(lineIndex: Int, charIndex: Int) {
         if(buffer.isEmpty())
             return
@@ -17,21 +109,10 @@ fun processLexemes(block: String): List<Lexeme> {
         val startIndex = charIndex - text.length
         buffer.setLength(0)
 
-        val type = if(text[0] in digits){
-            // Parse as a number
-            text.forEachIndexed { i, c ->
-                if(c != '.' && c != '_' && c !in digits)
-                    throw compilationError("illegal symbol '${c}' in number declaration", lineIndex, startIndex + i, block)
-            }
-            if(text.indexOf('.') == text.lastIndex)
-                throw compilationError("unfinished floating-point expression", lineIndex, startIndex + text.indexOf('.'), block)
-            if(text.indexOf('_') == text.lastIndex)
-                throw compilationError("illegal underscore at the end of the number", lineIndex, startIndex + text.indexOf('_'), block)
-            if(text.lastIndexOf('.') != text.indexOf('.'))
-                throw compilationError("too many floating points", lineIndex, startIndex + text.lastIndexOf('.'), block)
-
-            text = text.replace("_", "")
-            if("." in text) Lexeme.Type.NUMBER_FLOATING_POINT else Lexeme.Type.NUMBER
+        val type = if(text[0] in digits || text[0] == '.'){
+            val result = parseNumber(text, lineIndex, startIndex, block)
+            text = result.second
+            result.first
         } else if(text in logical)
             Lexeme.Type.LOGICAL
         else if(text in specials_keywords)

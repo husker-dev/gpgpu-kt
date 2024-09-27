@@ -56,7 +56,7 @@ fun parseFieldStatement(
         if(lexemes[i+1].text == "="){
             initialExpression = parseExpression(scope, lexemes, codeBlock, i+2) ?:
                     throw compilationError("expected initial value", lexemes[i+2], codeBlock)
-            if(type != initialExpression.type)
+            if(type != initialExpression.type && !Type.canAssignNumbers(type, initialExpression.type))
                 throw expectedTypeException(type, initialExpression.type, lexemes[i+2], codeBlock)
 
             i += initialExpression.lexemeLength + 1

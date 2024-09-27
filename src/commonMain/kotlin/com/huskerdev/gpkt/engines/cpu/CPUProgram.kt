@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.engines.cpu
 
-import com.huskerdev.gpkt.Program
-import com.huskerdev.gpkt.Source
+import com.huskerdev.gpkt.BasicProgram
+import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.objects.ExField
@@ -12,12 +12,26 @@ import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 class CPUProgram(
     val ast: Scope
-): Program {
-    override fun execute(instances: Int, vararg mapping: Pair<String, Source>) {
-        val variables = mapping.associate {
-            val array = (it.second as CPUSource).array!!
-            it.first to ExField(Type.FLOAT_ARRAY, ExValue(array))
-        }.toMutableMap()
+): BasicProgram(ast) {
+    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
+        val map = hashMapOf(*mapping)
+        val variables = buffers.associate { field ->
+            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            val desc = when (value) {
+                is CPUFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
+                is CPUDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
+                is CPULongMemoryPointer -> Type.LONG_ARRAY to value.array!!
+                is CPUIntMemoryPointer -> Type.INT_ARRAY to value.array!!
+                is CPUByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
+                is Float -> Type.FLOAT to value
+                is Double -> Type.DOUBLE to value
+                is Long -> Type.LONG to value
+                is Int -> Type.INT to value
+                is Byte -> Type.BYTE to value
+                else -> throw UnsupportedOperationException()
+            }
+            field.name to ExField(desc.first, ExValue(desc.second))
+        }
 
         splitThreadInvocation(instances) { from, to ->
             val scope = ExScope(ast)
