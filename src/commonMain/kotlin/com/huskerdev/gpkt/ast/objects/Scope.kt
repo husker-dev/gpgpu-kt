@@ -2,6 +2,7 @@ package com.huskerdev.gpkt.ast.objects
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
+import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 
 open class Scope(
@@ -56,6 +57,8 @@ open class Scope(
         if(statement is FieldStatement){
             statement.fields.forEach { field ->
                 addField(field, field.lexeme, codeBlock)
+                if(parentScope == null && field.modifiers.isEmpty())
+                    field.modifiers += Modifiers.CONST
             }
         }
         if(statement is FunctionStatement){

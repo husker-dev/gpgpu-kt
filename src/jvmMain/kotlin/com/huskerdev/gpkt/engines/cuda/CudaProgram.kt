@@ -2,9 +2,11 @@ package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
+import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import jcuda.Pointer
 import jcuda.driver.CUfunction
@@ -34,6 +36,9 @@ class CudaProgram(
         val instancesVal = Pointer.to(intArrayOf(instances))
         val arrays = buffers.map { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            if(!areEqualTypes(value, field.type))
+                throw TypesMismatchException(field.name)
+
             when(value){
                 is Float -> Pointer.to(floatArrayOf(value))
                 is Double -> Pointer.to(doubleArrayOf(value))
@@ -56,10 +61,13 @@ class CudaProgram(
                 modifiers = listOf("__global__"),
                 type = function.returnType.text,
                 name = "__m",
-                args = listOf("int __c") + buffers.map { toCType(it.type, false, it.name) }
+                args = listOf("int __c") + buffers.map(::transformKernelArg)
             )
             buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
             buffer.append("if(${function.arguments[0].name}>__c)return;")
+            buffers.forEach {
+                buffer.append("${it.name}=__v_${it.name};")
+            }
             stringifyScope(function, buffer)
             buffer.append("}")
         }else {
@@ -68,14 +76,19 @@ class CudaProgram(
                 modifiers = listOf("__device__") + function.modifiers.map { it.text },
                 type = function.returnType.text,
                 name = function.name,
-                args = function.arguments.map { "${toCType(it.type, false)} ${it.name}" }
+                args = function.arguments.map(::convertToFuncArg)
             )
             stringifyScope(function, buffer)
             buffer.append("}")
         }
     }
 
-    override fun toCType(type: Type, isConst: Boolean, name: String) = if(isConst)
-        "__constant__ " + super.toCType(type, false, name)
-    else super.toCType(type, false, name)
+    private fun transformKernelArg(field: Field) =
+        "${toCType(field.type)} ${toCArrayName("__v_${field.name}")}"
+
+
+    override fun toCModifier(modifier: Modifiers) = when(modifier){
+        Modifiers.EXTERNAL -> "__device__"
+        Modifiers.CONST -> "__constant__"
+    }
 }

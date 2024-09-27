@@ -1,11 +1,11 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
-import com.huskerdev.gpkt.utils.appendCFieldHeader
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 
 interface Program {
@@ -18,11 +18,29 @@ interface Program {
 
 class FieldNotSetException(name: String): Exception("Field '$name' have not been set")
 
+class TypesMismatchException(argument: String): Exception("Value type for argument '$argument' doesn't match.")
+
 abstract class BasicProgram(ast: Scope): Program {
     protected val buffers = ast.fields.filter {
-        Modifiers.IN in it.modifiers ||
-                Modifiers.OUT in it.modifiers
+        Modifiers.EXTERNAL in it.modifiers
     }.toList()
+
+    fun areEqualTypes(actual: Any, expected: Type): Boolean{
+        val actualType = when(actual){
+            is FloatMemoryPointer -> Type.FLOAT_ARRAY
+            is IntMemoryPointer -> Type.INT_ARRAY
+            is DoubleMemoryPointer -> Type.DOUBLE_ARRAY
+            is LongMemoryPointer -> Type.LONG_ARRAY
+            is ByteMemoryPointer -> Type.BYTE_ARRAY
+            is Float -> Type.FLOAT
+            is Int -> Type.INT
+            is Double -> Type.DOUBLE
+            is Long -> Type.LONG
+            is Byte -> Type.BYTE
+            else -> throw UnsupportedOperationException("Unsupported type: $actual")
+        }
+        return actualType == expected
+    }
 }
 
 abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
@@ -120,27 +138,34 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
     }
 
     protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder){
-        val modifiers = fieldStatement.fields[0].modifiers
-        val type = fieldStatement.fields[0].type
-        if(Modifiers.IN in modifiers || Modifiers.OUT in modifiers)
-            return
+        val fields = fieldStatement.fields
+        val modifiers = fields[0].modifiers
+        val type = fields[0].type
+        modifiers.joinTo(buffer, separator = " ", postfix = " ", transform = ::toCModifier)
 
-        appendCFieldHeader(
-            buffer = buffer,
-            modifiers = modifiers.map { it.text },
-            type = toCType(type, fieldStatement.scope.parentScope == null),
-            fields = fieldStatement.fields,
-            expressionGen = { stringifyExpression(buffer, it) }
-        )
+        buffer.append(toCType(type)).append(" ")
+        fields.forEachIndexed { i, field ->
+            if(type.isArray)
+                buffer.append(toCArrayName(field.name))
+            else
+                buffer.append(field.name)
+            if(field.initialExpression != null){
+                buffer.append("=")
+                stringifyExpression(buffer, field.initialExpression)
+            }
+            if(i != fields.lastIndex)
+                buffer.append(",")
+        }
+        buffer.append(";")
     }
 
     protected open fun stringifyFunction(function: Function, buffer: StringBuilder){
         appendCFunctionHeader(
             buffer = buffer,
             modifiers = function.modifiers.map { it.text },
-            type = toCType(function.returnType, false),
+            type = toCType(function.returnType),
             name = function.name,
-            args = function.arguments.map { toCType(it.type, false, it.name) }
+            args = function.arguments.map(::convertToFuncArg)
         )
         stringifyScope(function, buffer)
         buffer.append("}")
@@ -197,7 +222,7 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
     }
 
     protected open fun stringifyCastExpression(buffer: StringBuilder, expression: CastExpression){
-        buffer.append("(").append(toCType(expression.type, false)).append(")")
+        buffer.append("(").append(toCType(expression.type)).append(")")
         stringifyExpression(buffer, expression.right)
     }
 
@@ -205,20 +230,29 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
         buffer.append(expression.field.name)
     }
 
-    protected open fun toCType(type: Type, isConst: Boolean, name: String = "") = when(type) {
-        Type.VOID -> if(name.isEmpty()) "void" else "void $name"
-        Type.FLOAT -> if(name.isEmpty()) "float" else "float $name"
-        Type.LONG -> if(name.isEmpty()) "long" else "long $name"
-        Type.INT -> if(name.isEmpty()) "int" else "int $name"
-        Type.DOUBLE -> if(name.isEmpty()) "double" else "double $name"
-        Type.BYTE -> if(name.isEmpty()) "char" else "char $name"
-        Type.BOOLEAN -> if(name.isEmpty()) "bool" else "bool $name"
-        Type.FLOAT_ARRAY -> if(name.isEmpty()) "float*" else "float*$name"
-        Type.LONG_ARRAY -> if(name.isEmpty()) "long*" else "long*$name"
-        Type.INT_ARRAY -> if(name.isEmpty()) "int*" else "int*$name"
-        Type.DOUBLE_ARRAY -> if(name.isEmpty()) "double*" else "double*$name"
-        Type.BYTE_ARRAY -> if(name.isEmpty()) "byte*" else "byte*$name"
-        Type.BOOLEAN_ARRAY -> if(name.isEmpty()) "bool" else "bool*$name"
+    protected open fun convertToFuncArg(field: Field): String{
+        val buffer = StringBuilder()
+        field.modifiers.joinTo(buffer, separator = " ", postfix = " ", transform = ::toCModifier)
+
+        buffer.append(toCType(field.type)).append(" ")
+        if(field.type.isArray)
+            buffer.append(toCArrayName(field.name))
+        else buffer.append(field.name)
+        return buffer.toString()
     }
+
+    protected open fun toCModifier(modifier: Modifiers) = ""
+
+    protected open fun toCType(type: Type) = when(type) {
+        Type.VOID -> "void"
+        Type.FLOAT, Type.FLOAT_ARRAY -> "float"
+        Type.LONG, Type.LONG_ARRAY -> "long"
+        Type.INT, Type.INT_ARRAY -> "int"
+        Type.DOUBLE, Type.DOUBLE_ARRAY -> "double"
+        Type.BYTE, Type.BYTE_ARRAY -> "char"
+        Type.BOOLEAN, Type.BOOLEAN_ARRAY -> "bool"
+    }
+
+    protected open fun toCArrayName(name: String) = "*$name"
 }
 

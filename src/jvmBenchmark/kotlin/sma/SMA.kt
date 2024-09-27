@@ -15,15 +15,15 @@ class GP(
     private var result = engine.allocFloat(candles * (maxPeriod - minPeriod))
 
     private var program = engine.compile("""
-        in float[] data;
-        out float[] result;
+        external float[] data;
+        external float[] result;
         
         int minPeriod = ${minPeriod};
         int maxPeriod = ${maxPeriod};
         int count = ${candles};
         
         float sma(float[] d, int from, int period){
-            float sum = 0.0;
+            float sum = 0;
             for(int i = 0; i < period; i++)
                 if(from - i >= 0) sum += d[from - i];
             return sum / (float)period;

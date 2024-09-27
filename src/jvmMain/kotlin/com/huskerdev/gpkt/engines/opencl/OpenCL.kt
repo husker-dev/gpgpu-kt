@@ -156,4 +156,8 @@ class OpenCL(
     fun setArgument(kernel: cl_kernel, index: Int, memory: cl_mem){
         clSetKernelArg(kernel, index, Sizeof.cl_mem.toLong(), Pointer.to(memory))
     }
+
+    fun setArgument(kernel: cl_kernel, index: Int, size: Long, pointer: Pointer){
+        clSetKernelArg(kernel, index, size, pointer)
+    }
 }

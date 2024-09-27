@@ -9,7 +9,7 @@ import com.huskerdev.gpkt.ast.lexer.Lexeme
 class Field(
     val lexeme: Lexeme,
     val name: String,
-    val modifiers: List<Modifiers>,
+    val modifiers: MutableList<Modifiers>,
     val type: Type,
     val initialExpression: Expression? = null
 ) {

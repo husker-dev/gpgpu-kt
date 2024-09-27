@@ -10,7 +10,6 @@ class ParsingTest {
         GPAst.parse("""
             int a;
             int b;
-            int c = 10;
             int d = 10, e;
             int f, g = 10;
             int h = 10, i = 10;
@@ -36,8 +35,8 @@ class ParsingTest {
             int _l2 = 0xffFFffff;
             
             
-            in float[] inputs1, inputs2;
-            out float[] outputs1, outputs2;
+            external float[] inputs1, inputs2;
+            external float[] outputs1, outputs2;
             
             void emptyFunc(){
             }
@@ -69,7 +68,9 @@ class ParsingTest {
                 emptyFunc();
                 123 + 321;
                 123 + intFunc(123, 321f);
+                int c = 10;
                 c = 123 + intFunc(123, 321f);
+                
             
                 /* ================= *\
                          Parse

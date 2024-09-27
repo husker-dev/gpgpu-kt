@@ -20,8 +20,8 @@ class GP(
     private var result = device.allocFloat(sma.length)
 
     private var progSMA = device.compile("""
-        in float[] candlesData;
-        out float[] smaData;
+        external float[] candlesData;
+        external float[] smaData;
         
         int minPeriod = $minPeriod;
         int maxPeriod = $maxPeriod;
@@ -30,7 +30,7 @@ class GP(
         int candles = $candles;
         
         float sma(float[] d, int from, int period, int size){
-            float sum = 0.0;
+            float sum = 0;
             for(int i = 0; i < period; i++){
                 int ni = from - i;
                 if(ni >= 0 && ni < size) 
@@ -54,18 +54,18 @@ class GP(
     """.trimIndent())
 
     private var progSignals = device.compile("""
-        in float[] smaData;
-        in float[] closeData;
-        out float[] result;
+        external float[] smaData;
+        external float[] closeData;
+        external float[] result;
         
         int candles = $candles;
         
         float maSignals(float[] ma, float[] close, int maI, int closeI){
             if(closeI <= 2 || maI <= 2)
-                return 0.0;
+                return 0;
             if(close[closeI-2] <= ma[maI-2] && close[closeI-1] > ma[maI-1])
-                return 1.0;
-            else return 0.0;
+                return 1;
+            else return 0;
         }
         
         void main(int i){

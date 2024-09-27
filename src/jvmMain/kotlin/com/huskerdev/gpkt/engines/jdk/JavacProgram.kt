@@ -2,8 +2,11 @@ package com.huskerdev.gpkt.engines.jdk
 
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
+import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.*
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
@@ -24,9 +27,10 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
         val buffer = StringBuilder()
         buffer.append("""
             public class $className{ 
-                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString { toCType(it.type, false, it.name) }}){
+                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString(transform = ::transformKernelArg)}){
+                    ${buffers.joinToString("") { "${it.name}=__v_${it.name};" }}
                     for(int i = fromIndex; i < toIndex; i++)
-                        __m(${(arrayOf("i") + buffers.map { it.name }).joinToString(",")});
+                        __m(i);
                 }
         """.trimIndent())
         stringifyScope(ast, buffer)
@@ -45,6 +49,9 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
 
         val arrays = buffers.map { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            if(!areEqualTypes(value, field.type))
+                throw TypesMismatchException(field.name)
+
             when(value){
                 is CPUFloatMemoryPointer -> value.array
                 is CPUDoubleMemoryPointer -> value.array
@@ -68,22 +75,28 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
     override fun dealloc() = Unit
 
     override fun stringifyFunction(function: Function, buffer: StringBuilder){
-        val funName = if(function.name == "main") "__m" else function.name
-        val args = if(function.name == "main")
-            listOf("int i") + buffers.map { toCType(it.type, false, it.name) }
-        else
-            function.arguments.map { toCType(it.type, false, it.name) }
-
+        val name: String
+        val args: List<String>
+        if(function.name == "main"){
+            name = "__m"
+            args = listOf("int i")
+        }else {
+            name = function.name
+            args = function.arguments.map(::convertToFuncArg)
+        }
         appendCFunctionHeader(
             buffer = buffer,
             modifiers = listOf("private", "static", "final") + function.modifiers.map { it.text },
             type = function.returnType.text,
-            name = funName,
+            name = name,
             args = args
         )
         stringifyScope(function, buffer)
         buffer.append("}")
     }
+
+    private fun transformKernelArg(field: Field) =
+        "${toCType(field.type)} __v_${field.name}"
 
     private fun Type.toJavaClass() = when(this) {
         Type.VOID -> Unit::class.java
@@ -101,22 +114,26 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
         Type.BOOLEAN_ARRAY -> BooleanArray::class.java
     }
 
-    override fun toCType(type: Type, isConst: Boolean, name: String): String {
-        val modifiers = if(isConst) "private static final " else ""
-        return modifiers + when (type) {
-            Type.VOID -> if(name.isEmpty()) "void" else "void $name"
-            Type.FLOAT -> if(name.isEmpty()) "float" else "float $name"
-            Type.LONG -> if(name.isEmpty()) "long" else "long$name"
-            Type.INT -> if(name.isEmpty()) "int" else "int $name"
-            Type.DOUBLE -> if(name.isEmpty()) "double" else "double $name"
-            Type.BYTE -> if(name.isEmpty()) "byte" else "byte $name"
-            Type.BOOLEAN -> if(name.isEmpty()) "bool" else "bool $name"
-            Type.FLOAT_ARRAY -> if(name.isEmpty()) "float[]" else "float[]$name"
-            Type.LONG_ARRAY -> if(name.isEmpty()) "long[]" else "long[]$name"
-            Type.INT_ARRAY -> if(name.isEmpty()) "int[]" else "int[]$name"
-            Type.DOUBLE_ARRAY -> if(name.isEmpty()) "double[]" else "double[]$name"
-            Type.BYTE_ARRAY -> if(name.isEmpty()) "byte[]" else "byte[]$name"
-            Type.BOOLEAN_ARRAY -> if(name.isEmpty()) "boolean[]" else "boolean[]$name"
-        }
+    override fun toCType(type: Type) = when (type) {
+        Type.VOID -> "void"
+        Type.FLOAT -> "float"
+        Type.DOUBLE -> "double"
+        Type.LONG -> "long"
+        Type.INT -> "int"
+        Type.BYTE -> "byte"
+        Type.BOOLEAN -> "boolean"
+        Type.FLOAT_ARRAY -> "float[]"
+        Type.DOUBLE_ARRAY -> "double[]"
+        Type.LONG_ARRAY -> "long[]"
+        Type.INT_ARRAY -> "int[]"
+        Type.BYTE_ARRAY -> "byte[]"
+        Type.BOOLEAN_ARRAY -> "boolean[]"
+    }
+
+    override fun toCArrayName(name: String) = name
+
+    override fun toCModifier(modifier: Modifiers) = when(modifier){
+        Modifiers.CONST -> "private static final"
+        Modifiers.EXTERNAL -> "private static"
     }
 }

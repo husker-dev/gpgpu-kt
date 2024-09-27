@@ -2,14 +2,15 @@ package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
+import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
-import jcuda.Sizeof
 import org.jocl.Pointer
+import org.jocl.Sizeof
 import org.jocl.cl_kernel
-import org.jocl.cl_mem
 import org.jocl.cl_program
 
 class OpenCLProgram(
@@ -29,30 +30,26 @@ class OpenCLProgram(
 
     override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
-        val variables = arrayListOf<cl_mem>()
 
         buffers.forEachIndexed { i, field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            if(!areEqualTypes(value, field.type))
+                throw TypesMismatchException(field.name)
 
-            // Get pointer if value is OpenCLMemoryPointer, or create cl_mem if value is float,int etc.
-            val ptr = if(value !is OpenCLMemoryPointer)
-                allocVariable(value).apply { variables += this }
-            else value.ptr
-            cl.setArgument(kernel, i, ptr)
+            if(value !is OpenCLMemoryPointer) {
+                val (size, ptr) = when(value){
+                    is Float -> Sizeof.cl_float.toLong() to Pointer.to(floatArrayOf(value))
+                    is Double -> Sizeof.cl_double.toLong() to Pointer.to(doubleArrayOf(value))
+                    is Long -> Sizeof.cl_long.toLong() to Pointer.to(longArrayOf(value))
+                    is Int -> Sizeof.cl_int.toLong() to Pointer.to(intArrayOf(value))
+                    is Byte -> Sizeof.cl_char.toLong() to Pointer.to(byteArrayOf(value))
+                    else -> throw UnsupportedOperationException()
+                }
+                cl.setArgument(kernel, i, size, ptr)
+            }else
+                cl.setArgument(kernel, i, value.ptr)
         }
         cl.executeKernel(kernel, instances.toLong())
-
-        // Free allocated memory for variables
-        variables.forEach { cl.dealloc(it) }
-    }
-
-    private fun allocVariable(value: Any) = when(value){
-        is Float -> cl.allocate(Pointer.to(floatArrayOf(value)), 1L * Sizeof.FLOAT)
-        is Double -> cl.allocate(Pointer.to(doubleArrayOf(value)), 1L * Sizeof.DOUBLE)
-        is Long -> cl.allocate(Pointer.to(longArrayOf(value)), 1L * Sizeof.LONG)
-        is Int -> cl.allocate(Pointer.to(intArrayOf(value)), 1L * Sizeof.INT)
-        is Byte -> cl.allocate(Pointer.to(byteArrayOf(value)), 1L * Sizeof.BYTE)
-        else -> throw UnsupportedOperationException()
     }
 
     override fun dealloc() {
@@ -67,16 +64,26 @@ class OpenCLProgram(
                 modifiers = listOf("__kernel"),
                 type = function.returnType.text,
                 name = "__m",
-                args = buffers.map { "__global ${toCType(it.type, false, it.name)}" }
+                args = buffers.map(::transformKernelArg)
             )
+            buffers.forEach {
+                buffer.append("${it.name}=__v_${it.name};")
+            }
             buffer.append("int ${function.arguments[0].name}=get_global_id(0);")
             stringifyScope(function, buffer)
             buffer.append("}")
         } else super.stringifyFunction(function, buffer)
     }
 
-    override fun toCType(type: Type, isConst: Boolean, name: String) = if(isConst)
-        "__constant " + super.toCType(type, false, name)
-    else super.toCType(type, false, name)
+    private fun transformKernelArg(field: Field): String{
+        return if(field.type.isArray)
+            "__global ${toCType(field.type)}*__v_${field.name}"
+        else
+            "${toCType(field.type)} __v_${field.name}"
+    }
 
+    override fun toCModifier(modifier: Modifiers) = when(modifier){
+        Modifiers.EXTERNAL -> "__global"
+        Modifiers.CONST -> "__constant"
+    }
 }

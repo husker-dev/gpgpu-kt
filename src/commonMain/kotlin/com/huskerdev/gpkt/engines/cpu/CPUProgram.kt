@@ -2,6 +2,7 @@ package com.huskerdev.gpkt.engines.cpu
 
 import com.huskerdev.gpkt.BasicProgram
 import com.huskerdev.gpkt.FieldNotSetException
+import com.huskerdev.gpkt.TypesMismatchException
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.objects.ExField
@@ -17,6 +18,9 @@ class CPUProgram(
         val map = hashMapOf(*mapping)
         val variables = buffers.associate { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
+            if(!areEqualTypes(value, field.type))
+                throw TypesMismatchException(field.name)
+
             val desc = when (value) {
                 is CPUFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
                 is CPUDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!

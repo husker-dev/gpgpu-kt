@@ -19,8 +19,8 @@ fun main() {
 
     val program = try {
         device.compile("""
-            in float[] data;
-            out float[] result;
+            external float[] data;
+            external float[] result;
             
             int minPeriod = ${1};
             int maxPeriod = ${11};

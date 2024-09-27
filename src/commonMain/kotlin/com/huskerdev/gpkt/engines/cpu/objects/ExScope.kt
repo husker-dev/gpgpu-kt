@@ -48,7 +48,7 @@ class ExScope(
     private fun evalStatement(it: Statement): ExValue? {
         when(it) {
             is FieldStatement -> it.fields.forEach { field ->
-                if(Modifiers.IN !in field.modifiers && Modifiers.OUT !in field.modifiers) {
+                if(Modifiers.EXTERNAL !in field.modifiers) {
                     addField(field.name, ExField(field.type,
                         if (field.initialExpression != null)
                             executeExpression(this, field.initialExpression).castToType(field.type)

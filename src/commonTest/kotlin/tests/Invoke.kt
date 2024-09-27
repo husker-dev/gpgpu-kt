@@ -13,8 +13,8 @@ fun testInvocation(type: GPType, instances: Int){
     val result = engine.allocFloat(arraySize)
 
     val program = engine.compile("""
-            in float[] data1, data2;
-            out float[] result;
+            external float[] data1, data2;
+            external float[] result;
             
             void main(int i){
                 result[i] = data1[i] + data2[i];
