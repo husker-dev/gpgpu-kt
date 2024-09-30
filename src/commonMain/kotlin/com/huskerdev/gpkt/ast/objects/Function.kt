@@ -11,7 +11,7 @@ class Function(
     val name: String,
     val modifiers: List<Modifiers>,
     returnType: Type
-): Scope(scope, returnType){
+): Scope(scope.device, scope, returnType){
     val arguments = mutableListOf<Field>()
     val argumentsTypes = mutableListOf<Type>()
 

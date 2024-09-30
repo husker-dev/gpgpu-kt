@@ -35,8 +35,8 @@ class ParsingTest {
             int _l2 = 0xffFFffff;
             
             
-            external float[] inputs1, inputs2;
-            external float[] outputs1, outputs2;
+            extern float[] inputs1, inputs2;
+            extern float[] outputs1, outputs2;
             
             void emptyFunc(){
             }

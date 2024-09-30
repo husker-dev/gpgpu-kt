@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.ast.types
 
 
 enum class Modifiers(val text: String){
-    EXTERNAL("external"),
+    EXTERNAL("extern"),
     CONST("const")
     ;
     companion object {

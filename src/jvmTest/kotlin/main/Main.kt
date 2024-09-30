@@ -17,22 +17,25 @@ fun main() {
     println("Id:   ${device.id}")
     println("=============================")
 
+    device.libraries.add("sma", """
+        float sma(float[] d, int from, int period){
+            float sum = 0;
+            for(int i = 0; i < period; i++)
+                if(from - i >= 0) sum += d[from - i];
+            return sum / (float)period;
+        }
+    """.trimIndent())
+
     val program = try {
         device.compile("""
-            external float[] data;
-            external float[] result;
+            import sma;
             
-            int minPeriod = ${1};
-            int maxPeriod = ${11};
-            int count = ${10};
+            extern float[] data;
+            extern float[] result;
             
-            float sma(float[] d, int from, int period){
-                float sum = 0;
-                for(int i = 0; i < period; i++){
-                    if(from - i >= 0) sum += d[from - i];
-                }
-                return sum / (float)period;
-            }
+            extern int minPeriod;
+            extern int maxPeriod;
+            extern int count;
             
             void main(const int i){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
@@ -51,7 +54,10 @@ fun main() {
     program.execute(
         instances = result.length,
         "data" to arr1,
-        "result" to result
+        "result" to result,
+        "minPeriod" to 1,
+        "maxPeriod" to 11,
+        "count" to 10
     )
 
     val r = result.read()

@@ -29,7 +29,7 @@ fun parseForStatement(
         throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
     // Head scope
-    val headScope = Scope(scope, Type.VOID)
+    val headScope = Scope(scope.device, scope, Type.VOID)
     i = parseScope(headScope, lexemes, codeBlock, i+1, r) + 1
 
     if(headScope.statements.size < 2)
@@ -58,12 +58,12 @@ fun parseForStatement(
     }
 
     // body
-    val body = Scope(scope, iterable = true).apply {
+    val body = Scope(scope.device, scope, iterable = true).apply {
         if(initialization is FieldStatement)
             initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
         i = if(lexemes[i].text == "{")
             parseScope(this, lexemes, codeBlock, i + 1, to)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
+        else parseScope(this, lexemes, codeBlock, i, to, 1)
     }
 
     return ForStatement(scope, initialization, conditionExpression, iterationExpression, body, from, i - from)

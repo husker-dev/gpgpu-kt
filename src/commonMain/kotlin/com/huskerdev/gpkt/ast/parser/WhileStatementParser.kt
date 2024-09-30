@@ -10,7 +10,8 @@ fun parseWhileStatement(
     scope: Scope,
     lexemes: List<Lexeme>,
     codeBlock: String,
-    from: Int
+    from: Int,
+    to: Int
 ): WhileStatement {
     var i = from + 1
     if(lexemes[i].text != "(")
@@ -21,10 +22,10 @@ fun parseWhileStatement(
         throw expectedTypeException(Type.BOOLEAN, condition.type, lexemes[i+1], codeBlock)
     i += condition.lexemeLength + 2
 
-    val body = Scope(scope, iterable = true).apply {
+    val body = Scope(scope.device, scope, iterable = true).apply {
         i = if(lexemes[i].text == "{")
-            parseScope(this, lexemes, codeBlock, i+1, lexemes.size)
-        else parseScope(this, lexemes, codeBlock, i, findExpressionEnd(i, lexemes, codeBlock)) + 1
+            parseScope(this, lexemes, codeBlock, i+1, to)
+        else parseScope(this, lexemes, codeBlock, i, to, 1)
     }
     return WhileStatement(scope, condition, body, from, i - from)
 }

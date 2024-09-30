@@ -15,8 +15,8 @@ class GP(
     private var result = engine.allocFloat(candles * (maxPeriod - minPeriod))
 
     private var program = engine.compile("""
-        external float[] data;
-        external float[] result;
+        extern float[] data;
+        extern float[] result;
         
         int minPeriod = ${minPeriod};
         int maxPeriod = ${maxPeriod};

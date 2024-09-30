@@ -14,7 +14,7 @@ val digits = setOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 val digitsHex = setOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 val logical = setOf("true", "false")
 val specials_separators = setOf("(", ")", "{", "}", "[", "]", ";", ",") + operatorTokens
-val specials_keywords = setOf("if", "for", "while", "return", "break", "continue") + primitives + modifiers
+val specials_keywords = setOf("if", "for", "while", "return", "break", "continue", "import") + primitives + modifiers
 const val longestSpecial = 7
 
 

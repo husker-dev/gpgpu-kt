@@ -20,8 +20,8 @@ class GP(
     private var result = device.allocFloat(sma.length)
 
     private var progSMA = device.compile("""
-        external float[] candlesData;
-        external float[] smaData;
+        extern float[] candlesData;
+        extern float[] smaData;
         
         int minPeriod = $minPeriod;
         int maxPeriod = $maxPeriod;
@@ -54,9 +54,9 @@ class GP(
     """.trimIndent())
 
     private var progSignals = device.compile("""
-        external float[] smaData;
-        external float[] closeData;
-        external float[] result;
+        extern float[] smaData;
+        extern float[] closeData;
+        extern float[] result;
         
         int candles = $candles;
         

@@ -13,10 +13,12 @@ fun parseScope(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    maxStatements: Int = Int.MAX_VALUE
 ): Int {
     //println("==== SCOPE: ${from}-${to} ====")
 
+    var statements = 0
     var i = from
     try {
         while (i < to) {
@@ -34,11 +36,12 @@ fun parseScope(
                 when {
                     text == ";" -> EmptyStatement(scope, i, 1)
                     text == "return" -> parseReturnStatement(scope, lexemes, codeBlock, i)
-                    text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i)
-                    text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i)
+                    text == "if" -> parseIfStatement(scope, lexemes, codeBlock, i, to)
+                    text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, i, to)
                     text == "for" -> parseForStatement(scope, lexemes, codeBlock, i, to)
                     text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, i)
                     text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, i)
+                    text == "import" -> parseImportStatement(scope, lexemes, codeBlock, i, to)
                     (text in primitives || text in modifiers) -> {
                         var r = i
                         while(lexemes[r].type != Lexeme.Type.NAME && r < to)
@@ -54,6 +57,9 @@ fun parseScope(
 
             scope.addStatement(statement, codeBlock)
             i += statement.lexemeLength
+            statements++
+            if(statements >= maxStatements)
+                return i
         }
 
     }catch (e: IndexOutOfBoundsException){

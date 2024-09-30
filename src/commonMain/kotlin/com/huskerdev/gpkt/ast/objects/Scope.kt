@@ -1,11 +1,13 @@
 package com.huskerdev.gpkt.ast.objects
 
+import com.huskerdev.gpkt.GPDevice
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 
 open class Scope(
+    val device: GPDevice?,
     val parentScope: Scope?,
     open val returnType: Type? = null,
     val iterable: Boolean = false
@@ -54,16 +56,35 @@ open class Scope(
         if(statement is ReturnStatement)
             returns = true
 
-        if(statement is FieldStatement){
-            statement.fields.forEach { field ->
-                addField(field, field.lexeme, codeBlock)
-                if(parentScope == null && field.modifiers.isEmpty())
-                    field.modifiers += Modifiers.CONST
+        when (statement) {
+            is FieldStatement -> {
+                statement.fields.forEach { field ->
+                    addField(field, field.lexeme, codeBlock)
+                    if(parentScope == null && field.modifiers.isEmpty())
+                        field.modifiers += Modifiers.CONST
+                }
             }
-        }
-        if(statement is FunctionStatement){
-            val function = statement.function
-            addFunction(function, function.lexeme, codeBlock)
+            is FunctionStatement -> {
+                val function = statement.function
+                addFunction(function, function.lexeme, codeBlock)
+            }
+            is ImportStatement -> {
+                val import = statement.import
+                if(device == null || !device.libraries.ast.containsKey(import.path))
+                    throw compilationError("Library '${import.path}' not found", import.lexeme, codeBlock)
+
+                val library = device.libraries.ast[import.path]!!
+                library.statements.forEach { st ->
+                    if(st is FieldStatement){
+                        statements += st
+                        fields += st.fields
+                    }
+                    if(st is FunctionStatement){
+                        statements += st
+                        functions += st.function
+                    }
+                }
+            }
         }
     }
 }

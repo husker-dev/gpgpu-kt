@@ -2,6 +2,7 @@ package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.Import
 import com.huskerdev.gpkt.ast.objects.Scope
 
 
@@ -18,6 +19,15 @@ class ExpressionStatement(
 ): Statement {
     override val lexemeIndex = expression.lexemeIndex
     override val lexemeLength = expression.lexemeLength + 1
+    override val returns = false
+}
+
+class ImportStatement(
+    override val scope: Scope,
+    val import: Import,
+    override val lexemeIndex: Int,
+    override val lexemeLength: Int
+): Statement {
     override val returns = false
 }
 

@@ -26,8 +26,10 @@ abstract class GPDevice(
     abstract val name: String
     abstract val isGPU: Boolean
 
+    val libraries = GPLibraries(this)
+
     fun compile(code: String) =
-        compile(GPAst.parse(code))
+        compile(GPAst.parse(code, this))
 
     abstract fun allocFloat(array: FloatArray): FloatMemoryPointer
     abstract fun allocFloat(length: Int): FloatMemoryPointer
