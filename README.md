@@ -1,25 +1,31 @@
-1. Create GPGPUEngine
+### TODO List:
+  - [ ] Add argument `from` to execute
+  - [ ] Add single value updating in memory objects
+  - [ ] Add WebGPU support
+  - [ ] Add array creation support
+
+1. Create GPDevice
 ```kotlin
-val engine = GPGPUEngine.create()
+val device = GPDevice.create()
 ```
 
 2. Compile a program
 ```kotlin
-val program = engine.compile("""
-    in float[] arr1, arr2;
-    out float[] result;
+val program = device.compile("""
+    extern float[] arr1, arr2, result;
+    extern float multiplier;
     
-    void main(int i){
-        result[i] = arr1[i] + arr2[i];
+    void main(const int i){
+        result[i] = arr1[i] + arr2[i] * multiplier;
     }
 """.trimIndent())
 ```
 
 3. Allocate buffers on GPU
 ```kotlin
-val arr1 = engine.alloc(exampleArray())
-val arr2 = engine.alloc(exampleArray())
-val result = engine.alloc(arr1.length)
+val arr1 = device.allocFloat(exampleArray())
+val arr2 = device.allocFloat(exampleArray())
+val result = engine.allocFloat(arr1.length)
 
 fun exampleArray() = FloatArray(1_000_000) { it.toFloat() }
 ```
@@ -27,10 +33,11 @@ fun exampleArray() = FloatArray(1_000_000) { it.toFloat() }
 4. Execute
 ```kotlin
 program.execute(
-    instances = arr1.length,
+    instances = 1_000_000,
     "arr1" to arr1,
     "arr2" to arr2,
-    "result" to result
+    "result" to result,
+    "multiplier" to 2
 )
 ```
 
