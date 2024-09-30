@@ -12,6 +12,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 ### Planned executions:
  - **JS, Wasm**
    - WebGPU
+   - JS
  - **iOS**
    - Metal
  - **Android**
