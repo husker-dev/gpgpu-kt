@@ -1,9 +1,33 @@
+# gpgpu-kt
+Cross-platform general-purpose computing Kotlin Multiplatform library
+
+### Available executions:
+ - **Common**
+   - Interpreter
+ - **JVM**
+   - OpenCL
+   - CUDA
+   - javac
+
+### Planned executions:
+ - **JS, Wasm**
+   - WebGPU
+ - **iOS**
+   - Metal
+ - **Android**
+   - OpenCL
+   - Vulkan
+
 ### TODO List:
-  - [ ] Add argument `from` to execute
+  - [ ] Add standard functions (pow, sqrt, etc)
+  - [ ] Add argument `from` to execute()
   - [ ] Add single value updating in memory objects
   - [ ] Add WebGPU support
   - [ ] Add array creation support
+  - [ ] Add Vulkan support
+  - [ ] Add Metal support
 
+## Simple usage 
 1. Create GPDevice
 ```kotlin
 val device = GPDevice.create()
