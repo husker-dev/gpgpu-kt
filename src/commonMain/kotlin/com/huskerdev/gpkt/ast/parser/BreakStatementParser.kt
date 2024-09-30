@@ -9,15 +9,19 @@ fun parseBreakStatement(
     scope: Scope,
     lexemes: List<Lexeme>,
     codeBlock: String,
-    from: Int
+    from: Int,
+    to: Int
 ): BreakStatement {
-    val i = from + 1
+    var i = from + 1
 
-    val next = lexemes[i]
-    if(next.text != ";")
-        throw compilationError("Expected ;", next, codeBlock)
+    if(i + 1 < to) {
+        val next = lexemes[i]
+        if (next.text != ";")
+            throw compilationError("Expected ;", next, codeBlock)
+        i++
+    }
     if(!scope.isInIterableScope())
-        throw compilationError("'break' can only be used inside iterator", next, codeBlock)
+        throw compilationError("'break' can only be used inside iterator", lexemes[from], codeBlock)
 
     return BreakStatement(scope, from, i - from)
 }

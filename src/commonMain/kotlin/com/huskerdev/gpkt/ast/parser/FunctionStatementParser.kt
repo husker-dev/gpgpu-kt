@@ -52,7 +52,7 @@ fun parseFunctionStatement(
             allowDefaultValue = false,
             endsWithSemicolon = false
         )
-        function.addArgument(fieldDeclaration.fields[0], lexemes[fieldDeclaration.lexemeIndex], codeBlock)
+        function.addArgument(fieldDeclaration.fields[0])
 
         i += fieldDeclaration.lexemeLength
         if(lexemes[i].text == ",")
@@ -61,7 +61,17 @@ fun parseFunctionStatement(
     if(lexemes[i+1].text != "{")
         throw compilationError("Expected function block", lexemes[i+1], codeBlock)
 
-    i = parseScope(function, lexemes, codeBlock, i+2, lexemes.size)
+    val functionScope = parseScopeStatement(
+        parentScope = scope,
+        lexemes = lexemes,
+        codeBlock = codeBlock,
+        from = i+1,
+        to = to,
+        returnType = type,
+        fields = function.arguments.toMutableList()
+    )
+    i += functionScope.lexemeLength
 
-    return FunctionStatement(scope, function, from, i - from)
+    function.body = functionScope
+    return FunctionStatement(scope, function, from, i - from + 1)
 }

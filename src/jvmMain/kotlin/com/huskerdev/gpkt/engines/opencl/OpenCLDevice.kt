@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.ScopeStatement
 import org.jocl.Pointer
 import org.jocl.Sizeof
 
@@ -44,7 +44,7 @@ class OpenCLDevice(
     override fun allocByte(length: Int) =
         CLByteMemoryPointer(cl, cl.allocate(Sizeof.cl_char * length), length)
 
-    override fun compile(ast: Scope) =
+    override fun compile(ast: ScopeStatement) =
         OpenCLProgram(cl, ast)
 
 }

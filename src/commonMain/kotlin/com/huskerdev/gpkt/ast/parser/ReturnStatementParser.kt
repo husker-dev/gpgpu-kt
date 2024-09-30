@@ -27,7 +27,7 @@ fun parseReturnStatement(
         ) createConstExpression(i, next, codeBlock)
         else parseExpression(scope, lexemes, codeBlock, i)!!
 
-        if (expression.type != returnType && !Type.canAssignNumbers(expression.type, returnType))
+        if (expression.type != returnType && !Type.canAssignNumbers(returnType, expression.type))
             throw expectedTypeException(returnType, expression.type, next, codeBlock)
         expression
     }else null

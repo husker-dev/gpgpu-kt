@@ -3,9 +3,9 @@ package com.huskerdev.gpkt.engines.cuda
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.FunctionStatement
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import jcuda.Pointer
@@ -15,7 +15,7 @@ import jcuda.driver.CUmodule
 
 class CudaProgram(
     private val cuda: Cuda,
-    ast: Scope
+    ast: ScopeStatement
 ): SimpleCProgram(ast) {
     private val module: CUmodule
     private val function: CUfunction
@@ -23,7 +23,7 @@ class CudaProgram(
     init {
         val buffer = StringBuilder()
         buffer.append("extern \"C\"{")
-        stringifyScope(ast, buffer)
+        stringifyScopeStatement(ast, buffer, false)
         buffer.append("}")
 
         module = cuda.compileToModule(buffer.toString())
@@ -54,7 +54,8 @@ class CudaProgram(
 
     override fun dealloc() = Unit
 
-    override fun stringifyFunction(function: Function, buffer: StringBuilder){
+    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
+        val function = statement.function
         if(function.name == "main") {
             appendCFunctionHeader(
                 buffer = buffer,
@@ -63,12 +64,13 @@ class CudaProgram(
                 name = "__m",
                 args = listOf("int __c") + buffers.map(::transformKernelArg)
             )
+            buffer.append("{")
             buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
             buffer.append("if(${function.arguments[0].name}>__c)return;")
             buffers.forEach {
                 buffer.append("${it.name}=__v_${it.name};")
             }
-            stringifyScope(function, buffer)
+            stringifyScopeStatement(statement.function.body, buffer, false)
             buffer.append("}")
         }else {
             appendCFunctionHeader(
@@ -78,13 +80,16 @@ class CudaProgram(
                 name = function.name,
                 args = function.arguments.map(::convertToFuncArg)
             )
-            stringifyScope(function, buffer)
-            buffer.append("}")
+            stringifyScopeStatement(statement.function.body, buffer, true)
         }
     }
 
-    private fun transformKernelArg(field: Field) =
-        "${toCType(field.type)} ${toCArrayName("__v_${field.name}")}"
+    private fun transformKernelArg(field: Field): String{
+        return if(field.type.isArray)
+            "${toCType(field.type)}*__v_${field.name}"
+        else
+            "${toCType(field.type)} __v_${field.name}"
+    }
 
 
     override fun toCModifier(modifier: Modifiers) = when(modifier){

@@ -3,9 +3,9 @@ package com.huskerdev.gpkt.engines.opencl
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.FunctionStatement
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 import org.jocl.Pointer
@@ -15,14 +15,14 @@ import org.jocl.cl_program
 
 class OpenCLProgram(
     private val cl: OpenCL,
-    ast: Scope
+    ast: ScopeStatement
 ): SimpleCProgram(ast) {
     private val program: cl_program
     private val kernel: cl_kernel
 
     init {
         val buffer = StringBuilder()
-        stringifyScope(ast, buffer)
+        stringifyScopeStatement(ast, buffer, false)
 
         program = cl.compileProgram(buffer.toString())
         kernel = cl.createKernel(program, "__m")
@@ -57,7 +57,8 @@ class OpenCLProgram(
         cl.dealloc(kernel)
     }
 
-    override fun stringifyFunction(function: Function, buffer: StringBuilder){
+    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
+        val function = statement.function
         if(function.name == "main"){
             appendCFunctionHeader(
                 buffer = buffer,
@@ -66,13 +67,14 @@ class OpenCLProgram(
                 name = "__m",
                 args = buffers.map(::transformKernelArg)
             )
+            buffer.append("{")
             buffers.forEach {
                 buffer.append("${it.name}=__v_${it.name};")
             }
             buffer.append("int ${function.arguments[0].name}=get_global_id(0);")
-            stringifyScope(function, buffer)
+            stringifyScopeStatement(function.body, buffer, false)
             buffer.append("}")
-        } else super.stringifyFunction(function, buffer)
+        } else super.stringifyFunctionStatement(statement, buffer)
     }
 
     private fun transformKernelArg(field: Field): String{

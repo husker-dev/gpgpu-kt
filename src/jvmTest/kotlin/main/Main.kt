@@ -17,7 +17,7 @@ fun main() {
     println("Id:   ${device.id}")
     println("=============================")
 
-    device.libraries.add("sma", """
+    device.modules.add("sma", """
         float sma(float[] d, int from, int period){
             float sum = 0;
             for(int i = 0; i < period; i++)

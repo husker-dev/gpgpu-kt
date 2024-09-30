@@ -1,12 +1,11 @@
 package com.huskerdev.gpkt.engines.cpu.objects
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 
 
 class ExScope(
-    val scope: Scope?,
+    val scope: ScopeStatement?,
     private val parentScope: ExScope? = null
 ) {
     private var began = false
@@ -56,20 +55,20 @@ class ExScope(
                     ))
                 }
             }
-            is FunctionStatement -> addFunction(it.function.name, ExScope(it.function, this))
+            is FunctionStatement -> addFunction(it.function.name, ExScope(it.function.body, this))
             is ExpressionStatement -> executeExpression(this, it.expression)
             is ReturnStatement -> return if(it.expression != null)
-                executeExpression(this, it.expression).castToType(scope!!.returnType)
+                executeExpression(this, it.expression).castToType(scope!!.scope.returnType)
             else null
             is IfStatement -> {
                 if(executeExpression(this, it.condition).get() == true)
-                    ExScope(it.body, this).execute()?.apply { return this }
+                    evalStatement(it.body)
                 else if(it.elseBody != null)
-                    ExScope(it.elseBody, this).execute()?.apply { return this }
+                    evalStatement(it.elseBody)
             }
             is WhileStatement -> {
                 while(executeExpression(this, it.condition).get() == true){
-                    val res = ExScope(it.body, this).execute()
+                    val res = evalStatement(it.body)
                     if(res != null) {
                         if (res == BreakMarker) break
                         if (res == ContinueMarker) continue
@@ -83,10 +82,8 @@ class ExScope(
                 forScope.evalStatement(it.initialization)
 
                 val condition = it.condition
-                val body = ExScope(it.body, forScope)
-
                 while(condition == null || executeExpression(forScope, condition).get() == true){
-                    val res = body.execute()
+                    val res = forScope.evalStatement(it.body)
                     if(res != null) {
                         if (res == BreakMarker) break
                         if (res == ContinueMarker) continue
@@ -99,6 +96,7 @@ class ExScope(
             }
             is BreakStatement -> return BreakMarker
             is ContinueStatement -> return ContinueMarker
+            is ImportStatement -> Unit
             else -> throw UnsupportedOperationException("Unsupported statement '$it'")
         }
         return null

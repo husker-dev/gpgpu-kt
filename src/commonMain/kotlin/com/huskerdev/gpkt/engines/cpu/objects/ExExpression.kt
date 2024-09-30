@@ -8,13 +8,13 @@ import com.huskerdev.gpkt.ast.types.Type
 class BadOperator(operator: Operator): Exception("Can't apply operator '${operator}'")
 
 
-fun executeExpression(scope: ExScope, expression: Expression): ExValue {
-    if(expression is AxBExpression){
+fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(expression) {
+    is AxBExpression -> {
         val left = executeExpression(scope, expression.left)
         val right = executeExpression(scope, expression.right)
         val leftValue = left.get()
         val rightValue = right.get()
-        return when(val operator = expression.operator){
+        when (val operator = expression.operator) {
             // ==============
             //   Assignment
             // ==============
@@ -214,14 +214,14 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
             else -> throw UnsupportedOperationException("Unsupported operator '${expression.operator}'")
         }
     }
-    if(expression is AxExpression){
+    is AxExpression -> {
         val left = executeExpression(scope, expression.left)
         val leftValue = left.get()
 
         // ==============
         //   Increment/decrement
         // ==============
-        return when(val operator = expression.operator) {
+        when (val operator = expression.operator) {
             INCREASE -> when (leftValue) {
                 is Float -> left.set(leftValue + 1)
                 is Int -> left.set(leftValue + 1)
@@ -241,14 +241,14 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
             else -> throw UnsupportedOperationException("Unsupported operator '${expression.operator}'")
         }
     }
-    if(expression is XBExpression){
+    is XBExpression -> {
         val right = executeExpression(scope, expression.right)
         val rightValue = right.get()
 
         // ==============
         //   Math
         // ==============
-        return when(val operator = expression.operator) {
+        when (val operator = expression.operator) {
             POSITIVE -> when (rightValue) {
                 is Float, is Int, is Double, is Long, is Byte -> right
                 else -> throw BadOperator(operator)
@@ -266,53 +266,41 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
                 is Long -> ExValue(rightValue.inv())
                 else -> throw BadOperator(operator)
             }
-            LOGICAL_NOT -> when(rightValue) {
+            LOGICAL_NOT -> when (rightValue) {
                 is Boolean -> ExValue(!rightValue)
                 else -> throw BadOperator(operator)
             }
             else -> throw UnsupportedOperationException("Unsupported operator '${expression.operator}'")
         }
     }
-    if(expression is ConstExpression){
+    is ConstExpression -> {
         val text = expression.lexeme.text
-        return ExValue(when(expression.type){
-            Type.FLOAT -> text.toFloat()
-            Type.INT -> text.toInt()
-            Type.DOUBLE -> text.toDouble()
-            Type.LONG -> text.toLong()
-            Type.BYTE -> text.toByte()
-            Type.BOOLEAN -> text == "true"
-            else -> throw UnsupportedOperationException("Can't parse value '${text}'")
-        })
+        ExValue(
+            when (expression.type) {
+                Type.FLOAT -> text.toFloat()
+                Type.INT -> text.toInt()
+                Type.DOUBLE -> text.toDouble()
+                Type.LONG -> text.toLong()
+                Type.BYTE -> text.toByte()
+                Type.BOOLEAN -> text == "true"
+                else -> throw UnsupportedOperationException("Can't parse value '${text}'")
+            }
+        )
     }
-    if(expression is CastExpression){
-        val value = executeExpression(scope, expression.right).get()
-        val type = expression.type
-        return ExValue(when {
-            type == Type.FLOAT && value is Number -> value.toFloat()
-            type == Type.INT && value is Number -> value.toInt()
-            type == Type.DOUBLE && value is Number -> value.toDouble()
-            type == Type.LONG && value is Number -> value.toLong()
-            type == Type.BYTE && value is Number -> value.toByte()
-            else -> throw UnsupportedOperationException("Can't cast '${value}' to '${expression.type.text}'")
-        })
-    }
-    if(expression is FieldExpression) {
-        return scope.findField(expression.field.name)!!.value!!
-    }
-    if(expression is FunctionCallExpression) {
+
+    is FunctionCallExpression -> {
         val arguments = expression.function.arguments.mapIndexed { i, arg ->
             arg.name to ExField(arg.type, ExValue(executeExpression(scope, expression.arguments[i]).get()))
         }.toMap().toMutableMap()
-        return scope.findFunction(expression.function.name)!!.execute(arguments)!!
+         scope.findFunction(expression.function.name)!!.execute(arguments)!!
     }
-    if(expression is ArrayAccessExpression) {
+    is ArrayAccessExpression -> {
         val array = scope.findField(expression.array.name)!!.value!!.get()!!
         val index = executeExpression(scope, expression.index).get() as Int
-        return ExArrayAccessValue(array, index)
+        ExArrayAccessValue(array, index)
     }
-    if(expression is BracketExpression)
-        return executeExpression(scope, expression.wrapped)
-
-    throw UnsupportedOperationException("Unsupported expression: $expression")
+    is CastExpression -> executeExpression(scope, expression.right).castToType(expression.type)
+    is FieldExpression -> scope.findField(expression.field.name)!!.value!!
+    is BracketExpression -> executeExpression(scope, expression.wrapped)
+    else -> throw UnsupportedOperationException("Unsupported expression: $expression")
 }

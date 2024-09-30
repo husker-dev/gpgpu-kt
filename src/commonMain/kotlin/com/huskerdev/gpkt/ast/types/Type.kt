@@ -21,10 +21,10 @@ enum class Type(
     BOOLEAN("boolean", 1, FLAG_LOGICAL),
 
     FLOAT_ARRAY("float[]", -1, FLAG_ARRAY),
-    DOUBLE_ARRAY("double[]", -1, FLAG_NUMBER),
+    DOUBLE_ARRAY("double[]", -1, FLAG_ARRAY),
     LONG_ARRAY("long[]", -1, FLAG_ARRAY),
     INT_ARRAY("int[]", -1, FLAG_ARRAY),
-    BYTE_ARRAY("byte[]", -1, FLAG_NUMBER),
+    BYTE_ARRAY("byte[]", -1, FLAG_ARRAY),
     BOOLEAN_ARRAY("boolean[]", -1, FLAG_ARRAY)
     ;
 

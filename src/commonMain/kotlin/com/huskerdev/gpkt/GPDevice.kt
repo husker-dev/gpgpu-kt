@@ -1,6 +1,6 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.engines.cpu.CPUDevice
 
 internal expect val defaultExpectedTypes: Array<GPType>
@@ -26,7 +26,7 @@ abstract class GPDevice(
     abstract val name: String
     abstract val isGPU: Boolean
 
-    val libraries = GPLibraries(this)
+    val modules = GPModules(this)
 
     fun compile(code: String) =
         compile(GPAst.parse(code, this))
@@ -46,7 +46,7 @@ abstract class GPDevice(
     abstract fun allocByte(array: ByteArray): ByteMemoryPointer
     abstract fun allocByte(length: Int): ByteMemoryPointer
 
-    abstract fun compile(ast: Scope): Program
+    abstract fun compile(ast: ScopeStatement): Program
 }
 
 enum class GPType(

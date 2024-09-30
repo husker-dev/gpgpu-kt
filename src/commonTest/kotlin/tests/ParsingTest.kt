@@ -1,13 +1,14 @@
 package tests
 
 import com.huskerdev.gpkt.GPAst
+import com.huskerdev.gpkt.SimpleCProgram
 import kotlin.test.Test
 
 
 class ParsingTest {
     @Test
     fun parsing(){
-        GPAst.parse("""
+        val ast = GPAst.parse("""
             int a;
             int b;
             int d = 10, e;
@@ -191,10 +192,18 @@ class ParsingTest {
                 
                 while(true)
                     intFunc(d, 1.23f);
-                
-                
             }
         """.trimIndent())
+
+        object: SimpleCProgram(ast){
+            init {
+                val buffer = StringBuilder()
+                stringifyScopeStatement(ast, buffer, false)
+                println(buffer)
+            }
+            override fun execute(instances: Int, vararg mapping: Pair<String, Any>) = Unit
+            override fun dealloc() = Unit
+        }
     }
 
 }

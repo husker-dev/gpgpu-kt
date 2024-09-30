@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.ScopeStatement
 import jcuda.Pointer
 import jcuda.Sizeof
 
@@ -44,6 +44,6 @@ class CudaDevice(
     override fun allocByte(length: Int) =
         CudaByteMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.BYTE), length)
 
-    override fun compile(ast: Scope) =
+    override fun compile(ast: ScopeStatement) =
         CudaProgram(cuda, ast)
 }

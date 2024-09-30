@@ -2,8 +2,6 @@ package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
@@ -20,8 +18,8 @@ class FieldNotSetException(name: String): Exception("Field '$name' have not been
 
 class TypesMismatchException(argument: String): Exception("Value type for argument '$argument' doesn't match.")
 
-abstract class BasicProgram(ast: Scope): Program {
-    protected val buffers = ast.fields.filter {
+abstract class BasicProgram(ast: ScopeStatement): Program {
+    protected val buffers = ast.scope.fields.filter {
         Modifiers.EXTERNAL in it.modifiers
     }.toList()
 
@@ -43,20 +41,16 @@ abstract class BasicProgram(ast: Scope): Program {
     }
 }
 
-abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
-    protected fun stringifyScope(scope: Scope, buffer: StringBuilder){
-        scope.statements.forEach { statement ->
-            stringifyStatement(buffer, statement)
-        }
-    }
+abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
 
     protected open fun stringifyStatement(
         buffer: StringBuilder,
         statement: Statement
     ){
         when(statement) {
+            is ScopeStatement -> stringifyScopeStatement(statement, buffer, true)
             is ExpressionStatement -> stringifyExpression(buffer, statement.expression, true)
-            is FunctionStatement -> stringifyFunction(statement.function, buffer)
+            is FunctionStatement -> stringifyFunctionStatement(statement, buffer)
             is FieldStatement -> stringifyFieldStatement(statement, buffer)
             is ReturnStatement -> stringifyReturnStatement(statement, buffer)
             is IfStatement -> stringifyIfStatement(statement, buffer)
@@ -92,13 +86,23 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
            Statements
     \* ================== */
 
+    protected fun stringifyScopeStatement(
+        statement: ScopeStatement,
+        buffer: StringBuilder,
+        brackets: Boolean
+    ){
+        if(brackets) buffer.append("{")
+        statement.statements.forEach { st ->
+            stringifyStatement(buffer, st)
+        }
+        if(brackets) buffer.append("}")
+    }
+
     protected open fun stringifyWhileStatement(statement: WhileStatement, buffer: StringBuilder){
         buffer.append("while(")
         stringifyExpression(buffer, statement.condition)
         buffer.append(")")
-        if(statement.body.statements.size > 1) buffer.append("{")
-        stringifyScope(statement.body, buffer)
-        if(statement.body.statements.size > 1) buffer.append("}")
+        stringifyStatement(buffer, statement.body)
     }
 
     protected open fun stringifyForStatement(statement: ForStatement, buffer: StringBuilder){
@@ -108,23 +112,17 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
         buffer.append(";")
         if(statement.iteration != null) stringifyExpression(buffer, statement.iteration)
         buffer.append(")")
-        if(statement.body.statements.size > 1) buffer.append("{")
-        stringifyScope(statement.body, buffer)
-        if(statement.body.statements.size > 1) buffer.append("}")
+        stringifyStatement(buffer, statement.body)
     }
 
     protected open fun stringifyIfStatement(statement: IfStatement, buffer: StringBuilder){
         buffer.append("if(")
         stringifyExpression(buffer, statement.condition)
         buffer.append(")")
-        if(statement.body.statements.size > 1) buffer.append("{")
-        stringifyScope(statement.body, buffer)
-        if(statement.body.statements.size > 1) buffer.append("}")
+        stringifyStatement(buffer, statement.body)
         if(statement.elseBody != null){
             buffer.append("else")
-            if(statement.elseBody.statements.size > 1) buffer.append("{") else buffer.append(" ")
-            stringifyScope(statement.elseBody, buffer)
-            if(statement.elseBody.statements.size > 1) buffer.append("}")
+            stringifyStatement(buffer, statement.elseBody)
         }
     }
 
@@ -141,7 +139,9 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
         val fields = fieldStatement.fields
         val modifiers = fields[0].modifiers
         val type = fields[0].type
-        modifiers.joinTo(buffer, separator = " ", postfix = " ", transform = ::toCModifier)
+        modifiers.joinTo(buffer, separator = " ", transform = ::toCModifier)
+        if(modifiers.isNotEmpty())
+            buffer.append(" ")
 
         buffer.append(toCType(type)).append(" ")
         fields.forEachIndexed { i, field ->
@@ -159,7 +159,8 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
         buffer.append(";")
     }
 
-    protected open fun stringifyFunction(function: Function, buffer: StringBuilder){
+    protected open fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
+        val function = statement.function
         appendCFunctionHeader(
             buffer = buffer,
             modifiers = function.modifiers.map { it.text },
@@ -167,8 +168,7 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
             name = function.name,
             args = function.arguments.map(::convertToFuncArg)
         )
-        stringifyScope(function, buffer)
-        buffer.append("}")
+        stringifyStatement(buffer, statement.function.body)
     }
 
     /* ================== *\
@@ -232,7 +232,9 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
 
     protected open fun convertToFuncArg(field: Field): String{
         val buffer = StringBuilder()
-        field.modifiers.joinTo(buffer, separator = " ", postfix = " ", transform = ::toCModifier)
+        field.modifiers.joinTo(buffer, separator = " ", transform = ::toCModifier)
+        if(field.modifiers.isNotEmpty())
+            buffer.append(" ")
 
         buffer.append(toCType(field.type)).append(" ")
         if(field.type.isArray)
@@ -241,7 +243,10 @@ abstract class SimpleCProgram(ast: Scope): BasicProgram(ast) {
         return buffer.toString()
     }
 
-    protected open fun toCModifier(modifier: Modifiers) = ""
+    protected open fun toCModifier(modifier: Modifiers) = when(modifier){
+        Modifiers.EXTERNAL -> "extern"
+        Modifiers.CONST -> "const"
+    }
 
     protected open fun toCType(type: Type) = when(type) {
         Type.VOID -> "void"

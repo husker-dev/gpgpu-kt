@@ -3,9 +3,9 @@ package com.huskerdev.gpkt.engines.jdk
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.FunctionStatement
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.*
@@ -16,7 +16,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: Scope): SimpleCProgram(ast) {
+class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
     companion object {
         val counter = AtomicLong()
     }
@@ -33,7 +33,7 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
                         __m(i);
                 }
         """.trimIndent())
-        stringifyScope(ast, buffer)
+        stringifyScopeStatement(ast, buffer, false)
         buffer.append("}")
 
         val clazz = ClassCompiler.compileClass(buffer.toString(), className)
@@ -58,8 +58,8 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
                 is CPULongMemoryPointer -> value.array
                 is CPUIntMemoryPointer -> value.array
                 is CPUByteMemoryPointer -> value.array
-                is Float, Double, Long, Int, Byte -> value
-                else -> UnsupportedOperationException()
+                is Float, is Double, is Long, is Int, is Byte -> value
+                else -> throw UnsupportedOperationException()
             }
         }
 
@@ -74,7 +74,8 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
 
     override fun dealloc() = Unit
 
-    override fun stringifyFunction(function: Function, buffer: StringBuilder){
+    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
+        val function = statement.function
         val name: String
         val args: List<String>
         if(function.name == "main"){
@@ -91,8 +92,7 @@ class JavacProgram(ast: Scope): SimpleCProgram(ast) {
             name = name,
             args = args
         )
-        stringifyScope(function, buffer)
-        buffer.append("}")
+        stringifyScopeStatement(function.body, buffer, true)
     }
 
     private fun transformKernelArg(field: Field) =

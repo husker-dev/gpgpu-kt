@@ -13,6 +13,14 @@ interface Statement{
     val returns: Boolean
 }
 
+class ScopeStatement(
+    override val scope: Scope,
+    val statements: MutableList<Statement> = mutableListOf(),
+    override val returns: Boolean,
+    override val lexemeIndex: Int,
+    override val lexemeLength: Int
+): Statement
+
 class ExpressionStatement(
     override val scope: Scope,
     val expression: Expression
@@ -85,8 +93,8 @@ class ContinueStatement(
 class IfStatement(
     override val scope: Scope,
     val condition: Expression,
-    val body: Scope,
-    val elseBody: Scope?,
+    val body: Statement,
+    val elseBody: Statement?,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ): Statement {
@@ -96,7 +104,7 @@ class IfStatement(
 class WhileStatement(
     override val scope: Scope,
     val condition: Expression,
-    val body: Scope,
+    val body: Statement,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ): Statement {
@@ -108,7 +116,7 @@ class ForStatement(
     val initialization: Statement,
     val condition: Expression?,
     val iteration: Expression?,
-    val body: Scope,
+    val body: Statement,
     override val lexemeIndex: Int,
     override val lexemeLength: Int
 ): Statement {

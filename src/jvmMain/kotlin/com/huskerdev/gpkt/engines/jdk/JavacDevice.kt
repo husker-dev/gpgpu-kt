@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.engines.jdk
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.engines.cpu.*
 
 class JavacDevice: GPDevice(GPType.Javac) {
@@ -9,7 +9,7 @@ class JavacDevice: GPDevice(GPType.Javac) {
     override val name = "CPU"
     override val isGPU = false
 
-    override fun compile(ast: Scope) =
+    override fun compile(ast: ScopeStatement) =
         JavacProgram(ast)
 
     override fun allocFloat(array: FloatArray) =

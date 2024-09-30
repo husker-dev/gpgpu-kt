@@ -15,5 +15,5 @@ fun appendCFunctionHeader(
 
     buffer.append(type).append(" ").append(name).append("(")
     args.joinTo(buffer, separator = ",")
-    buffer.append("){")
+    buffer.append(")")
 }

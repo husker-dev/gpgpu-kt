@@ -29,14 +29,17 @@ fun parseForStatement(
         throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
     // Head scope
-    val headScope = Scope(scope.device, scope, Type.VOID)
-    i = parseScope(headScope, lexemes, codeBlock, i+1, r) + 1
+    val headScope = parseScopeStatement(scope, lexemes, codeBlock, i+1, r)
+    i += headScope.lexemeLength + 2
 
     if(headScope.statements.size < 2)
         throw compilationError("Expected at least two statements", lexemes[i], codeBlock)
 
     // block 1
     val initialization = headScope.statements[0]
+    val fields = if(initialization is FieldStatement)
+        initialization.fields
+    else mutableListOf()
 
     // block 2
     val condition = headScope.statements[1]
@@ -58,13 +61,9 @@ fun parseForStatement(
     }
 
     // body
-    val body = Scope(scope.device, scope, iterable = true).apply {
-        if(initialization is FieldStatement)
-            initialization.fields.forEach { addField(it, lexemes[i], codeBlock) }
-        i = if(lexemes[i].text == "{")
-            parseScope(this, lexemes, codeBlock, i + 1, to)
-        else parseScope(this, lexemes, codeBlock, i, to, 1)
-    }
+    val iterableScope = Scope(scope.device, scope, iterable = true, fields = fields.toMutableList())
+    val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
+    i += body.lexemeLength
 
     return ForStatement(scope, initialization, conditionExpression, iterationExpression, body, from, i - from)
 }

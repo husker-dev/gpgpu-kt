@@ -3,7 +3,7 @@ package com.huskerdev.gpkt.engines.cpu
 import com.huskerdev.gpkt.BasicProgram
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.TypesMismatchException
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.engines.cpu.objects.ExField
 import com.huskerdev.gpkt.engines.cpu.objects.ExScope
@@ -12,7 +12,7 @@ import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 
 class CPUProgram(
-    val ast: Scope
+    val ast: ScopeStatement
 ): BasicProgram(ast) {
     override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)

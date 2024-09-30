@@ -22,16 +22,15 @@ fun parseIfStatement(
         throw expectedTypeException(Type.BOOLEAN, condition.type, lexemes[i+1], codeBlock)
     i += condition.lexemeLength + 2
 
-    fun parseBlock() = Scope(scope.device, scope).apply {
-        i = if(lexemes[i].text == "{")
-            parseScope(this, lexemes, codeBlock, i+1, to)
-        else parseScope(this, lexemes, codeBlock, i, to, 1)
-    }
-    val body = parseBlock()
-    val elseBody: Scope? = if(lexemes[i].text == "else") {
+    val body = parseStatement(scope, lexemes, codeBlock, i, to)
+    i += body.lexemeLength
+
+    var elseBody: Statement? = null
+    if(lexemes[i].text == "else") {
         i++
-        parseBlock()
-    } else null
+        elseBody = parseStatement(scope, lexemes, codeBlock, i, to)
+        i += elseBody.lexemeLength
+    }
 
     return IfStatement(scope, condition, body, elseBody, from, i - from)
 }
