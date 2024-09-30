@@ -15,13 +15,13 @@ fun parseImportStatement(
 ): ImportStatement {
     var i = from + 1
     if(lexemes[i].type != Lexeme.Type.NAME)
-        throw compilationError("Expected library name", lexemes[i], codeBlock)
+        throw compilationError("Expected module name", lexemes[i], codeBlock)
 
     val path = StringBuilder()
     while(lexemes[i].text != ";" && i < to){
         path.append(lexemes[i++].text)
     }
     if(path.endsWith('.'))
-        throw compilationError("Library path cannot ends with '.'", lexemes[i], codeBlock)
+        throw compilationError("Module path cannot ends with '.'", lexemes[i], codeBlock)
     return ImportStatement(scope, Import(path.toString(), lexemes[from+1]), from, i - from + 1)
 }
