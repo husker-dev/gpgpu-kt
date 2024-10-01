@@ -6,61 +6,73 @@ import jcuda.Sizeof
 import jcuda.driver.CUdeviceptr
 
 
-interface CudaMemoryPointer {
-    val ptr: CUdeviceptr
+abstract class CudaMemoryPointer<T>(
+    private val typeSize: Int,
+    private val wrapper: (T) -> Pointer
+): MemoryPointer<T> {
+    abstract val cuda: Cuda
+    abstract val ptr: CUdeviceptr
+
+    override fun dealloc() = cuda.dealloc(ptr)
+
+    override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
+        cuda.read(ptr, wrapper(dst),
+            size = length.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize
+        )
+    }
+
+    override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuda.write(ptr, wrapper(src),
+            size = length.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize
+        )
+    }
 }
 
 class CudaFloatMemoryPointer(
-    private val cuda: Cuda,
-    override val ptr: CUdeviceptr,
-    override val length: Int
-): CudaMemoryPointer, FloatMemoryPointer {
-    override fun read() = FloatArray(length).apply {
-        cuda.read(ptr, length.toLong() * Sizeof.FLOAT, Pointer.to(this))
-    }
-    override fun dealloc() = cuda.dealloc(ptr)
-}
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer<FloatArray>(
+    Sizeof.FLOAT, Pointer::to
+), FloatMemoryPointer
 
 class CudaDoubleMemoryPointer(
-    private val cuda: Cuda,
-    override val ptr: CUdeviceptr,
-    override val length: Int
-): CudaMemoryPointer, DoubleMemoryPointer {
-    override fun read() = DoubleArray(length).apply {
-        cuda.read(ptr, length.toLong() * Sizeof.DOUBLE, Pointer.to(this))
-    }
-    override fun dealloc() = cuda.dealloc(ptr)
-}
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer<DoubleArray>(
+    Sizeof.DOUBLE, Pointer::to
+), DoubleMemoryPointer
 
 class CudaLongMemoryPointer(
-    private val cuda: Cuda,
-    override val ptr: CUdeviceptr,
-    override val length: Int
-): CudaMemoryPointer, LongMemoryPointer {
-    override fun read() = LongArray(length).apply {
-        cuda.read(ptr, length.toLong() * Sizeof.LONG, Pointer.to(this))
-    }
-    override fun dealloc() = cuda.dealloc(ptr)
-}
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer<LongArray>(
+    Sizeof.LONG, Pointer::to
+), LongMemoryPointer
 
 class CudaIntMemoryPointer(
-    private val cuda: Cuda,
-    override val ptr: CUdeviceptr,
-    override val length: Int
-): CudaMemoryPointer, IntMemoryPointer {
-    override fun read() = IntArray(length).apply {
-        cuda.read(ptr, length.toLong() * Sizeof.INT, Pointer.to(this))
-    }
-    override fun dealloc() = cuda.dealloc(ptr)
-}
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer<IntArray>(
+    Sizeof.INT, Pointer::to
+), IntMemoryPointer
 
 class CudaByteMemoryPointer(
-    private val cuda: Cuda,
-    override val ptr: CUdeviceptr,
-    override val length: Int
-): CudaMemoryPointer, ByteMemoryPointer {
-    override fun read() = ByteArray(length).apply {
-        cuda.read(ptr, length.toLong() * Sizeof.BYTE, Pointer.to(this))
-    }
-    override fun dealloc() = cuda.dealloc(ptr)
-}
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer<ByteArray>(
+    Sizeof.BYTE, Pointer::to
+), ByteMemoryPointer

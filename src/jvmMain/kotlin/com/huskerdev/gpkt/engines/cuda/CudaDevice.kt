@@ -14,35 +14,45 @@ class CudaDevice(
     override val name = cuda.deviceName
     override val isGPU = true
 
-    override fun allocFloat(array: FloatArray) =
-        CudaFloatMemoryPointer(cuda, cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT), array.size)
+    override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
+        CudaFloatMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT))
 
-    override fun allocFloat(length: Int) =
-        CudaFloatMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.FLOAT), length)
+    override fun allocFloat(length: Int, usage: MemoryUsage) =
+        CudaFloatMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.FLOAT))
 
-    override fun allocDouble(array: DoubleArray) =
-        CudaDoubleMemoryPointer(cuda, cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE), array.size)
+    override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
+        CudaDoubleMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE))
 
-    override fun allocDouble(length: Int) =
-        CudaDoubleMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.DOUBLE), length)
+    override fun allocDouble(length: Int, usage: MemoryUsage) =
+        CudaDoubleMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.DOUBLE))
 
-    override fun allocLong(array: LongArray) =
-        CudaLongMemoryPointer(cuda, cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG), array.size)
+    override fun allocLong(array: LongArray, usage: MemoryUsage) =
+        CudaLongMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG))
 
-    override fun allocLong(length: Int) =
-        CudaLongMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.LONG), length)
+    override fun allocLong(length: Int, usage: MemoryUsage) =
+        CudaLongMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.LONG))
 
-    override fun allocInt(array: IntArray) =
-        CudaIntMemoryPointer(cuda, cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT), array.size)
+    override fun allocInt(array: IntArray, usage: MemoryUsage) =
+        CudaIntMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT))
 
-    override fun allocInt(length: Int) =
-        CudaIntMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.INT), length)
+    override fun allocInt(length: Int, usage: MemoryUsage) =
+        CudaIntMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.INT))
 
-    override fun allocByte(array: ByteArray) =
-        CudaByteMemoryPointer(cuda, cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE), array.size)
+    override fun allocByte(array: ByteArray, usage: MemoryUsage) =
+        CudaByteMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE))
 
-    override fun allocByte(length: Int) =
-        CudaByteMemoryPointer(cuda, cuda.alloc(length.toLong() * Sizeof.BYTE), length)
+    override fun allocByte(length: Int, usage: MemoryUsage) =
+        CudaByteMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.BYTE))
 
     override fun compile(ast: ScopeStatement) =
         CudaProgram(cuda, ast)

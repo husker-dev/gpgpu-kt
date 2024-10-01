@@ -79,8 +79,16 @@ class Cuda(
         cuMemFree(ptr)
     }
 
-    fun read(ptr: CUdeviceptr, size: Long, dst: Pointer) {
-        cuMemcpyDtoH(dst, ptr, size)
+    fun read(src: CUdeviceptr, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
+        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
+        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
+        cuMemcpyDtoH(shiftedDst, shiftedSrc, size)
+    }
+
+    fun write(dst: CUdeviceptr, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
+        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
+        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
+        cuMemcpyHtoD(shiftedDst, shiftedSrc, size)
     }
 
     fun compileToModule(src: String): CUmodule{

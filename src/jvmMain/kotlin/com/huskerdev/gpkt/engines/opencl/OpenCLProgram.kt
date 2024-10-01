@@ -36,7 +36,7 @@ class OpenCLProgram(
             if(!areEqualTypes(value, field.type))
                 throw TypesMismatchException(field.name)
 
-            if(value !is OpenCLMemoryPointer) {
+            if(value !is OpenCLMemoryPointer<*>) {
                 val (size, ptr) = when(value){
                     is Float -> Sizeof.cl_float.toLong() to Pointer.to(floatArrayOf(value))
                     is Double -> Sizeof.cl_double.toLong() to Pointer.to(doubleArrayOf(value))

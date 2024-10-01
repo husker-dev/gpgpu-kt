@@ -45,7 +45,7 @@ class CudaProgram(
                 is Long -> Pointer.to(longArrayOf(value))
                 is Int -> Pointer.to(intArrayOf(value))
                 is Byte -> Pointer.to(byteArrayOf(value))
-                is CudaMemoryPointer -> Pointer.to(value.ptr)
+                is CudaMemoryPointer<*> -> Pointer.to(value.ptr)
                 else -> throw UnsupportedOperationException()
             }
         }.toTypedArray()

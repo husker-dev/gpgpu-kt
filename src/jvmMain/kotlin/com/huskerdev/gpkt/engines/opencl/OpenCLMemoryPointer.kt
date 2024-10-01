@@ -6,61 +6,64 @@ import org.jocl.Sizeof
 import org.jocl.cl_mem
 
 
-interface OpenCLMemoryPointer{
-    val ptr: cl_mem
+abstract class OpenCLMemoryPointer<T>(
+    private val typeSize: Int,
+    private val wrapper: (T) -> Pointer
+): MemoryPointer<T> {
+    abstract val cl: OpenCL
+    abstract val ptr: cl_mem
+
+    override fun dealloc() =
+        cl.dealloc(ptr)
+
+    override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
+        cl.read(ptr, wrapper(dst),
+            size = length.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize
+        )
+    }
+
+    override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+        cl.write(ptr, wrapper(src),
+            size = length.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize
+        )
+    }
 }
 
 class CLFloatMemoryPointer(
-    private val cl: OpenCL,
-    override val ptr: cl_mem,
-    override val length: Int
-): OpenCLMemoryPointer, FloatMemoryPointer {
-    override fun read() = FloatArray(length).apply {
-        cl.read(ptr, length.toLong() * Sizeof.cl_float, Pointer.to(this))
-    }
-    override fun dealloc() = cl.dealloc(ptr)
-}
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer<FloatArray>(Sizeof.cl_float, Pointer::to), FloatMemoryPointer
 
 class CLDoubleMemoryPointer(
-    private val cl: OpenCL,
-    override val ptr: cl_mem,
-    override val length: Int
-): OpenCLMemoryPointer, DoubleMemoryPointer {
-    override fun read() = DoubleArray(length).apply {
-        cl.read(ptr, length.toLong() * Sizeof.cl_double, Pointer.to(this))
-    }
-    override fun dealloc() = cl.dealloc(ptr)
-}
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer<DoubleArray>(Sizeof.cl_double, Pointer::to), DoubleMemoryPointer
 
 class CLLongMemoryPointer(
-    private val cl: OpenCL,
-    override val ptr: cl_mem,
-    override val length: Int
-): OpenCLMemoryPointer, LongMemoryPointer {
-    override fun read() = LongArray(length).apply {
-        cl.read(ptr, length.toLong() * Sizeof.cl_long, Pointer.to(this))
-    }
-    override fun dealloc() = cl.dealloc(ptr)
-}
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer<LongArray>(Sizeof.cl_long, Pointer::to), LongMemoryPointer
 
 class CLIntMemoryPointer(
-    private val cl: OpenCL,
-    override val ptr: cl_mem,
-    override val length: Int
-): OpenCLMemoryPointer, IntMemoryPointer {
-    override fun read() = IntArray(length).apply {
-        cl.read(ptr, length.toLong() * Sizeof.cl_int, Pointer.to(this))
-    }
-    override fun dealloc() = cl.dealloc(ptr)
-}
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer<IntArray>(Sizeof.cl_int, Pointer::to), IntMemoryPointer
 
 class CLByteMemoryPointer(
-    private val cl: OpenCL,
-    override val ptr: cl_mem,
-    override val length: Int
-): OpenCLMemoryPointer, ByteMemoryPointer {
-    override fun read() = ByteArray(length).apply {
-        cl.read(ptr, length.toLong() * Sizeof.cl_char, Pointer.to(this))
-    }
-    override fun dealloc() = cl.dealloc(ptr)
-}
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer<ByteArray>(Sizeof.cl_char, Pointer::to), ByteMemoryPointer

@@ -31,20 +31,20 @@ abstract class GPDevice(
     fun compile(code: String) =
         compile(GPAst.parse(code, this))
 
-    abstract fun allocFloat(array: FloatArray): FloatMemoryPointer
-    abstract fun allocFloat(length: Int): FloatMemoryPointer
+    abstract fun allocFloat(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): FloatMemoryPointer
+    abstract fun allocFloat(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): FloatMemoryPointer
 
-    abstract fun allocDouble(array: DoubleArray): DoubleMemoryPointer
-    abstract fun allocDouble(length: Int): DoubleMemoryPointer
+    abstract fun allocDouble(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): DoubleMemoryPointer
+    abstract fun allocDouble(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): DoubleMemoryPointer
 
-    abstract fun allocLong(array: LongArray): LongMemoryPointer
-    abstract fun allocLong(length: Int): LongMemoryPointer
+    abstract fun allocLong(array: LongArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): LongMemoryPointer
+    abstract fun allocLong(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): LongMemoryPointer
 
-    abstract fun allocInt(array: IntArray): IntMemoryPointer
-    abstract fun allocInt(length: Int): IntMemoryPointer
+    abstract fun allocInt(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): IntMemoryPointer
+    abstract fun allocInt(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): IntMemoryPointer
 
-    abstract fun allocByte(array: ByteArray): ByteMemoryPointer
-    abstract fun allocByte(length: Int): ByteMemoryPointer
+    abstract fun allocByte(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): ByteMemoryPointer
+    abstract fun allocByte(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): ByteMemoryPointer
 
     abstract fun compile(ast: ScopeStatement): Program
 }

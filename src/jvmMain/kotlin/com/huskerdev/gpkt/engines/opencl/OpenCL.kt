@@ -88,13 +88,13 @@ class OpenCL(
         commandQueue = clCreateCommandQueueWithProperties(context, device, null, null)
     }
 
-    fun allocate(pointer: Pointer, size: Long): cl_mem = clCreateBuffer(
-        context, CL_MEM_READ_WRITE or CL_MEM_COPY_HOST_PTR,
+    fun allocate(pointer: Pointer, size: Long, flags: Long): cl_mem = clCreateBuffer(
+        context, flags or CL_MEM_COPY_HOST_PTR,
         size, pointer, null
     )
 
-    fun allocate(size: Int): cl_mem = clCreateBuffer(
-        context, CL_MEM_READ_WRITE,
+    fun allocate(size: Int, flags: Long): cl_mem = clCreateBuffer(
+        context, flags,
         size.toLong(), null, null
     )
 
@@ -110,10 +110,20 @@ class OpenCL(
         clReleaseKernel(kernel)
     }
 
-    fun read(ptr: cl_mem, size: Long, dst: Pointer) {
+    fun read(src: cl_mem, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
+        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(srcOffset)
         clEnqueueReadBuffer(
-            commandQueue, ptr, CL_TRUE, 0,
-            size, dst,
+            commandQueue, src, CL_TRUE, srcOffset,
+            size, shiftedDst,
+            0, null, null
+        )
+    }
+
+    fun write(dst: cl_mem, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
+        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
+        clEnqueueWriteBuffer(
+            commandQueue, dst, CL_TRUE, dstOffset,
+            size, shiftedSrc,
             0, null, null
         )
     }
