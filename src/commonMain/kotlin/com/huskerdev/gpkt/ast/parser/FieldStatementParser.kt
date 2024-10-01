@@ -75,7 +75,7 @@ fun parseFieldDeclaration(
 
             i += initialExpression.lexemeLength + 1
         }
-        fields += Field(nameLexeme, nameLexeme.text, mods, type, initialExpression)
+        fields += Field(nameLexeme.text, mods, type, initialExpression)
 
         if(i >= to)
             return FieldStatement(scope, fields, from, i - from)

@@ -26,6 +26,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         val className = "GPJavacProgram${counter.getAndIncrement()}"
         val buffer = StringBuilder()
         buffer.append("""
+            import static java.lang.Math.*;
             public class $className{ 
                 public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString(transform = ::transformKernelArg)}){
                     ${buffers.joinToString("") { "${it.name}=__v_${it.name};" }}

@@ -3,6 +3,7 @@ package com.huskerdev.gpkt.engines.cuda
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.FieldExpression
 import com.huskerdev.gpkt.ast.FunctionStatement
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
@@ -54,6 +55,14 @@ class CudaProgram(
     }
 
     override fun dealloc() = Unit
+
+    override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
+        when(expression.field.name){
+            "PI" -> buffer.append("3.141592653589793")
+            "E" -> buffer.append("2.718281828459045")
+            else -> super.stringifyFieldExpression(buffer, expression)
+        }
+    }
 
     override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
         val function = statement.function

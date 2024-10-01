@@ -15,12 +15,21 @@ open class Scope(
 ) {
 
     fun findDefinedField(name: String): Field? =
-        fields.firstOrNull { it.name == name } ?: parentScope?.findDefinedField(name)
+        fields.firstOrNull {
+            it.name == name
+        } ?: if(parentScope == null)
+            predefinedFields[name]
+        else parentScope.findDefinedField(name)
 
     fun findDefinedFunction(name: String, arguments: List<Type> = emptyList()): Function? =
         functions.firstOrNull {
-            it.name == name && it.argumentsTypes == arguments
-        } ?: parentScope?.findDefinedFunction(name, arguments)
+            it.name == name && it.canAcceptArguments(arguments)
+        } ?: if(parentScope == null){
+            val func = predefinedFunctions[name]
+            if(func != null && func.canAcceptArguments(arguments))
+                func
+            else null
+        }else parentScope.findDefinedFunction(name, arguments)
 
     fun findReturnType(): Type =
         returnType ?: parentScope?.findReturnType() ?: Type.VOID

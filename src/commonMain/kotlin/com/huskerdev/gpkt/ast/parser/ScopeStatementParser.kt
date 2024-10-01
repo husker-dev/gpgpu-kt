@@ -58,14 +58,14 @@ fun parseScopeStatement(
                 }
                 is FieldStatement -> {
                     statement.fields.forEach { field ->
-                        scope.addField(field, field.lexeme, codeBlock)
+                        scope.addField(field, lexeme, codeBlock)
                         if(parentScope == null && field.modifiers.isEmpty())
                             field.modifiers += Modifiers.CONST
                     }
                 }
                 is FunctionStatement -> {
                     val function = statement.function
-                    scope.addFunction(function, function.lexeme, codeBlock)
+                    scope.addFunction(function, lexeme, codeBlock)
                 }
                 is ImportStatement -> {
                     val import = statement.import

@@ -1,9 +1,12 @@
 package com.huskerdev.gpkt.engines.cpu.objects
 
 import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.predefinedFields
+import com.huskerdev.gpkt.ast.objects.predefinedFunctions
 import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.Operator.*
 import com.huskerdev.gpkt.ast.types.Type
+import kotlin.math.*
 
 class BadOperator(operator: Operator): Exception("Can't apply operator '${operator}'")
 
@@ -287,12 +290,46 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
             }
         )
     }
-
     is FunctionCallExpression -> {
-        val arguments = expression.function.arguments.mapIndexed { i, arg ->
-            arg.name to ExField(arg.type, ExValue(executeExpression(scope, expression.arguments[i]).get()))
-        }.toMap().toMutableMap()
-         scope.findFunction(expression.function.name)!!.execute(arguments)!!
+        val name = expression.function.name
+        if(name !in predefinedFunctions) {
+            val arguments = expression.function.arguments.mapIndexed { i, arg ->
+                arg.name to ExField(arg.type, ExValue(executeExpression(scope, expression.arguments[i]).get()))
+            }.toMap().toMutableMap()
+
+            scope.findFunction(expression.function.name)!!.execute(arguments)!!
+        }else {
+            val values = expression.arguments.map {
+                executeExpression(scope, it).get()
+            }
+            ExValue(when(name){
+                "abs" -> abs((values[0] as Number).toDouble())
+                "acos" -> acos((values[0] as Number).toDouble())
+                "asin" -> asin((values[0] as Number).toDouble())
+                "atan" -> atan((values[0] as Number).toDouble())
+                "atan2" -> atan2((values[0] as Number).toDouble(), (values[1] as Number).toDouble())
+                "cbrt" -> cbrt((values[0] as Number).toDouble())
+                "ceil" -> ceil((values[0] as Number).toDouble())
+                "cos" -> cos((values[0] as Number).toDouble())
+                "cosh" -> cosh((values[0] as Number).toDouble())
+                "exp" -> exp((values[0] as Number).toDouble())
+                "expm1" -> expm1((values[0] as Number).toDouble())
+                "floor" -> floor((values[0] as Number).toDouble())
+                "hypot" -> hypot((values[0] as Number).toDouble(), (values[1] as Number).toDouble())
+                "log" -> log((values[0] as Number).toDouble(), E)
+                "log10" -> log10((values[0] as Number).toDouble())
+                "max" -> max((values[0] as Number).toDouble(), (values[1] as Number).toDouble())
+                "min" -> min((values[0] as Number).toDouble(), (values[1] as Number).toDouble())
+                "pow" -> (values[0] as Number).toDouble().pow((values[1] as Number).toInt())
+                "round" -> round((values[0] as Number).toDouble())
+                "sin" -> sin((values[0] as Number).toDouble())
+                "sinh" -> sinh((values[0] as Number).toDouble())
+                "sqrt" -> sqrt((values[0] as Number).toDouble())
+                "tan" -> tan((values[0] as Number).toDouble())
+                "tanh" -> tanh((values[0] as Number).toDouble())
+                else -> throw UnsupportedOperationException("Unsupported predefined function")
+            })
+        }
     }
     is ArrayAccessExpression -> {
         val array = scope.findField(expression.array.name)!!.value!!.get()!!
@@ -300,7 +337,16 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
         ExArrayAccessValue(array, index)
     }
     is CastExpression -> executeExpression(scope, expression.right).castToType(expression.type)
-    is FieldExpression -> scope.findField(expression.field.name)!!.value!!
+    is FieldExpression -> {
+        val name = expression.field.name
+        if(name !in predefinedFields)
+            scope.findField(expression.field.name)!!.value!!
+        else ExValue(when(name){
+            "PI" -> PI
+            "E" -> E
+            else -> throw UnsupportedOperationException("Unsupported predefined field")
+        })
+    }
     is BracketExpression -> executeExpression(scope, expression.wrapped)
     else -> throw UnsupportedOperationException("Unsupported expression: $expression")
 }

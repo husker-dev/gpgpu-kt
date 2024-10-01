@@ -3,15 +3,23 @@ package com.huskerdev.gpkt.ast.objects
 import com.huskerdev.gpkt.ast.Expression
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
-import com.huskerdev.gpkt.ast.lexer.Lexeme
 
 
 class Field(
-    val lexeme: Lexeme,
     val name: String,
     val modifiers: MutableList<Modifiers>,
     val type: Type,
     val initialExpression: Expression? = null
 ) {
+    constructor(name: String, type: Type): this(name, mutableListOf(), type, null)
+
     val isConstant = Modifiers.CONST in modifiers
 }
+
+val predefinedFields = hashMapOf(
+    fieldPair("PI", Type.DOUBLE),
+    fieldPair("E", Type.DOUBLE),
+)
+
+private fun fieldPair(name: String, type: Type) =
+    name to Field(name, type)

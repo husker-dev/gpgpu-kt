@@ -3,6 +3,7 @@ package com.huskerdev.gpkt.engines.opencl
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.ast.FieldExpression
 import com.huskerdev.gpkt.ast.FunctionStatement
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
@@ -58,6 +59,14 @@ class OpenCLProgram(
     override fun dealloc() {
         cl.dealloc(program)
         cl.dealloc(kernel)
+    }
+
+    override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
+        when(expression.field.name){
+            "PI" -> buffer.append("M_PI")
+            "E" -> buffer.append("M_E")
+            else -> super.stringifyFieldExpression(buffer, expression)
+        }
     }
 
     override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){

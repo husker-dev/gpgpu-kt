@@ -34,7 +34,7 @@ fun parseFunctionStatement(
     i++
 
     val nameLexeme = lexemes[i]
-    val function = Function(nameLexeme, scope, nameLexeme.text, mods, type)
+    val function = Function(scope, nameLexeme.text, mods, type)
     i += 2
 
     // Getting parameters
