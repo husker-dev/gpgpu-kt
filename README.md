@@ -23,6 +23,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
   - [ ] Add standard functions (pow, sqrt, etc)
   - [x] Add argument `from` to execute()
   - [x] Add single value updating in memory objects
+  - [ ] Add JS support
   - [ ] Add WebGPU support
   - [ ] Add array creation support
   - [ ] Add Vulkan support
