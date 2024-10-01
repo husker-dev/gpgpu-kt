@@ -21,7 +21,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### TODO List:
   - [ ] Add standard functions (pow, sqrt, etc)
-  - [ ] Add argument `from` to execute()
+  - [x] Add argument `from` to execute()
   - [x] Add single value updating in memory objects
   - [ ] Add WebGPU support
   - [ ] Add array creation support
