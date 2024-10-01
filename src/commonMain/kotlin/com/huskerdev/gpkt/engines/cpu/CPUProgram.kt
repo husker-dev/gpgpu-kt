@@ -14,7 +14,7 @@ import com.huskerdev.gpkt.utils.splitThreadInvocation
 class CPUProgram(
     val ast: ScopeStatement
 ): BasicProgram(ast) {
-    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
         val variables = buffers.associate { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
@@ -46,7 +46,7 @@ class CPUProgram(
             threadLocalVariables.putAll(variables)
 
             for(step in from until to){
-                iteration.value!!.set(step)
+                iteration.value!!.set(step + indexOffset)
                 scope.execute(threadLocalVariables)
             }
         }

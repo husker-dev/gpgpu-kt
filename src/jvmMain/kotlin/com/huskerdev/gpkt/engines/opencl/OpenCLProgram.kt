@@ -28,7 +28,7 @@ class OpenCLProgram(
         kernel = cl.createKernel(program, "__m")
     }
 
-    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
 
         buffers.forEachIndexed { i, field ->
@@ -49,6 +49,9 @@ class OpenCLProgram(
             }else
                 cl.setArgument(kernel, i, value.ptr)
         }
+        // Set index offset variable
+        cl.setArgument(kernel, buffers.size, Sizeof.cl_int.toLong(), Pointer.to(intArrayOf(indexOffset)))
+
         cl.executeKernel(kernel, instances.toLong())
     }
 
@@ -65,13 +68,13 @@ class OpenCLProgram(
                 modifiers = listOf("__kernel"),
                 type = function.returnType.text,
                 name = "__m",
-                args = buffers.map(::transformKernelArg)
+                args = buffers.map(::transformKernelArg) + listOf("int __o")
             )
             buffer.append("{")
             buffers.forEach {
                 buffer.append("${it.name}=__v_${it.name};")
             }
-            buffer.append("int ${function.arguments[0].name}=get_global_id(0);")
+            buffer.append("int ${function.arguments[0].name}=get_global_id(0)+__o;")
             stringifyScopeStatement(function.body, buffer, false)
             buffer.append("}")
         } else super.stringifyFunctionStatement(statement, buffer)

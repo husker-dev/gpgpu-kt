@@ -44,7 +44,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         )
     }
 
-    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
 
         val arrays = buffers.map { field ->
@@ -65,7 +65,11 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
 
         splitThreadInvocation(instances) { from, to ->
             try {
-                execMethod.invoke(null, from, to, *arrays.toTypedArray())
+                execMethod.invoke(null,
+                    from + indexOffset,
+                    to + indexOffset,
+                    *arrays.toTypedArray()
+                )
             }catch (e: InvocationTargetException){
                 throw e.targetException
             }

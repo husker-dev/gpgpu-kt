@@ -7,10 +7,17 @@ import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
 
 interface Program {
-    fun execute(
+    fun executeRange(
+        indexOffset: Int,
         instances: Int,
         vararg mapping: Pair<String, Any>
     )
+
+    fun execute(
+        instances: Int,
+        vararg mapping: Pair<String, Any>
+    ) = executeRange(0, instances, *mapping)
+
     fun dealloc()
 }
 

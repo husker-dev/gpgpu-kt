@@ -201,7 +201,7 @@ class ParsingTest {
                 stringifyScopeStatement(ast, buffer, false)
                 println(buffer)
             }
-            override fun execute(instances: Int, vararg mapping: Pair<String, Any>) = Unit
+            override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = Unit
             override fun dealloc() = Unit
         }
     }

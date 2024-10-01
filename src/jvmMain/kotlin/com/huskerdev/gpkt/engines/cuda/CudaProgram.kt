@@ -30,10 +30,11 @@ class CudaProgram(
         function = cuda.getFunctionPointer(module, "__m")
     }
 
-    override fun execute(instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
         val map = hashMapOf(*mapping)
 
         val instancesVal = Pointer.to(intArrayOf(instances))
+        val offsetVal = Pointer.to(intArrayOf(indexOffset))
         val arrays = buffers.map { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
             if(!areEqualTypes(value, field.type))
@@ -49,7 +50,7 @@ class CudaProgram(
                 else -> throw UnsupportedOperationException()
             }
         }.toTypedArray()
-        cuda.launch(function, instances, instancesVal, *arrays)
+        cuda.launch(function, instances, instancesVal, offsetVal, *arrays)
     }
 
     override fun dealloc() = Unit
@@ -62,11 +63,11 @@ class CudaProgram(
                 modifiers = listOf("__global__"),
                 type = function.returnType.text,
                 name = "__m",
-                args = listOf("int __c") + buffers.map(::transformKernelArg)
+                args = listOf("int __c", "int __o") + buffers.map(::transformKernelArg)
             )
             buffer.append("{")
-            buffer.append("int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x;")
-            buffer.append("if(${function.arguments[0].name}>__c)return;")
+            buffer.append("const int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x+__o;")
+            buffer.append("if(${function.arguments[0].name}>__c+__o)return;")
             buffers.forEach {
                 buffer.append("${it.name}=__v_${it.name};")
             }
