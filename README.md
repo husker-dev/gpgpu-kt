@@ -20,7 +20,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
    - Vulkan
 
 ### TODO List:
-  - [ ] Add standard functions (pow, sqrt, etc)
+  - [x] Add standard functions (pow, sqrt, etc)
   - [x] Add argument `from` to execute()
   - [x] Add single value updating in memory objects
   - [ ] Add JS support
