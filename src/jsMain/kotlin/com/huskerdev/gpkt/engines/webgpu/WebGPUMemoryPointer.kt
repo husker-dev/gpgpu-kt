@@ -28,6 +28,7 @@ abstract class WebGPUMemoryPointer<T>(
     override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
         val writeBuffer = webgpu.allocWrite(toArrayBuffer(src))
         webgpu.copyBufferToBuffer(writeBuffer, gpuBuffer, srcOffset, dstOffset, length * typeSize)
+        webgpu.dealloc(writeBuffer)
     }
 
     override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
