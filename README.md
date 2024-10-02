@@ -10,10 +10,9 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
    - javac
  - **JS, Wasm**
    - WebGPU
+   - JS
 
 ### Planned executions:
- - **JS, Wasm**
-   - JS
  - **iOS**
    - Metal
  - **Android**
@@ -24,7 +23,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
   - [x] Add standard functions (pow, sqrt, etc)
   - [x] Add argument `from` to execute()
   - [x] Add single value updating in memory objects
-  - [ ] Add JS support
+  - [x] Add JS support
   - [x] Add WebGPU support (Beta)
   - [ ] Add array creation support
   - [ ] Add Vulkan support
