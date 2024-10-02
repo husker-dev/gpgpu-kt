@@ -2,22 +2,17 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available executions:
- - **Common**
-   - Interpreter
- - **JVM**
-   - OpenCL
-   - CUDA
-   - javac
- - **JS, Wasm**
-   - WebGPU
-   - JS
+|         | OpenCL             | CUDA               | Vulkan | Metal | WebGPU    | JS                 | javac              | Interpreter        |
+|---------|--------------------|--------------------|--------|-------|-----------|--------------------|--------------------|--------------------|
+| jvm     | :white_check_mark: | :white_check_mark: |   :x:  |  :x:  |           |                    | :white_check_mark: | :white_check_mark: |
+| js      |                    |                    |        |       | :warning: | :white_check_mark: |                    | :white_check_mark: |
+| wasm    |                    |                    |        |       |    :x:    |         :x:        |                    | :white_check_mark: |
+| ios     |                    |                    |        |  :x:  |           |                    |                    | :white_check_mark: |
+| android |         :x:        |                    |   :x:  |       |           |                    |                    | :white_check_mark: |
 
-### Planned executions:
- - **iOS**
-   - Metal
- - **Android**
-   - OpenCL
-   - Vulkan
+- :white_check_mark: - Fully implemented
+- :warning: - Partially working
+- :x: - Not implemented
 
 ### TODO List:
   - [x] Add standard functions (pow, sqrt, etc)
