@@ -35,8 +35,6 @@ class WebGPU(
     }
 
     fun alloc(size: Int): dynamic{
-        println("alloc(${size})")
-
         return device.createBuffer(jsObject {
             this.size = size
             usage = js("GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST")
@@ -44,8 +42,6 @@ class WebGPU(
     }
 
     fun alloc(byteArray: ArrayBuffer): dynamic{
-        println("alloc([${byteArray.byteLength}])")
-
         val buffer = device.createBuffer(jsObject {
             mappedAtCreation = true
             size = byteArray.byteLength
@@ -59,8 +55,6 @@ class WebGPU(
     }
 
     fun allocWrite(byteArray: ArrayBuffer): dynamic{
-        println("allocWrite([${byteArray.byteLength}])")
-
         val writeBuffer = device.createBuffer(jsObject {
             mappedAtCreation = true
             size = byteArray.byteLength
@@ -75,8 +69,6 @@ class WebGPU(
     }
 
     fun allocRead(size: Int): dynamic{
-        println("allocRead([$size])")
-
         return device.createBuffer(jsObject {
             this.size = size
             usage = js("GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST")

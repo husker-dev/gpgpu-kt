@@ -96,8 +96,21 @@ class WebGPUProgram(
             buffer.append(".0")
     }
 
+    override fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression) {
+        val leftType = expression.left.type
+        val rightType = expression.right.type
+
+        if(leftType != rightType){
+            stringifyExpression(buffer, expression.left)
+            buffer.append(expression.operator.token)
+            buffer.append(toCType(leftType)).append("(")
+            stringifyExpression(buffer, expression.right)
+            buffer.append(")")
+        }else super.stringifyAxBExpression(buffer, expression)
+    }
+
     override fun toCType(type: Type) = when(type){
-        Type.VOID -> ""
+        Type.VOID -> throw UnsupportedOperationException()
         Type.FLOAT -> "f32"
         Type.DOUBLE -> "f32"
         Type.LONG -> TODO()

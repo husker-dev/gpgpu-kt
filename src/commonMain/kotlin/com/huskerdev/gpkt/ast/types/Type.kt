@@ -1,10 +1,10 @@
 package com.huskerdev.gpkt.ast.types
 
-const val FLAG_NUMBER = 1
-const val FLAG_FLOATING_POINT = 2
-const val FLAG_INTEGER = 3
-const val FLAG_LOGICAL = 4
-const val FLAG_ARRAY = 5
+const val FLAG_NUMBER = 2
+const val FLAG_FLOATING_POINT = 4
+const val FLAG_INTEGER = 8
+const val FLAG_LOGICAL = 16
+const val FLAG_ARRAY = 32
 
 enum class Type(
     val text: String,

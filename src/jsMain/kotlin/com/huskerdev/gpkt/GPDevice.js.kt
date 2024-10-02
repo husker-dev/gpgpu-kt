@@ -57,7 +57,7 @@ fun test() = Promise<Boolean> { _, _ ->
                 }
                 
                 void main(const int i){
-                    result[i] = data[i] + a(2f);
+                    result[i] = data[i] + a(23) + i;
                 }
             """.trimIndent())
 
