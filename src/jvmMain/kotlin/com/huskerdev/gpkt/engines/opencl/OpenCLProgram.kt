@@ -23,7 +23,7 @@ class OpenCLProgram(
 
     init {
         val buffer = StringBuilder()
-        stringifyScopeStatement(ast, buffer, false)
+        stringifyScopeStatement(buffer, ast, false)
 
         program = cl.compileProgram(buffer.toString())
         kernel = cl.createKernel(program, "__m")
@@ -84,7 +84,7 @@ class OpenCLProgram(
                 buffer.append("${it.name}=__v_${it.name};")
             }
             buffer.append("int ${function.arguments[0].name}=get_global_id(0)+__o;")
-            stringifyScopeStatement(function.body, buffer, false)
+            stringifyScopeStatement(buffer, function.body, false)
             buffer.append("}")
         } else super.stringifyFunctionStatement(statement, buffer)
     }
@@ -99,5 +99,6 @@ class OpenCLProgram(
     override fun toCModifier(modifier: Modifiers) = when(modifier){
         Modifiers.EXTERNAL -> "__global"
         Modifiers.CONST -> "__constant"
+        Modifiers.READONLY -> ""
     }
 }

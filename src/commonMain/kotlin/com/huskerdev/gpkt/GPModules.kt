@@ -4,7 +4,7 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 
 
 class GPModules(
-    private val contextDevice: GPDevice
+    private val contextDevice: GPDeviceBase
 ) {
     val ast = hashMapOf<String, ScopeStatement>()
 

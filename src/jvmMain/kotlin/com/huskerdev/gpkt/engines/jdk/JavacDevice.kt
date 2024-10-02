@@ -4,7 +4,7 @@ import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.engines.cpu.*
 
-class JavacDevice: GPDevice(GPType.Javac) {
+class JavacSyncDevice: GPSyncDevice(GPType.Javac) {
     override val id = 0
     override val name = "CPU"
     override val isGPU = false
@@ -13,32 +13,71 @@ class JavacDevice: GPDevice(GPType.Javac) {
         JavacProgram(ast)
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CPUFloatMemoryPointer(array.copyOf(), usage)
+        CPUSyncFloatMemoryPointer(array.copyOf(), usage)
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CPUFloatMemoryPointer(FloatArray(length), usage)
+        CPUSyncFloatMemoryPointer(FloatArray(length), usage)
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CPUDoubleMemoryPointer(array.copyOf(), usage)
+        CPUSyncDoubleMemoryPointer(array.copyOf(), usage)
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CPUDoubleMemoryPointer(DoubleArray(length), usage)
+        CPUSyncDoubleMemoryPointer(DoubleArray(length), usage)
 
     override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CPULongMemoryPointer(array.copyOf(), usage)
+        CPUSyncLongMemoryPointer(array.copyOf(), usage)
 
     override fun allocLong(length: Int, usage: MemoryUsage) =
-        CPULongMemoryPointer(LongArray(length), usage)
+        CPUSyncLongMemoryPointer(LongArray(length), usage)
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CPUIntMemoryPointer(array.copyOf(), usage)
+        CPUSyncIntMemoryPointer(array.copyOf(), usage)
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CPUIntMemoryPointer(IntArray(length), usage)
+        CPUSyncIntMemoryPointer(IntArray(length), usage)
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CPUByteMemoryPointer(array.copyOf(), usage)
+        CPUSyncByteMemoryPointer(array.copyOf(), usage)
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CPUByteMemoryPointer(ByteArray(length), usage)
+        CPUSyncByteMemoryPointer(ByteArray(length), usage)
+}
+
+class JavacAsyncDevice: GPAsyncDevice(GPType.Javac) {
+    override val id = 0
+    override val name = "CPU"
+    override val isGPU = false
+
+    override fun compile(ast: ScopeStatement) =
+        JavacProgram(ast)
+
+    override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
+        CPUAsyncFloatMemoryPointer(array.copyOf(), usage)
+
+    override fun allocFloat(length: Int, usage: MemoryUsage) =
+        CPUAsyncFloatMemoryPointer(FloatArray(length), usage)
+
+    override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
+        CPUAsyncDoubleMemoryPointer(array.copyOf(), usage)
+
+    override fun allocDouble(length: Int, usage: MemoryUsage) =
+        CPUAsyncDoubleMemoryPointer(DoubleArray(length), usage)
+
+    override fun allocLong(array: LongArray, usage: MemoryUsage) =
+        CPUAsyncLongMemoryPointer(array.copyOf(), usage)
+
+    override fun allocLong(length: Int, usage: MemoryUsage) =
+        CPUAsyncLongMemoryPointer(LongArray(length), usage)
+
+    override fun allocInt(array: IntArray, usage: MemoryUsage) =
+        CPUAsyncIntMemoryPointer(array.copyOf(), usage)
+
+    override fun allocInt(length: Int, usage: MemoryUsage) =
+        CPUAsyncIntMemoryPointer(IntArray(length), usage)
+
+    override fun allocByte(array: ByteArray, usage: MemoryUsage) =
+        CPUAsyncByteMemoryPointer(array.copyOf(), usage)
+
+    override fun allocByte(length: Int, usage: MemoryUsage) =
+        CPUAsyncByteMemoryPointer(ByteArray(length), usage)
 }

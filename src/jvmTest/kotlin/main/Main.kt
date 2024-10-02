@@ -1,6 +1,6 @@
 package main
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 import com.huskerdev.gpkt.GPType
 import com.huskerdev.gpkt.ast.GPCompilationException
 import kotlin.system.exitProcess
@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPDevice.create(requestedType = arrayOf(GPType.OpenCL))!!
+    val device = GPSyncDevice.create(requestedType = arrayOf(GPType.OpenCL))!!
     println("======== Device info ========")
     println("Type: ${device.type}")
     println("Name: ${device.name}")

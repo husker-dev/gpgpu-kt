@@ -1,6 +1,6 @@
 package sma
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 import com.huskerdev.gpkt.GPType
 import org.openjdk.jmh.annotations.*
 
@@ -11,7 +11,7 @@ open class SMA_JAVAC {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPDevice.create(requestedType = arrayOf(GPType.Javac))!!)
+        gp = GP(GPSyncDevice.create(requestedType = arrayOf(GPType.Javac))!!)
     }
 
     @Benchmark

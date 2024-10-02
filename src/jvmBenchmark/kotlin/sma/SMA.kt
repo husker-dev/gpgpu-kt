@@ -1,6 +1,6 @@
 package sma
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 
 val candles = 1000
 
@@ -9,7 +9,7 @@ val maxPeriod = 500
 
 
 class GP(
-    engine: GPDevice
+    engine: GPSyncDevice
 ) {
     private var data = engine.allocFloat(FloatArray(candles) { it.toFloat() })
     private var result = engine.allocFloat(candles * (maxPeriod - minPeriod))

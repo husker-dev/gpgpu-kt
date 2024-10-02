@@ -1,13 +1,13 @@
 package tests
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 import com.huskerdev.gpkt.GPType
 import kotlin.test.assertTrue
 
 fun testInvocation(type: GPType, instances: Int){
     val arraySize = instances + 100
 
-    val engine = GPDevice.create(requestedType = arrayOf(type))!!
+    val engine = GPSyncDevice.create(requestedType = arrayOf(type))!!
     val data1 = engine.allocFloat(FloatArray(instances) { it.toFloat() + 1 })
     val data2 = engine.allocFloat(FloatArray(instances) { it.toFloat() + 1 })
     val result = engine.allocFloat(arraySize)

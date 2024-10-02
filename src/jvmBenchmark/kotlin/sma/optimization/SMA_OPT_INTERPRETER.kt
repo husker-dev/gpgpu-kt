@@ -1,6 +1,6 @@
 package sma.optimization
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 import com.huskerdev.gpkt.GPType
 import org.openjdk.jmh.annotations.*
 
@@ -11,7 +11,7 @@ open class SMA_OPT_INTERPRETER {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPDevice.create(requestedType = arrayOf(GPType.Interpreter))!!)
+        gp = GP(GPSyncDevice.create(requestedType = arrayOf(GPType.Interpreter))!!)
     }
 
     //@Benchmark

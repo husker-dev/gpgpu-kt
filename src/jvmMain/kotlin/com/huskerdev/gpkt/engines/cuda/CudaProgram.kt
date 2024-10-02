@@ -24,7 +24,7 @@ class CudaProgram(
     init {
         val buffer = StringBuilder()
         buffer.append("extern \"C\"{")
-        stringifyScopeStatement(ast, buffer, false)
+        stringifyScopeStatement(buffer, ast, false)
         buffer.append("}")
 
         module = cuda.compileToModule(buffer.toString())
@@ -80,7 +80,7 @@ class CudaProgram(
             buffers.forEach {
                 buffer.append("${it.name}=__v_${it.name};")
             }
-            stringifyScopeStatement(statement.function.body, buffer, false)
+            stringifyScopeStatement(buffer, statement.function.body, false)
             buffer.append("}")
         }else {
             appendCFunctionHeader(
@@ -90,7 +90,7 @@ class CudaProgram(
                 name = function.name,
                 args = function.arguments.map(::convertToFuncArg)
             )
-            stringifyScopeStatement(statement.function.body, buffer, true)
+            stringifyScopeStatement(buffer, statement.function.body, true)
         }
     }
 
@@ -105,5 +105,6 @@ class CudaProgram(
     override fun toCModifier(modifier: Modifiers) = when(modifier){
         Modifiers.EXTERNAL -> "__device__"
         Modifiers.CONST -> "__constant__"
+        Modifiers.READONLY -> ""
     }
 }

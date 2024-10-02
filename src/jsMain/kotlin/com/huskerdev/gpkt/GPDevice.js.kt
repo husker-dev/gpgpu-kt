@@ -1,11 +1,80 @@
 package com.huskerdev.gpkt
 
-internal actual val defaultExpectedTypes: Array<GPType>
-    get() = TODO("Not yet implemented")
+import com.huskerdev.gpkt.engines.js.JSAsyncDevice
+import com.huskerdev.gpkt.engines.js.JSSyncDevice
+import com.huskerdev.gpkt.engines.webgpu.WebGPU
+import com.huskerdev.gpkt.engines.webgpu.WebGPUAsyncDevice
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
+import kotlin.js.Promise
 
-internal actual val defaultExpectedDeviceId: Int
-    get() = TODO("Not yet implemented")
+internal actual val defaultExpectedTypes = arrayOf(GPType.WebGPU, GPType.JS)
+internal actual val defaultExpectedDeviceId = 0
 
-internal actual fun createSupportedInstance(requestedDeviceId: Int, vararg requestedType: GPType): GPDevice? {
-    TODO("Not yet implemented")
+internal actual fun createSupportedSyncInstance(
+    requestedDeviceId: Int,
+    vararg requestedType: GPType
+): GPSyncDevice? = requestedType.firstNotNullOfOrNull {
+    return when {
+        it == GPType.JS -> JSSyncDevice()
+        else -> null
+    }
 }
+
+internal actual suspend fun createSupportedAsyncInstance(
+    requestedDeviceId: Int, vararg requestedType: GPType
+): GPAsyncDevice? = requestedType.firstNotNullOfOrNull {
+    return when {
+        it == GPType.WebGPU && WebGPU.supported -> WebGPUAsyncDevice.create()
+        it == GPType.JS -> JSAsyncDevice()
+        else -> null
+    }
+}
+
+
+@OptIn(ExperimentalJsExport::class, ExperimentalJsStatic::class)
+@JsExport
+@JsName("test")
+@JsStatic
+fun test() = Promise<Boolean> { _, _ ->
+    launch {
+        try {
+            val device = GPAsyncDevice.create()!!
+            println("Device created: ${device.name}")
+
+            val result = device.allocFloat(FloatArray(20))
+            val data = device.allocFloat(FloatArray(20){ it.toFloat() })
+
+            val program = device.compile("""
+                extern readonly float[] data;
+                extern float[] result;
+                
+                float a(float b){
+                    return 13f;
+                }
+                
+                void main(const int i){
+                    result[i] = data[i] + a(2f);
+                }
+            """.trimIndent())
+
+            program.execute(20,
+                "data" to data,
+                "result" to result
+            )
+
+            println(result.read().toList())
+        }catch (e: Throwable){
+            e.printStackTrace()
+            println(e.message)
+        }
+    }
+}
+
+fun <T> launch(block: suspend () -> T) = block.startCoroutine(object : Continuation<T> {
+    override val context: CoroutineContext
+        get() = EmptyCoroutineContext
+    override fun resumeWith(result: Result<T>) = Unit
+})

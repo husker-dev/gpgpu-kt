@@ -22,11 +22,16 @@ class CPUProgram(
                 throw TypesMismatchException(field.name)
 
             val desc = when (value) {
-                is CPUFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
-                is CPUDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
-                is CPULongMemoryPointer -> Type.LONG_ARRAY to value.array!!
-                is CPUIntMemoryPointer -> Type.INT_ARRAY to value.array!!
-                is CPUByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
+                is CPUAsyncFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
+                is CPUAsyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
+                is CPUAsyncLongMemoryPointer -> Type.LONG_ARRAY to value.array!!
+                is CPUAsyncIntMemoryPointer -> Type.INT_ARRAY to value.array!!
+                is CPUAsyncByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
+                is CPUSyncFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
+                is CPUSyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
+                is CPUSyncLongMemoryPointer -> Type.LONG_ARRAY to value.array!!
+                is CPUSyncIntMemoryPointer -> Type.INT_ARRAY to value.array!!
+                is CPUSyncByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
                 is Float -> Type.FLOAT to value
                 is Double -> Type.DOUBLE to value
                 is Long -> Type.LONG to value

@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 
 
 plugins {
@@ -27,6 +28,7 @@ kotlin {
     }
     js {
         browser()
+        binaries.executable()
     }
 
     sourceSets {
@@ -59,5 +61,11 @@ kotlin {
 benchmark {
     targets {
         register("jvmBenchmark")
+    }
+}
+
+tasks.withType(KotlinJsCompile::class.java).configureEach {
+    compilerOptions {
+        target = "es2015"
     }
 }

@@ -1,6 +1,6 @@
 package sma.optimization
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPSyncDevice
 import com.huskerdev.gpkt.GPType
 
 const val candles = 1000
@@ -13,7 +13,7 @@ const val maxShift = 200
 
 
 class GP(
-    device: GPDevice
+    device: GPSyncDevice
 ) {
     private var data = device.allocFloat(FloatArray(candles) { Math.random().toFloat() * 10000 })
     private var sma = device.allocFloat(candles * (maxPeriod - minPeriod) * (maxShift - minShift))
@@ -102,7 +102,7 @@ class GP(
 }
 
 fun main(){
-    GP(GPDevice.create(requestedType = arrayOf(GPType.CUDA))!!).apply {
+    GP(GPSyncDevice.create(requestedType = arrayOf(GPType.CUDA))!!).apply {
         execute()
         cleanup()
     }

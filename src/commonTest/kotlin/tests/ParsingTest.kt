@@ -198,7 +198,7 @@ class ParsingTest {
         object: SimpleCProgram(ast){
             init {
                 val buffer = StringBuilder()
-                stringifyScopeStatement(ast, buffer, false)
+                stringifyScopeStatement(buffer, ast, false)
                 println(buffer)
             }
             override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = Unit

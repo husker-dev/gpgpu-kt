@@ -12,8 +12,11 @@ abstract class Expression {
     abstract val lexemeIndex: Int
     abstract val lexemeLength: Int
 
-    fun canAssign() =
-        this !is FieldExpression || !this.field.isConstant
+    fun canAssign() = when {
+        this is FieldExpression && field.isConstant -> false
+        this is ArrayAccessExpression && array.isReadonly -> false
+        else -> true
+    }
 }
 
 

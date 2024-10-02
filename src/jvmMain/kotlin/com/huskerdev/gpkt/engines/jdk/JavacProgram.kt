@@ -34,7 +34,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
                         __m(i);
                 }
         """.trimIndent())
-        stringifyScopeStatement(ast, buffer, false)
+        stringifyScopeStatement(buffer, ast, false)
         buffer.append("}")
 
         val clazz = ClassCompiler.compileClass(buffer.toString(), className)
@@ -54,11 +54,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
                 throw TypesMismatchException(field.name)
 
             when(value){
-                is CPUFloatMemoryPointer -> value.array
-                is CPUDoubleMemoryPointer -> value.array
-                is CPULongMemoryPointer -> value.array
-                is CPUIntMemoryPointer -> value.array
-                is CPUByteMemoryPointer -> value.array
+                is CPUMemoryPointer<*> -> value.array
                 is Float, is Double, is Long, is Int, is Byte -> value
                 else -> throw UnsupportedOperationException()
             }
@@ -97,7 +93,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
             name = name,
             args = args
         )
-        stringifyScopeStatement(function.body, buffer, true)
+        stringifyScopeStatement(buffer, function.body, true)
     }
 
     private fun transformKernelArg(field: Field) =
@@ -140,5 +136,6 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
     override fun toCModifier(modifier: Modifiers) = when(modifier){
         Modifiers.CONST -> "private static final"
         Modifiers.EXTERNAL -> "private static"
+        Modifiers.READONLY -> ""
     }
 }

@@ -15,7 +15,15 @@ abstract class CudaMemoryPointer<T>(
 
     override fun dealloc() = cuda.dealloc(ptr)
 
-    override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
+    protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuda.write(ptr, wrapper(src),
+            size = length.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize
+        )
+    }
+
+    protected fun readImpl(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
         cuda.read(ptr, wrapper(dst),
             size = length.toLong() * typeSize,
             dstOffset = dstOffset.toLong() * typeSize,
@@ -23,56 +31,122 @@ abstract class CudaMemoryPointer<T>(
         )
     }
 
-    override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
-        cuda.write(ptr, wrapper(src),
-            size = length.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize
-        )
+    abstract class Sync<T>(
+        typeSize: Int,
+        wrapper: (T) -> Pointer
+    ): CudaMemoryPointer<T>(typeSize, wrapper), SyncMemoryPointer<T>{
+        override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
+            readImpl(dst, length, dstOffset, srcOffset)
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+            writeImpl(src, length, srcOffset, dstOffset)
+    }
+
+    abstract class Async<T>(
+        typeSize: Int,
+        wrapper: (T) -> Pointer
+    ): CudaMemoryPointer<T>(typeSize, wrapper), AsyncMemoryPointer<T>{
+        override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
+            readImpl(dst, length, dstOffset, srcOffset)
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+            writeImpl(src, length, srcOffset, dstOffset)
     }
 }
 
-class CudaFloatMemoryPointer(
+// ===================
+//        Sync
+// ===================
+
+class CudaSyncFloatMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
-): CudaMemoryPointer<FloatArray>(
+): CudaMemoryPointer.Sync<FloatArray>(
     Sizeof.FLOAT, Pointer::to
-), FloatMemoryPointer
+), SyncFloatMemoryPointer
 
-class CudaDoubleMemoryPointer(
+class CudaSyncDoubleMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
-): CudaMemoryPointer<DoubleArray>(
+): CudaMemoryPointer.Sync<DoubleArray>(
     Sizeof.DOUBLE, Pointer::to
-), DoubleMemoryPointer
+), SyncDoubleMemoryPointer
 
-class CudaLongMemoryPointer(
+class CudaSyncLongMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
-): CudaMemoryPointer<LongArray>(
+): CudaMemoryPointer.Sync<LongArray>(
     Sizeof.LONG, Pointer::to
-), LongMemoryPointer
+), SyncLongMemoryPointer
 
-class CudaIntMemoryPointer(
+class CudaSyncIntMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
-): CudaMemoryPointer<IntArray>(
+): CudaMemoryPointer.Sync<IntArray>(
     Sizeof.INT, Pointer::to
-), IntMemoryPointer
+), SyncIntMemoryPointer
 
-class CudaByteMemoryPointer(
+class CudaSyncByteMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
-): CudaMemoryPointer<ByteArray>(
+): CudaMemoryPointer.Sync<ByteArray>(
     Sizeof.BYTE, Pointer::to
-), ByteMemoryPointer
+), SyncByteMemoryPointer
+
+
+// ===================
+//       Async
+// ===================
+
+class CudaAsyncFloatMemoryPointer(
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer.Async<FloatArray>(
+    Sizeof.FLOAT, Pointer::to
+), AsyncFloatMemoryPointer
+
+class CudaAsyncDoubleMemoryPointer(
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer.Async<DoubleArray>(
+    Sizeof.DOUBLE, Pointer::to
+), AsyncDoubleMemoryPointer
+
+class CudaAsyncLongMemoryPointer(
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer.Async<LongArray>(
+    Sizeof.LONG, Pointer::to
+), AsyncLongMemoryPointer
+
+class CudaAsyncIntMemoryPointer(
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer.Async<IntArray>(
+    Sizeof.INT, Pointer::to
+), AsyncIntMemoryPointer
+
+class CudaAsyncByteMemoryPointer(
+    override val cuda: Cuda,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: CUdeviceptr
+): CudaMemoryPointer.Async<ByteArray>(
+    Sizeof.BYTE, Pointer::to
+), AsyncByteMemoryPointer

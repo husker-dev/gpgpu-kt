@@ -16,7 +16,15 @@ abstract class OpenCLMemoryPointer<T>(
     override fun dealloc() =
         cl.dealloc(ptr)
 
-    override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
+    protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+        cl.write(ptr, wrapper(src),
+            size = length.toLong() * typeSize,
+            srcOffset = srcOffset.toLong() * typeSize,
+            dstOffset = dstOffset.toLong() * typeSize
+        )
+    }
+
+    protected fun readImpl(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
         cl.read(ptr, wrapper(dst),
             size = length.toLong() * typeSize,
             dstOffset = dstOffset.toLong() * typeSize,
@@ -24,46 +32,121 @@ abstract class OpenCLMemoryPointer<T>(
         )
     }
 
-    override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
-        cl.write(ptr, wrapper(src),
-            size = length.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize
-        )
+    abstract class Sync<T>(
+        typeSize: Int,
+        wrapper: (T) -> Pointer
+    ): OpenCLMemoryPointer<T>(typeSize, wrapper), SyncMemoryPointer<T>{
+        override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
+            readImpl(dst, length, dstOffset, srcOffset)
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+            writeImpl(src, length, srcOffset, dstOffset)
+    }
+
+    abstract class Async<T>(
+        typeSize: Int,
+        wrapper: (T) -> Pointer
+    ): OpenCLMemoryPointer<T>(typeSize, wrapper), AsyncMemoryPointer<T>{
+        override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
+            readImpl(dst, length, dstOffset, srcOffset)
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+            writeImpl(src, length, srcOffset, dstOffset)
     }
 }
 
-class CLFloatMemoryPointer(
-    override val cl: OpenCL,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: cl_mem
-): OpenCLMemoryPointer<FloatArray>(Sizeof.cl_float, Pointer::to), FloatMemoryPointer
+// ===================
+//        Sync
+// ===================
 
-class CLDoubleMemoryPointer(
+class CLSyncFloatMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: cl_mem
-): OpenCLMemoryPointer<DoubleArray>(Sizeof.cl_double, Pointer::to), DoubleMemoryPointer
+): OpenCLMemoryPointer.Sync<FloatArray>(
+    Sizeof.cl_float, Pointer::to
+), SyncFloatMemoryPointer
 
-class CLLongMemoryPointer(
+class CLSyncDoubleMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: cl_mem
-): OpenCLMemoryPointer<LongArray>(Sizeof.cl_long, Pointer::to), LongMemoryPointer
+): OpenCLMemoryPointer.Sync<DoubleArray>(
+    Sizeof.cl_double, Pointer::to
+), SyncDoubleMemoryPointer
 
-class CLIntMemoryPointer(
+class CLSyncLongMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: cl_mem
-): OpenCLMemoryPointer<IntArray>(Sizeof.cl_int, Pointer::to), IntMemoryPointer
+): OpenCLMemoryPointer.Sync<LongArray>(
+    Sizeof.cl_long, Pointer::to
+), SyncLongMemoryPointer
 
-class CLByteMemoryPointer(
+class CLSyncIntMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: cl_mem
-): OpenCLMemoryPointer<ByteArray>(Sizeof.cl_char, Pointer::to), ByteMemoryPointer
+): OpenCLMemoryPointer.Sync<IntArray>(
+    Sizeof.cl_int, Pointer::to
+), SyncIntMemoryPointer
+
+class CLSyncByteMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Sync<ByteArray>(
+    Sizeof.cl_char, Pointer::to
+), SyncByteMemoryPointer
+
+// ===================
+//       Async
+// ===================
+
+class CLAsyncFloatMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Async<FloatArray>(
+    Sizeof.cl_float, Pointer::to
+), AsyncFloatMemoryPointer
+
+class CLAsyncDoubleMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Async<DoubleArray>(
+    Sizeof.cl_double, Pointer::to
+), AsyncDoubleMemoryPointer
+
+class CLAsyncLongMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Async<LongArray>(
+    Sizeof.cl_long, Pointer::to
+), AsyncLongMemoryPointer
+
+class CLAsyncIntMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Async<IntArray>(
+    Sizeof.cl_int, Pointer::to
+), AsyncIntMemoryPointer
+
+class CLAsyncByteMemoryPointer(
+    override val cl: OpenCL,
+    override val length: Int,
+    override val usage: MemoryUsage,
+    override val ptr: cl_mem
+): OpenCLMemoryPointer.Async<ByteArray>(
+    Sizeof.cl_char, Pointer::to
+), AsyncByteMemoryPointer

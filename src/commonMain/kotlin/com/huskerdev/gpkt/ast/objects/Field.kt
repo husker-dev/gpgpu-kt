@@ -14,6 +14,7 @@ class Field(
     constructor(name: String, type: Type): this(name, mutableListOf(), type, null)
 
     val isConstant = Modifiers.CONST in modifiers
+    val isReadonly = Modifiers.READONLY in modifiers
 }
 
 val predefinedFields = hashMapOf(

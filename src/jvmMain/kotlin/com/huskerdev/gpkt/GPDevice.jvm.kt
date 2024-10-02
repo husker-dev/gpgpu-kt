@@ -1,11 +1,14 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.engines.cuda.Cuda
-import com.huskerdev.gpkt.engines.cuda.CudaDevice
+import com.huskerdev.gpkt.engines.cuda.CudaAsyncDevice
+import com.huskerdev.gpkt.engines.cuda.CudaSyncDevice
 import com.huskerdev.gpkt.engines.jdk.ClassCompiler
-import com.huskerdev.gpkt.engines.jdk.JavacDevice
-import com.huskerdev.gpkt.engines.opencl.OpenCLDevice
+import com.huskerdev.gpkt.engines.jdk.JavacAsyncDevice
+import com.huskerdev.gpkt.engines.jdk.JavacSyncDevice
+import com.huskerdev.gpkt.engines.opencl.OpenCLSyncDevice
 import com.huskerdev.gpkt.engines.opencl.OpenCL
+import com.huskerdev.gpkt.engines.opencl.OpenCLAsyncDevice
 
 internal actual val defaultExpectedTypes: Array<GPType> =
     System.getenv().getOrDefault("gp.order", "cuda,opencl,javac,interpreter")
@@ -16,14 +19,26 @@ internal actual val defaultExpectedTypes: Array<GPType> =
 internal actual val defaultExpectedDeviceId: Int =
     System.getenv().getOrDefault("gp.index", "0").toInt()
 
-internal actual fun createSupportedInstance(requestedDeviceId: Int, vararg requestedType: GPType): GPDevice? {
-    requestedType.forEach {
-        when {
-            it == GPType.Javac && ClassCompiler.supported -> return JavacDevice()
-            it == GPType.OpenCL && OpenCL.supported -> return OpenCLDevice(requestedDeviceId)
-            it == GPType.CUDA && Cuda.supported -> return CudaDevice(requestedDeviceId)
-        }
+internal actual fun createSupportedSyncInstance(
+    requestedDeviceId: Int,
+    vararg requestedType: GPType
+): GPSyncDevice? = requestedType.firstNotNullOfOrNull {
+    when {
+        it == GPType.Javac && ClassCompiler.supported -> return JavacSyncDevice()
+        it == GPType.OpenCL && OpenCL.supported -> return OpenCLSyncDevice(requestedDeviceId)
+        it == GPType.CUDA && Cuda.supported -> return CudaSyncDevice(requestedDeviceId)
+        else -> null
     }
-    return null
 }
 
+internal actual suspend fun createSupportedAsyncInstance(
+    requestedDeviceId: Int,
+    vararg requestedType: GPType
+): GPAsyncDevice? = requestedType.firstNotNullOfOrNull {
+    when {
+        it == GPType.Javac && ClassCompiler.supported -> return JavacAsyncDevice()
+        it == GPType.OpenCL && OpenCL.supported -> return OpenCLAsyncDevice(requestedDeviceId)
+        it == GPType.CUDA && Cuda.supported -> return CudaAsyncDevice(requestedDeviceId)
+        else -> null
+    }
+}

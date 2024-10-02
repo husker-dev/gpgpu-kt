@@ -32,11 +32,11 @@ abstract class BasicProgram(ast: ScopeStatement): Program {
 
     fun areEqualTypes(actual: Any, expected: Type): Boolean{
         val actualType = when(actual){
-            is FloatMemoryPointer -> Type.FLOAT_ARRAY
-            is IntMemoryPointer -> Type.INT_ARRAY
-            is DoubleMemoryPointer -> Type.DOUBLE_ARRAY
-            is LongMemoryPointer -> Type.LONG_ARRAY
-            is ByteMemoryPointer -> Type.BYTE_ARRAY
+            is AsyncFloatMemoryPointer, is SyncFloatMemoryPointer -> Type.FLOAT_ARRAY
+            is AsyncIntMemoryPointer, is SyncIntMemoryPointer -> Type.INT_ARRAY
+            is AsyncDoubleMemoryPointer, is SyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY
+            is AsyncLongMemoryPointer, is SyncLongMemoryPointer -> Type.LONG_ARRAY
+            is AsyncByteMemoryPointer, is SyncByteMemoryPointer -> Type.BYTE_ARRAY
             is Float -> Type.FLOAT
             is Int -> Type.INT
             is Double -> Type.DOUBLE
@@ -55,7 +55,7 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
         statement: Statement
     ){
         when(statement) {
-            is ScopeStatement -> stringifyScopeStatement(statement, buffer, true)
+            is ScopeStatement -> stringifyScopeStatement(buffer, statement, true)
             is ExpressionStatement -> stringifyExpression(buffer, statement.expression, true)
             is FunctionStatement -> stringifyFunctionStatement(statement, buffer)
             is FieldStatement -> stringifyFieldStatement(statement, buffer)
@@ -94,8 +94,8 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
     \* ================== */
 
     protected fun stringifyScopeStatement(
-        statement: ScopeStatement,
         buffer: StringBuilder,
+        statement: ScopeStatement,
         brackets: Boolean
     ){
         if(brackets) buffer.append("{")
@@ -253,6 +253,7 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
     protected open fun toCModifier(modifier: Modifiers) = when(modifier){
         Modifiers.EXTERNAL -> "extern"
         Modifiers.CONST -> "const"
+        Modifiers.READONLY -> ""
     }
 
     protected open fun toCType(type: Type) = when(type) {

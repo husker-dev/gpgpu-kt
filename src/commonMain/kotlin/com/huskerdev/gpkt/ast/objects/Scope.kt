@@ -1,12 +1,12 @@
 package com.huskerdev.gpkt.ast.objects
 
-import com.huskerdev.gpkt.GPDevice
+import com.huskerdev.gpkt.GPDeviceBase
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.types.Type
 
 open class Scope(
-    val device: GPDevice?,
+    val device: GPDeviceBase?,
     private val parentScope: Scope?,
     val returnType: Type? = null,
     val iterable: Boolean = false,

@@ -5,9 +5,9 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 import jcuda.Pointer
 import jcuda.Sizeof
 
-class CudaDevice(
+class CudaSyncDevice(
     requestedDeviceId: Int
-): GPDevice(GPType.CUDA) {
+): GPSyncDevice(GPType.CUDA) {
     private val cuda = Cuda(requestedDeviceId)
 
     override val id = cuda.deviceId
@@ -15,43 +15,96 @@ class CudaDevice(
     override val isGPU = true
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CudaFloatMemoryPointer(cuda, array.size, usage,
+        CudaSyncFloatMemoryPointer(cuda, array.size, usage,
             cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT))
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CudaFloatMemoryPointer(cuda, length, usage,
+        CudaSyncFloatMemoryPointer(cuda, length, usage,
             cuda.alloc(length.toLong() * Sizeof.FLOAT))
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CudaDoubleMemoryPointer(cuda, array.size, usage,
+        CudaSyncDoubleMemoryPointer(cuda, array.size, usage,
             cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE))
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CudaDoubleMemoryPointer(cuda, length, usage,
+        CudaSyncDoubleMemoryPointer(cuda, length, usage,
             cuda.alloc(length.toLong() * Sizeof.DOUBLE))
 
     override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CudaLongMemoryPointer(cuda, array.size, usage,
+        CudaSyncLongMemoryPointer(cuda, array.size, usage,
             cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG))
 
     override fun allocLong(length: Int, usage: MemoryUsage) =
-        CudaLongMemoryPointer(cuda, length, usage,
+        CudaSyncLongMemoryPointer(cuda, length, usage,
             cuda.alloc(length.toLong() * Sizeof.LONG))
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CudaIntMemoryPointer(cuda, array.size, usage,
+        CudaSyncIntMemoryPointer(cuda, array.size, usage,
             cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT))
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CudaIntMemoryPointer(cuda, length, usage,
+        CudaSyncIntMemoryPointer(cuda, length, usage,
             cuda.alloc(length.toLong() * Sizeof.INT))
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CudaByteMemoryPointer(cuda, array.size, usage,
+        CudaSyncByteMemoryPointer(cuda, array.size, usage,
             cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE))
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CudaByteMemoryPointer(cuda, length, usage,
+        CudaSyncByteMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.BYTE))
+
+    override fun compile(ast: ScopeStatement) =
+        CudaProgram(cuda, ast)
+}
+
+class CudaAsyncDevice(
+    requestedDeviceId: Int
+): GPAsyncDevice(GPType.CUDA) {
+    private val cuda = Cuda(requestedDeviceId)
+
+    override val id = cuda.deviceId
+    override val name = cuda.deviceName
+    override val isGPU = true
+
+    override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
+        CudaAsyncFloatMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT))
+
+    override fun allocFloat(length: Int, usage: MemoryUsage) =
+        CudaAsyncFloatMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.FLOAT))
+
+    override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
+        CudaAsyncDoubleMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE))
+
+    override fun allocDouble(length: Int, usage: MemoryUsage) =
+        CudaAsyncDoubleMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.DOUBLE))
+
+    override fun allocLong(array: LongArray, usage: MemoryUsage) =
+        CudaAsyncLongMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG))
+
+    override fun allocLong(length: Int, usage: MemoryUsage) =
+        CudaAsyncLongMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.LONG))
+
+    override fun allocInt(array: IntArray, usage: MemoryUsage) =
+        CudaAsyncIntMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT))
+
+    override fun allocInt(length: Int, usage: MemoryUsage) =
+        CudaAsyncIntMemoryPointer(cuda, length, usage,
+            cuda.alloc(length.toLong() * Sizeof.INT))
+
+    override fun allocByte(array: ByteArray, usage: MemoryUsage) =
+        CudaAsyncByteMemoryPointer(cuda, array.size, usage,
+            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE))
+
+    override fun allocByte(length: Int, usage: MemoryUsage) =
+        CudaAsyncByteMemoryPointer(cuda, length, usage,
             cuda.alloc(length.toLong() * Sizeof.BYTE))
 
     override fun compile(ast: ScopeStatement) =
