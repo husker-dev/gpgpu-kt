@@ -8,10 +8,11 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
    - OpenCL
    - CUDA
    - javac
+ - **JS, Wasm**
+   - WebGPU
 
 ### Planned executions:
  - **JS, Wasm**
-   - WebGPU
    - JS
  - **iOS**
    - Metal
@@ -24,7 +25,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
   - [x] Add argument `from` to execute()
   - [x] Add single value updating in memory objects
   - [ ] Add JS support
-  - [ ] Add WebGPU support
+  - [x] Add WebGPU support (Beta)
   - [ ] Add array creation support
   - [ ] Add Vulkan support
   - [ ] Add Metal support
