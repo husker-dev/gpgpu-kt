@@ -21,7 +21,7 @@ internal actual val defaultExpectedDeviceId: Int =
 
 internal actual fun createSupportedSyncInstance(
     requestedDeviceId: Int,
-    vararg requestedType: GPType
+    requestedType: Array<out GPType>
 ): GPSyncDevice? = requestedType.firstNotNullOfOrNull {
     when {
         it == GPType.Javac && ClassCompiler.supported -> return JavacSyncDevice()
@@ -33,7 +33,7 @@ internal actual fun createSupportedSyncInstance(
 
 internal actual suspend fun createSupportedAsyncInstance(
     requestedDeviceId: Int,
-    vararg requestedType: GPType
+    requestedType: Array<out GPType>
 ): GPAsyncDevice? = requestedType.firstNotNullOfOrNull {
     when {
         it == GPType.Javac && ClassCompiler.supported -> return JavacAsyncDevice()

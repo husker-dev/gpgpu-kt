@@ -42,7 +42,7 @@ class Function(
     }
 }
 
-val predefinedFunctions = hashMapOf(
+val predefinedMathFunctions = hashMapOf(
     funPair("abs", Type.DOUBLE, "a" to Type.DOUBLE),
     funPair("acos", Type.DOUBLE, "angle" to Type.DOUBLE),
     funPair("asin", Type.DOUBLE, "angle" to Type.DOUBLE),
@@ -68,6 +68,8 @@ val predefinedFunctions = hashMapOf(
     funPair("tan", Type.DOUBLE, "a" to Type.DOUBLE),
     funPair("tanh", Type.DOUBLE, "x" to Type.DOUBLE),
 )
+
+val allPredefinedFunctions = predefinedMathFunctions
 
 private fun funPair(name: String, type: Type, vararg arguments: Pair<String, Type>) =
     name to Function(type, name, *arguments)

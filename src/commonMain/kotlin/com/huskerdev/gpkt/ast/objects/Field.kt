@@ -17,10 +17,12 @@ class Field(
     val isReadonly = Modifiers.READONLY in modifiers
 }
 
-val predefinedFields = hashMapOf(
+val predefinedMathFields = hashMapOf(
     fieldPair("PI", Type.DOUBLE),
     fieldPair("E", Type.DOUBLE),
 )
+
+val allPredefinedFields = predefinedMathFields
 
 private fun fieldPair(name: String, type: Type) =
     name to Field(name, type)

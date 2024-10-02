@@ -15,18 +15,19 @@ internal actual val defaultExpectedDeviceId = 0
 
 internal actual fun createSupportedSyncInstance(
     requestedDeviceId: Int,
-    vararg requestedType: GPType
+    requestedType: Array<out GPType>
 ): GPSyncDevice? = requestedType.firstNotNullOfOrNull {
-    return when {
+    when {
         it == GPType.JS -> JSSyncDevice()
         else -> null
     }
 }
 
 internal actual suspend fun createSupportedAsyncInstance(
-    requestedDeviceId: Int, vararg requestedType: GPType
+    requestedDeviceId: Int,
+    requestedType: Array<out GPType>
 ): GPAsyncDevice? = requestedType.firstNotNullOfOrNull {
-    return when {
+    when {
         it == GPType.WebGPU && WebGPU.supported -> WebGPUAsyncDevice.create()
         it == GPType.JS -> JSAsyncDevice()
         else -> null

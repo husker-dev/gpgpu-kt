@@ -1,8 +1,8 @@
 package com.huskerdev.gpkt.engines.cpu.objects
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.predefinedFields
-import com.huskerdev.gpkt.ast.objects.predefinedFunctions
+import com.huskerdev.gpkt.ast.objects.allPredefinedFields
+import com.huskerdev.gpkt.ast.objects.allPredefinedFunctions
 import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.Operator.*
 import com.huskerdev.gpkt.ast.types.Type
@@ -292,7 +292,7 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
     }
     is FunctionCallExpression -> {
         val name = expression.function.name
-        if(name !in predefinedFunctions) {
+        if(name !in allPredefinedFunctions) {
             val arguments = expression.function.arguments.mapIndexed { i, arg ->
                 arg.name to ExField(arg.type, ExValue(executeExpression(scope, expression.arguments[i]).get()))
             }.toMap().toMutableMap()
@@ -339,7 +339,7 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
     is CastExpression -> executeExpression(scope, expression.right).castToType(expression.type)
     is FieldExpression -> {
         val name = expression.field.name
-        if(name !in predefinedFields)
+        if(name !in allPredefinedFields)
             scope.findField(expression.field.name)!!.value!!
         else ExValue(when(name){
             "PI" -> PI

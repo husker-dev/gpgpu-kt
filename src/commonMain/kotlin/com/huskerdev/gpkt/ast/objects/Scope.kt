@@ -18,14 +18,14 @@ open class Scope(
         fields.firstOrNull {
             it.name == name
         } ?: if(parentScope == null)
-            predefinedFields[name]
+            allPredefinedFields[name]
         else parentScope.findDefinedField(name)
 
     fun findDefinedFunction(name: String, arguments: List<Type> = emptyList()): Function? =
         functions.firstOrNull {
             it.name == name && it.canAcceptArguments(arguments)
         } ?: if(parentScope == null){
-            val func = predefinedFunctions[name]
+            val func = allPredefinedFunctions[name]
             if(func != null && func.canAcceptArguments(arguments))
                 func
             else null

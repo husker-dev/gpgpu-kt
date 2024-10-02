@@ -10,12 +10,12 @@ internal expect val defaultExpectedDeviceId: Int
 
 internal expect fun createSupportedSyncInstance(
     requestedDeviceId: Int,
-    vararg requestedType: GPType
+    requestedType: Array<out GPType>
 ): GPSyncDevice?
 
 internal expect suspend fun createSupportedAsyncInstance(
     requestedDeviceId: Int,
-    vararg requestedType: GPType
+    requestedType: Array<out GPType>
 ): GPAsyncDevice?
 
 
@@ -37,7 +37,7 @@ abstract class GPSyncDevice(
         fun create(
             requestedDeviceId: Int = defaultExpectedDeviceId,
             vararg requestedType: GPType = defaultExpectedTypes,
-        ) = createSupportedSyncInstance(requestedDeviceId, *requestedType) ?:
+        ) = createSupportedSyncInstance(requestedDeviceId, requestedType) ?:
         if(GPType.Interpreter in requestedType) CPUSyncDevice() else null
     }
 
@@ -68,7 +68,7 @@ abstract class GPAsyncDevice(type: GPType): GPDeviceBase(type) {
         suspend fun create(
             requestedDeviceId: Int = defaultExpectedDeviceId,
             vararg requestedType: GPType = defaultExpectedTypes,
-        ) = createSupportedAsyncInstance(requestedDeviceId, *requestedType) ?:
+        ) = createSupportedAsyncInstance(requestedDeviceId, requestedType) ?:
             if(GPType.Interpreter in requestedType) CPUAsyncDevice() else null
     }
 
