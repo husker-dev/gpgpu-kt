@@ -14,7 +14,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 - :warning: - Partially working
 - :x: - Not implemented
 
-- \* - Doesn't support loops, Double, Long and Byte arrays 
+- \* Doesn't support loops, Double, Long and Byte arrays 
 
 ### TODO List:
   - [x] Add standard functions (pow, sqrt, etc)
