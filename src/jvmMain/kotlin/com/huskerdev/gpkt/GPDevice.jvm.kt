@@ -24,9 +24,9 @@ internal actual fun createSupportedSyncInstance(
     requestedType: Array<out GPType>
 ): GPSyncDevice? = requestedType.firstNotNullOfOrNull {
     when {
-        it == GPType.Javac && ClassCompiler.supported -> return JavacSyncDevice()
-        it == GPType.OpenCL && OpenCL.supported -> return OpenCLSyncDevice(requestedDeviceId)
-        it == GPType.CUDA && Cuda.supported -> return CudaSyncDevice(requestedDeviceId)
+        it == GPType.Javac && ClassCompiler.supported -> JavacSyncDevice()
+        it == GPType.OpenCL && OpenCL.supported -> OpenCLSyncDevice(requestedDeviceId)
+        it == GPType.CUDA && Cuda.supported -> CudaSyncDevice(requestedDeviceId)
         else -> null
     }
 }

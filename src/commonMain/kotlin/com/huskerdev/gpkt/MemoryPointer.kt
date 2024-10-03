@@ -63,16 +63,6 @@ interface SyncFloatMemoryPointer: SyncMemoryPointer<FloatArray>{
     }
 }
 
-interface SyncLongMemoryPointer: SyncMemoryPointer<LongArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = LongArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
 interface SyncIntMemoryPointer: SyncMemoryPointer<IntArray>{
     fun read(
         length: Int = this.length,
@@ -113,16 +103,6 @@ interface AsyncFloatMemoryPointer: AsyncMemoryPointer<FloatArray>{
         dstOffset: Int = 0,
         srcOffset: Int = 0
     ) = FloatArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface AsyncLongMemoryPointer: AsyncMemoryPointer<LongArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = LongArray(length).apply {
         read(this, length, 0, 0)
     }
 }

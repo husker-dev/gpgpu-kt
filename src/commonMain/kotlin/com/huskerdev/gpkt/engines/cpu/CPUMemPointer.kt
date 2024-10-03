@@ -59,14 +59,6 @@ class CPUSyncDoubleMemoryPointer(
     { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
 ), SyncDoubleMemoryPointer
 
-class CPUSyncLongMemoryPointer(
-    override var array: LongArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Sync<LongArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
-), SyncLongMemoryPointer
-
 class CPUSyncIntMemoryPointer(
     override var array: IntArray?,
     override val usage: MemoryUsage
@@ -102,14 +94,6 @@ class CPUAsyncDoubleMemoryPointer(
     array!!.size,
     { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
 ), AsyncDoubleMemoryPointer
-
-class CPUAsyncLongMemoryPointer(
-    override var array: LongArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Async<LongArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
-), AsyncLongMemoryPointer
 
 class CPUAsyncIntMemoryPointer(
     override var array: IntArray?,

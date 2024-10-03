@@ -112,14 +112,12 @@ class WebGPUProgram(
     override fun toCType(type: Type) = when(type){
         Type.VOID -> throw UnsupportedOperationException()
         Type.FLOAT -> "f32"
-        Type.DOUBLE -> "f32"
-        Type.LONG -> TODO()
+        Type.DOUBLE -> TODO()
         Type.INT -> "i32"
         Type.BYTE -> TODO()
         Type.BOOLEAN -> "bool"
         Type.FLOAT_ARRAY -> "array<f32>"
-        Type.DOUBLE_ARRAY -> "array<f32>"
-        Type.LONG_ARRAY -> TODO()
+        Type.DOUBLE_ARRAY -> TODO()
         Type.INT_ARRAY -> "array<i32>"
         Type.BYTE_ARRAY -> TODO()
         Type.BOOLEAN_ARRAY -> "array<bool>"

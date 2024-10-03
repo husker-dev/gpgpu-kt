@@ -16,7 +16,6 @@ open class ExValue(
         type == Type.FLOAT && value !is Float -> ExValue((value as Number).toFloat())
         type == Type.INT && value !is Double -> ExValue((value as Number).toInt())
         type == Type.DOUBLE && value !is Float -> ExValue((value as Number).toDouble())
-        type == Type.LONG && value !is Float -> ExValue((value as Number).toLong())
         type == Type.BYTE && value !is Float -> ExValue((value as Number).toByte())
         else -> this
     }

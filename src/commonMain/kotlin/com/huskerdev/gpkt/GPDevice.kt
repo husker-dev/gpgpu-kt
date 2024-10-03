@@ -50,9 +50,6 @@ abstract class GPSyncDevice(
     abstract fun allocDouble(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncDoubleMemoryPointer
     abstract fun allocDouble(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncDoubleMemoryPointer
 
-    abstract fun allocLong(array: LongArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncLongMemoryPointer
-    abstract fun allocLong(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncLongMemoryPointer
-
     abstract fun allocInt(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
     abstract fun allocInt(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
 
@@ -80,9 +77,6 @@ abstract class GPAsyncDevice(type: GPType): GPDeviceBase(type) {
 
     abstract fun allocDouble(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncDoubleMemoryPointer
     abstract fun allocDouble(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncDoubleMemoryPointer
-
-    abstract fun allocLong(array: LongArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncLongMemoryPointer
-    abstract fun allocLong(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncLongMemoryPointer
 
     abstract fun allocInt(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer
     abstract fun allocInt(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer

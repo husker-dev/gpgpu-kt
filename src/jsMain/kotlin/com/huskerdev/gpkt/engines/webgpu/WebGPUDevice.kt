@@ -34,14 +34,6 @@ class WebGPUAsyncDevice(
         TODO("Not yet implemented")
     }
 
-    override fun allocLong(array: LongArray, usage: MemoryUsage): AsyncLongMemoryPointer {
-        TODO("Not yet implemented")
-    }
-
-    override fun allocLong(length: Int, usage: MemoryUsage): AsyncLongMemoryPointer {
-        TODO("Not yet implemented")
-    }
-
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
         WebGPUIntMemoryPointer(webgpu, array.size, usage, webgpu.alloc(array.toArrayBuffer()))
 

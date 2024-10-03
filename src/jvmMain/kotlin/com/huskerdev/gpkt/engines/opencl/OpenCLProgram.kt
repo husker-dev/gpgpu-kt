@@ -9,17 +9,14 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
-import org.jocl.Pointer
-import org.jocl.Sizeof
-import org.jocl.cl_kernel
-import org.jocl.cl_program
+import com.huskerdev.gpkt.utils.useStack
 
 class OpenCLProgram(
     private val cl: OpenCL,
     ast: ScopeStatement
 ): SimpleCProgram(ast) {
-    private val program: cl_program
-    private val kernel: cl_kernel
+    private val program: Long
+    private val kernel: Long
 
     init {
         val buffer = StringBuilder()
@@ -29,7 +26,7 @@ class OpenCLProgram(
         kernel = cl.createKernel(program, "__m")
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = useStack {
         val map = hashMapOf(*mapping)
 
         buffers.forEachIndexed { i, field ->
@@ -37,28 +34,26 @@ class OpenCLProgram(
             if(!areEqualTypes(value, field.type))
                 throw TypesMismatchException(field.name)
 
-            if(value !is OpenCLMemoryPointer<*>) {
-                val (size, ptr) = when(value){
-                    is Float -> Sizeof.cl_float.toLong() to Pointer.to(floatArrayOf(value))
-                    is Double -> Sizeof.cl_double.toLong() to Pointer.to(doubleArrayOf(value))
-                    is Long -> Sizeof.cl_long.toLong() to Pointer.to(longArrayOf(value))
-                    is Int -> Sizeof.cl_int.toLong() to Pointer.to(intArrayOf(value))
-                    is Byte -> Sizeof.cl_char.toLong() to Pointer.to(byteArrayOf(value))
+            if(value !is OpenCLMemoryPointer<*>){
+                val buffer = when(value){
+                    is Float -> floats(value)
+                    is Double -> doubles(value)
+                    is Int -> ints(value)
+                    is Byte -> bytes(value)
                     else -> throw UnsupportedOperationException()
                 }
-                cl.setArgument(kernel, i, size, ptr)
+                cl.setArgument(kernel, i, buffer)
             }else
-                cl.setArgument(kernel, i, value.ptr)
+                cl.setArgument(kernel, i, value.size, value.ptr)
         }
-        // Set index offset variable
-        cl.setArgument(kernel, buffers.size, Sizeof.cl_int.toLong(), Pointer.to(intArrayOf(indexOffset)))
-
+        cl.setArgument(kernel, buffers.size, ints(indexOffset)) // Index offset variable
         cl.executeKernel(kernel, instances.toLong())
+        Unit
     }
 
     override fun dealloc() {
-        cl.dealloc(program)
-        cl.dealloc(kernel)
+        cl.deallocProgram(program)
+        cl.deallocKernel(kernel)
     }
 
     override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {

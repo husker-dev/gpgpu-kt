@@ -2,15 +2,11 @@ package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
-import org.jocl.CL.*
-import org.jocl.Pointer
-import org.jocl.Sizeof
+import java.nio.ByteBuffer
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 
-private fun MemoryUsage.toCL() = when(this){
-    MemoryUsage.READ_ONLY -> CL_MEM_READ_ONLY
-    MemoryUsage.WRITE_ONLY -> CL_MEM_WRITE_ONLY
-    MemoryUsage.READ_WRITE -> CL_MEM_READ_WRITE
-}
 
 class OpenCLSyncDevice(
     requestedDeviceId: Int
@@ -22,44 +18,28 @@ class OpenCLSyncDevice(
     override val isGPU = true
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CLSyncFloatMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_float, usage.toCL()))
+        CLSyncFloatMemoryPointer(cl, array.size, usage, cl.allocate(FloatBuffer.wrap(array), usage))
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CLSyncFloatMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_float * length, usage.toCL()))
+        CLSyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CLSyncDoubleMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_double, usage.toCL()))
+        CLSyncDoubleMemoryPointer(cl, array.size, usage, cl.allocate(DoubleBuffer.wrap(array), usage))
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CLSyncDoubleMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_double * length, usage.toCL()))
-
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CLSyncLongMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_long, usage.toCL()))
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CLSyncLongMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_long * length, usage.toCL()))
+        CLSyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CLSyncIntMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_int, usage.toCL()))
+        CLSyncIntMemoryPointer(cl, array.size, usage, cl.allocate(IntBuffer.wrap(array), usage))
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CLSyncIntMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_int * length, usage.toCL()))
+        CLSyncIntMemoryPointer(cl, length, usage, cl.allocate(Int.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CLSyncByteMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_char, usage.toCL()))
+        CLSyncByteMemoryPointer(cl, array.size, usage, cl.allocate(ByteBuffer.wrap(array), usage))
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CLSyncByteMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_char * length, usage.toCL()))
+        CLSyncByteMemoryPointer(cl, length, usage, cl.allocate(length.toLong(), usage))
 
     override fun compile(ast: ScopeStatement) =
         OpenCLProgram(cl, ast)
@@ -75,44 +55,28 @@ class OpenCLAsyncDevice(
     override val isGPU = true
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CLAsyncFloatMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_float, usage.toCL()))
+        CLAsyncFloatMemoryPointer(cl, array.size, usage, cl.allocate(FloatBuffer.wrap(array), usage))
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CLAsyncFloatMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_float * length, usage.toCL()))
+        CLAsyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CLAsyncDoubleMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_double, usage.toCL()))
+        CLAsyncDoubleMemoryPointer(cl, array.size, usage, cl.allocate(DoubleBuffer.wrap(array), usage))
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CLAsyncDoubleMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_double * length, usage.toCL()))
-
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CLAsyncLongMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_long, usage.toCL()))
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CLAsyncLongMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_long * length, usage.toCL()))
+        CLAsyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CLAsyncIntMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_int, usage.toCL()))
+        CLAsyncIntMemoryPointer(cl, array.size, usage, cl.allocate(IntBuffer.wrap(array), usage))
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CLAsyncIntMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_int * length, usage.toCL()))
+        CLAsyncIntMemoryPointer(cl, length, usage, cl.allocate(Int.SIZE_BYTES.toLong() * length, usage))
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CLAsyncByteMemoryPointer(cl, array.size, usage,
-            cl.allocate(Pointer.to(array), array.size.toLong() * Sizeof.cl_char, usage.toCL()))
+        CLAsyncByteMemoryPointer(cl, array.size, usage, cl.allocate(ByteBuffer.wrap(array), usage))
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CLAsyncByteMemoryPointer(cl, length, usage,
-            cl.allocate(Sizeof.cl_char * length, usage.toCL()))
+        CLAsyncByteMemoryPointer(cl, length, usage, cl.allocate(length.toLong(), usage))
 
     override fun compile(ast: ScopeStatement) =
         OpenCLProgram(cl, ast)

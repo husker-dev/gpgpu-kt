@@ -22,12 +22,6 @@ abstract class CPUSyncDeviceBase(type: GPType): GPSyncDevice(type) {
     override fun allocDouble(length: Int, usage: MemoryUsage) =
         CPUSyncDoubleMemoryPointer(DoubleArray(length), usage)
 
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CPUSyncLongMemoryPointer(array.copyOf(), usage)
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CPUSyncLongMemoryPointer(LongArray(length), usage)
-
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
         CPUSyncIntMemoryPointer(array.copyOf(), usage)
 
@@ -58,12 +52,6 @@ abstract class CPUAsyncDeviceBase(type: GPType): GPAsyncDevice(type) {
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
         CPUAsyncDoubleMemoryPointer(DoubleArray(length), usage)
-
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CPUAsyncLongMemoryPointer(array.copyOf(), usage)
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CPUAsyncLongMemoryPointer(LongArray(length), usage)
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
         CPUAsyncIntMemoryPointer(array.copyOf(), usage)

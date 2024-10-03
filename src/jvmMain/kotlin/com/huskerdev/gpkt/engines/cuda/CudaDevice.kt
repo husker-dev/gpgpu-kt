@@ -2,8 +2,10 @@ package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
-import jcuda.Pointer
-import jcuda.Sizeof
+import java.nio.ByteBuffer
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 
 class CudaSyncDevice(
     requestedDeviceId: Int
@@ -15,44 +17,28 @@ class CudaSyncDevice(
     override val isGPU = true
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CudaSyncFloatMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT))
+        CudaSyncFloatMemoryPointer(cuda, array.size, usage, cuda.alloc(FloatBuffer.wrap(array)))
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CudaSyncFloatMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.FLOAT))
+        CudaSyncFloatMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Float.SIZE_BYTES))
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CudaSyncDoubleMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE))
+        CudaSyncDoubleMemoryPointer(cuda, array.size, usage, cuda.alloc(DoubleBuffer.wrap(array)))
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CudaSyncDoubleMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.DOUBLE))
-
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CudaSyncLongMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG))
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CudaSyncLongMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.LONG))
+        CudaSyncDoubleMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Double.SIZE_BYTES))
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CudaSyncIntMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT))
+        CudaSyncIntMemoryPointer(cuda, array.size, usage, cuda.alloc(IntBuffer.wrap(array)))
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CudaSyncIntMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.INT))
+        CudaSyncIntMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Int.SIZE_BYTES))
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CudaSyncByteMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE))
+        CudaSyncByteMemoryPointer(cuda, array.size, usage, cuda.alloc(ByteBuffer.wrap(array)))
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CudaSyncByteMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.BYTE))
+        CudaSyncByteMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Byte.SIZE_BYTES))
 
     override fun compile(ast: ScopeStatement) =
         CudaProgram(cuda, ast)
@@ -68,44 +54,28 @@ class CudaAsyncDevice(
     override val isGPU = true
 
     override fun allocFloat(array: FloatArray, usage: MemoryUsage) =
-        CudaAsyncFloatMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.FLOAT))
+        CudaAsyncFloatMemoryPointer(cuda, array.size, usage, cuda.alloc(FloatBuffer.wrap(array)))
 
     override fun allocFloat(length: Int, usage: MemoryUsage) =
-        CudaAsyncFloatMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.FLOAT))
+        CudaAsyncFloatMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Float.SIZE_BYTES))
 
     override fun allocDouble(array: DoubleArray, usage: MemoryUsage) =
-        CudaAsyncDoubleMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.DOUBLE))
+        CudaAsyncDoubleMemoryPointer(cuda, array.size, usage, cuda.alloc(DoubleBuffer.wrap(array)))
 
     override fun allocDouble(length: Int, usage: MemoryUsage) =
-        CudaAsyncDoubleMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.DOUBLE))
-
-    override fun allocLong(array: LongArray, usage: MemoryUsage) =
-        CudaAsyncLongMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.LONG))
-
-    override fun allocLong(length: Int, usage: MemoryUsage) =
-        CudaAsyncLongMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.LONG))
+        CudaAsyncDoubleMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Double.SIZE_BYTES))
 
     override fun allocInt(array: IntArray, usage: MemoryUsage) =
-        CudaAsyncIntMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.INT))
+        CudaAsyncIntMemoryPointer(cuda, array.size, usage, cuda.alloc(IntBuffer.wrap(array)))
 
     override fun allocInt(length: Int, usage: MemoryUsage) =
-        CudaAsyncIntMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.INT))
+        CudaAsyncIntMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Int.SIZE_BYTES))
 
     override fun allocByte(array: ByteArray, usage: MemoryUsage) =
-        CudaAsyncByteMemoryPointer(cuda, array.size, usage,
-            cuda.alloc(Pointer.to(array), array.size.toLong() * Sizeof.BYTE))
+        CudaAsyncByteMemoryPointer(cuda, array.size, usage, cuda.alloc(ByteBuffer.wrap(array)))
 
     override fun allocByte(length: Int, usage: MemoryUsage) =
-        CudaAsyncByteMemoryPointer(cuda, length, usage,
-            cuda.alloc(length.toLong() * Sizeof.BYTE))
+        CudaAsyncByteMemoryPointer(cuda, length, usage, cuda.alloc(length.toLong() * Byte.SIZE_BYTES))
 
     override fun compile(ast: ScopeStatement) =
         CudaProgram(cuda, ast)

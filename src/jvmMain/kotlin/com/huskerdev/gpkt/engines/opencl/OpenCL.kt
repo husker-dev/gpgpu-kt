@@ -1,7 +1,14 @@
 package com.huskerdev.gpkt.engines.opencl
 
-import org.jocl.*
-import org.jocl.CL.*
+import com.huskerdev.gpkt.MemoryUsage
+import com.huskerdev.gpkt.utils.*
+import org.lwjgl.opencl.CL10.*
+import org.lwjgl.opencl.CL20.clCreateCommandQueueWithProperties
+import java.nio.Buffer
+import java.nio.ByteBuffer
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -10,142 +17,141 @@ class OpenCL(
     requestedDeviceId: Int
 ) {
     companion object {
-        const val DEVICE_TYPE = CL_DEVICE_TYPE_ALL
+        const val DEVICE_TYPE = CL_DEVICE_TYPE_ALL.toLong()
 
         val supported = try{
-            // Obtain the number of platforms
-            val numPlatformsArray = IntArray(1)
-            clGetPlatformIDs(0, null, numPlatformsArray)
-            val numPlatforms = numPlatformsArray[0]
+            useStack {
+                val platform = mallocPointer(1)
+                clGetPlatformIDs(platform, null as IntBuffer?)
 
-            // Obtain a platform ID
-            val platforms = arrayOfNulls<cl_platform_id>(numPlatforms)
-            clGetPlatformIDs(platforms.size, platforms, null)
-            val platform = platforms[0]
+                val numDevices = mallocInt(1)
+                clGetDeviceIDs(platform[0], DEVICE_TYPE, null, numDevices)
 
-            // Initialize the context properties
-            val contextProperties = cl_context_properties()
-            contextProperties.addProperty(CL_CONTEXT_PLATFORM.toLong(), platform)
-
-            // Obtain the number of devices for the platform
-            val numDevicesArray = IntArray(1)
-            clGetDeviceIDs(platform, DEVICE_TYPE, 0, null, numDevicesArray)
-            val numDevices = numDevicesArray[0]
-
-            numDevices > 0
+                numDevices[0] > 0
+            }
         }catch (e: Exception){
+            e.printStackTrace()
             false
         }
     }
 
-    val deviceId: Int
-    private val device: cl_device_id
-    private val context: cl_context
-    private val commandQueue: cl_command_queue
-    val deviceName: String
+    var deviceId: Int = 0
+    private var device: Long = 0
+    private var context: Long = 0
+    private var commandQueue: Long = 0
+    lateinit var deviceName: String
 
     init {
-        // Enable exceptions and subsequently omit error checks in this sample
-        setExceptionsEnabled(true)
+        useStack {
+            val platform = mallocPointer(1)
+            clGetPlatformIDs(platform, null as IntBuffer?)
 
-        // Obtain the number of platforms
-        val numPlatformsArray = IntArray(1)
-        clGetPlatformIDs(0, null, numPlatformsArray)
-        val numPlatforms = numPlatformsArray[0]
+            val numDevices = mallocInt(1)
+            clGetDeviceIDs(platform[0], DEVICE_TYPE, null, numDevices)
 
-        // Obtain a platform ID
-        val platforms = arrayOfNulls<cl_platform_id>(numPlatforms)
-        clGetPlatformIDs(platforms.size, platforms, null)
-        val platform = platforms[0]
+            val devices = mallocPointer(numDevices[0])
+            clGetDeviceIDs(platform[0], DEVICE_TYPE, devices, null as IntBuffer?)
 
-        // Initialize the context properties
-        val contextProperties = cl_context_properties()
-        contextProperties.addProperty(CL_CONTEXT_PLATFORM.toLong(), platform)
+            deviceId = max(0, min(requestedDeviceId, numDevices[0]))
+            device = devices[deviceId]
 
-        // Obtain the number of devices for the platform
-        val numDevicesArray = IntArray(1)
-        clGetDeviceIDs(platform, DEVICE_TYPE, 0, null, numDevicesArray)
-        val numDevices = numDevicesArray[0]
+            val nameLength = mallocPointer(1)
+            clGetDeviceInfo(device, CL_DEVICE_NAME, null as ByteBuffer?, nameLength)
 
-        deviceId = max(0, min(requestedDeviceId, numDevices))
+            val nameBytes = malloc(nameLength[0].toInt())
+            clGetDeviceInfo(device, CL_DEVICE_NAME, nameBytes, null)
+            deviceName = nameBytes.readArray().decodeToString(endIndex = nameLength[0].toInt() - 1)
 
-        // Obtain a device ID
-        val devices = arrayOfNulls<cl_device_id>(numDevices)
-        clGetDeviceIDs(platform, DEVICE_TYPE, numDevices, devices, null)
-        device = devices[deviceId]!!
+            val contextProperties = mallocPointer(3)
+            contextProperties.put(0, CL_CONTEXT_PLATFORM.toLong())
+            contextProperties.put(1, platform[0])
+            contextProperties.put(2, 0)
 
-        val buffer = LongArray(1)
-        clGetDeviceInfo(device, CL_DEVICE_NAME, 0, null, buffer)
-        val nameBuffer = ByteArray(buffer[0].toInt())
-        clGetDeviceInfo(device, CL_DEVICE_NAME, buffer[0], Pointer.to(nameBuffer), null)
-        deviceName = String(nameBuffer, 0, nameBuffer.size-1)
-
-        // Create a context for the selected device
-        context = clCreateContext(
-            contextProperties, 1, arrayOf(device),
-            null, null, null
-        )
-        commandQueue = clCreateCommandQueueWithProperties(context, device, null, null)
+            context = clCreateContext(
+                contextProperties, device,
+                null, 0, null
+            )
+            commandQueue = clCreateCommandQueueWithProperties(
+                context, device,
+                null, null as IntBuffer?)
+        }
     }
 
-    fun allocate(pointer: Pointer, size: Long, flags: Long): cl_mem = clCreateBuffer(
-        context, flags or CL_MEM_COPY_HOST_PTR,
-        size, pointer, null
-    )
+    private fun MemoryUsage.toCL(with: Int = 0) = when(this){
+        MemoryUsage.READ_ONLY -> CL_MEM_READ_ONLY
+        MemoryUsage.WRITE_ONLY -> CL_MEM_WRITE_ONLY
+        MemoryUsage.READ_WRITE -> CL_MEM_READ_WRITE
+    }.toLong() or with.toLong()
 
-    fun allocate(size: Int, flags: Long): cl_mem = clCreateBuffer(
-        context, flags,
-        size.toLong(), null, null
-    )
+    fun allocate(pointer: Buffer, usage: MemoryUsage) = when(pointer){
+        is IntBuffer -> clCreateBuffer(context, usage.toCL(CL_MEM_COPY_HOST_PTR), pointer, null as IntBuffer?)
+        is DoubleBuffer -> clCreateBuffer(context, usage.toCL(CL_MEM_COPY_HOST_PTR), pointer, null as IntBuffer?)
+        is FloatBuffer -> clCreateBuffer(context, usage.toCL(CL_MEM_COPY_HOST_PTR), pointer, null as IntBuffer?)
+        is ByteBuffer -> clCreateBuffer(context, usage.toCL(CL_MEM_COPY_HOST_PTR), pointer, null as IntBuffer?)
+        else -> throw UnsupportedOperationException()
+    }
 
-    fun dealloc(mem: cl_mem) {
+    fun allocate(size: Long, usage: MemoryUsage) =
+        nclCreateBuffer(
+            context, usage.toCL(),
+            size, 0, 0
+        )
+
+    fun deallocMemory(mem: Long) {
         clReleaseMemObject(mem)
     }
 
-    fun dealloc(program: cl_program) {
+    fun deallocProgram(program: Long) {
         clReleaseProgram(program)
     }
 
-    fun dealloc(kernel: cl_kernel) {
+    fun deallocKernel(kernel: Long) {
         clReleaseKernel(kernel)
     }
 
-    fun read(src: cl_mem, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(srcOffset)
-        clEnqueueReadBuffer(
-            commandQueue, src, CL_TRUE, srcOffset,
-            size, shiftedDst,
-            0, null, null
-        )
+    fun read(src: Long, dst: Buffer, srcOffset: Long) = when(dst) {
+        is IntBuffer ->
+            clEnqueueReadBuffer(commandQueue, src, true, srcOffset, dst, null, null)
+        is FloatBuffer ->
+            clEnqueueReadBuffer(commandQueue, src, true, srcOffset, dst, null, null)
+        is DoubleBuffer ->
+            clEnqueueReadBuffer(commandQueue, src, true, srcOffset, dst, null, null)
+        is ByteBuffer ->
+            clEnqueueReadBuffer(commandQueue, src, true, srcOffset, dst, null, null)
+        else -> throw UnsupportedOperationException()
     }
 
-    fun write(dst: cl_mem, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
-        clEnqueueWriteBuffer(
-            commandQueue, dst, CL_TRUE, dstOffset,
-            size, shiftedSrc,
-            0, null, null
-        )
+    fun write(dst: Long, src: Buffer, dstOffset: Long) = when(src){
+        is IntBuffer ->
+            clEnqueueWriteBuffer(commandQueue, dst, true, dstOffset, src, null, null)
+        is FloatBuffer ->
+            clEnqueueWriteBuffer(commandQueue, dst, true, dstOffset, src, null, null)
+        is DoubleBuffer ->
+            clEnqueueWriteBuffer(commandQueue, dst, true, dstOffset, src, null, null)
+        is ByteBuffer ->
+            clEnqueueWriteBuffer(commandQueue, dst, true, dstOffset, src, null, null)
+        else -> throw UnsupportedOperationException()
     }
 
-    fun compileProgram(code: String): cl_program{
-        val error = IntArray(1)
-        val program = clCreateProgramWithSource(context, 1, arrayOf(code), null, error)
+    fun compileProgram(code: String): Long = useStack {
+        val error = mallocInt(1)
+        println(code)
+        val program = /*clCreateProgramWithSource(context, code, error)*/
+        clCreateProgramWithSource(context, pointers(bytes(*code.toByteArray(), 0)), pointers(code.length.toLong() + 1), error)
+
         if(error[0] != 0)
             println("[ERROR] Failed to compile OpenCL program (error code: ${error[0]})")
-        clBuildProgram(program, 0, null, null, null, null)
+        clBuildProgram(program, 0, "", null, 0)
         return program
     }
 
-    fun createKernel(clProgram: cl_program, main: String): cl_kernel =
-        clCreateKernel(clProgram, main, null)
+    fun createKernel(clProgram: Long, main: String): Long =
+        clCreateKernel(clProgram, main, null as IntBuffer?)
 
-    fun executeKernel(kernel: cl_kernel, workGroupSize: Long) {
-        val buffer = LongArray(1)
-        clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, 0, null, buffer)
-        val maxWorkGroupBuffer = LongArray(buffer[0].toInt())
-        clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, buffer[0], Pointer.to(maxWorkGroupBuffer), null)
-        val maxGroupSize = maxWorkGroupBuffer[0]
+    fun executeKernel(kernel: Long, workGroupSize: Long) = useStack {
+        val maxGroupSizeBuffer = mallocInt(1)
+        clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, maxGroupSizeBuffer, null)
+        val maxGroupSize = maxGroupSizeBuffer[0]
 
         val count: Long
         val groups: Long
@@ -154,20 +160,25 @@ class OpenCL(
             groups = 1
         }else {
             count = ceil(workGroupSize.toDouble() / maxGroupSize).toLong() * maxGroupSize
-            groups = maxGroupSize
+            groups = maxGroupSize.toLong()
         }
 
-        clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
-            longArrayOf(count),
-            longArrayOf(groups),
-            0, null, null)
+        clEnqueueNDRangeKernel(commandQueue, kernel, 1,
+            null,
+            mallocPointer(1).put(count),
+            mallocPointer(1).put(groups),
+            null, null)
     }
 
-    fun setArgument(kernel: cl_kernel, index: Int, memory: cl_mem){
-        clSetKernelArg(kernel, index, Sizeof.cl_mem.toLong(), Pointer.to(memory))
+    fun setArgument(kernel: Long, index: Int, size: Long, memory: Long) = useStack {
+        nclSetKernelArg(kernel, index, size, memory)
     }
 
-    fun setArgument(kernel: cl_kernel, index: Int, size: Long, pointer: Pointer){
-        clSetKernelArg(kernel, index, size, pointer)
+    fun setArgument(kernel: Long, index: Int, buffer: Buffer) = when(buffer) {
+        is IntBuffer -> clSetKernelArg(kernel, index, buffer)
+        is FloatBuffer -> clSetKernelArg(kernel, index, buffer)
+        is DoubleBuffer -> clSetKernelArg(kernel, index, buffer)
+        is ByteBuffer -> clSetKernelArg(kernel, index, buffer)
+        else -> throw UnsupportedOperationException()
     }
 }

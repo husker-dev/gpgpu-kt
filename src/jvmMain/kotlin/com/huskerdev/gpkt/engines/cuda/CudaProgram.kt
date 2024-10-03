@@ -9,17 +9,15 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
-import jcuda.Pointer
-import jcuda.driver.CUfunction
-import jcuda.driver.CUmodule
+import com.huskerdev.gpkt.utils.useStack
 
 
 class CudaProgram(
     private val cuda: Cuda,
     ast: ScopeStatement
 ): SimpleCProgram(ast) {
-    private val module: CUmodule
-    private val function: CUfunction
+    private val module: Long
+    private val function: Long
 
     init {
         val buffer = StringBuilder()
@@ -31,27 +29,30 @@ class CudaProgram(
         function = cuda.getFunctionPointer(module, "__m")
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
+    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = useStack {
         val map = hashMapOf(*mapping)
 
-        val instancesVal = Pointer.to(intArrayOf(instances))
-        val offsetVal = Pointer.to(intArrayOf(indexOffset))
-        val arrays = buffers.map { field ->
+        val values = mallocPointer(mapping.size + 2)
+        values.put(0, ints(instances))
+        values.put(1, ints(indexOffset))
+
+        buffers.forEachIndexed { i, field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
             if(!areEqualTypes(value, field.type))
                 throw TypesMismatchException(field.name)
 
+            val o = i+2
             when(value){
-                is Float -> Pointer.to(floatArrayOf(value))
-                is Double -> Pointer.to(doubleArrayOf(value))
-                is Long -> Pointer.to(longArrayOf(value))
-                is Int -> Pointer.to(intArrayOf(value))
-                is Byte -> Pointer.to(byteArrayOf(value))
-                is CudaMemoryPointer<*> -> Pointer.to(value.ptr)
+                is Float -> values.put(o, floats(value))
+                is Double -> values.put(o, doubles(value))
+                is Int -> values.put(o, ints(value))
+                is Byte -> values.put(o, bytes(value))
+                is CudaMemoryPointer<*> -> values.put(o, value.ptr)
                 else -> throw UnsupportedOperationException()
             }
-        }.toTypedArray()
-        cuda.launch(function, instances, instancesVal, offsetVal, *arrays)
+        }
+        cuda.launch(function, instances, values)
+        Unit
     }
 
     override fun dealloc() = Unit

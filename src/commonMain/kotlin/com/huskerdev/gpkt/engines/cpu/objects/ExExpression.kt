@@ -26,7 +26,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> left.set(leftValue + rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> left.set(leftValue + rightValue.toInt())
                 leftValue is Double && rightValue is Number -> left.set(leftValue + rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> left.set(leftValue + rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> left.set(leftValue + rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -34,7 +33,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> left.set(leftValue - rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> left.set(leftValue - rightValue.toInt())
                 leftValue is Double && rightValue is Number -> left.set(leftValue - rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> left.set(leftValue - rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> left.set(leftValue - rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -42,7 +40,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> left.set(leftValue * rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> left.set(leftValue * rightValue.toInt())
                 leftValue is Double && rightValue is Number -> left.set(leftValue * rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> left.set(leftValue * rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> left.set(leftValue * rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -50,7 +47,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> left.set(leftValue / rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> left.set(leftValue / rightValue.toInt())
                 leftValue is Double && rightValue is Number -> left.set(leftValue / rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> left.set(leftValue / rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> left.set(leftValue / rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -58,7 +54,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> left.set(leftValue % rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> left.set(leftValue % rightValue.toInt())
                 leftValue is Double && rightValue is Number -> left.set(leftValue % rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> left.set(leftValue % rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> left.set(leftValue % rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -68,27 +63,22 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
             // ==============
             BITWISE_AND_ASSIGN -> when {
                 leftValue is Int && rightValue is Number -> left.set(leftValue and rightValue.toInt())
-                leftValue is Long && rightValue is Number -> left.set(leftValue and rightValue.toLong())
                 else -> throw BadOperator(operator)
             }
             BITWISE_OR_ASSIGN -> when {
                 leftValue is Int && rightValue is Number -> left.set(leftValue or rightValue.toInt())
-                leftValue is Long && rightValue is Number -> left.set(leftValue or rightValue.toLong())
                 else -> throw BadOperator(operator)
             }
             BITWISE_XOR_ASSIGN -> when {
                 leftValue is Int && rightValue is Number -> left.set(leftValue xor rightValue.toInt())
-                leftValue is Long && rightValue is Number -> left.set(leftValue xor rightValue.toLong())
                 else -> throw BadOperator(operator)
             }
             BITWISE_SHIFT_RIGHT_ASSIGN -> when {
                 leftValue is Int && rightValue is Number -> left.set(leftValue shr rightValue.toInt())
-                leftValue is Long && rightValue is Number -> left.set(leftValue shr rightValue.toInt())
                 else -> throw BadOperator(operator)
             }
             BITWISE_SHIFT_LEFT_ASSIGN -> when {
                 leftValue is Int && rightValue is Number -> left.set(leftValue shl rightValue.toInt())
-                leftValue is Long && rightValue is Number -> left.set(leftValue shl rightValue.toInt())
                 else -> throw BadOperator(operator)
             }
 
@@ -99,7 +89,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue + rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue + rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue + rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue + rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue + rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -107,7 +96,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue - rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue - rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue - rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue - rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue - rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -115,7 +103,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue * rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue * rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue * rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue * rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue * rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -123,7 +110,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue / rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue / rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue / rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue / rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue / rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -131,7 +117,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue % rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue % rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue % rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue % rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue % rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -141,27 +126,22 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
             // ==============
             BITWISE_AND -> when {
                 leftValue is Int && rightValue is Int -> ExValue(leftValue and rightValue)
-                leftValue is Long && rightValue is Long -> ExValue(leftValue and rightValue)
                 else -> throw BadOperator(operator)
             }
             BITWISE_OR -> when {
                 leftValue is Int && rightValue is Int -> ExValue(leftValue or rightValue)
-                leftValue is Long && rightValue is Long -> ExValue(leftValue or rightValue)
                 else -> throw BadOperator(operator)
             }
             BITWISE_XOR -> when {
                 leftValue is Int && rightValue is Int -> ExValue(leftValue xor rightValue)
-                leftValue is Long && rightValue is Long -> ExValue(leftValue xor rightValue)
                 else -> throw BadOperator(operator)
             }
             BITWISE_SHIFT_RIGHT -> when {
                 leftValue is Int && rightValue is Number -> ExValue(leftValue shr rightValue.toInt())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue shr rightValue.toInt())
                 else -> throw BadOperator(operator)
             }
             BITWISE_SHIFT_LEFT -> when {
                 leftValue is Int && rightValue is Number -> ExValue(leftValue shl rightValue.toInt())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue shl rightValue.toInt())
                 else -> throw BadOperator(operator)
             }
 
@@ -186,7 +166,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue < rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue < rightValue.toFloat())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue < rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue < rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue < rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -194,7 +173,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue > rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue > rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue > rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue > rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue > rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -202,7 +180,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue <= rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue <= rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue <= rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue <= rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue <= rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -210,7 +187,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 leftValue is Float && rightValue is Number -> ExValue(leftValue >= rightValue.toFloat())
                 leftValue is Int && rightValue is Number -> ExValue(leftValue >= rightValue.toInt())
                 leftValue is Double && rightValue is Number -> ExValue(leftValue >= rightValue.toDouble())
-                leftValue is Long && rightValue is Number -> ExValue(leftValue >= rightValue.toLong())
                 leftValue is Byte && rightValue is Number -> ExValue(leftValue >= rightValue.toByte())
                 else -> throw BadOperator(operator)
             }
@@ -229,7 +205,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 is Float -> left.set(leftValue + 1)
                 is Int -> left.set(leftValue + 1)
                 is Double -> left.set(leftValue + 1)
-                is Long -> left.set(leftValue + 1)
                 is Byte -> left.set(leftValue + 1)
                 else -> throw BadOperator(operator)
             }
@@ -237,7 +212,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 is Float -> left.set(leftValue - 1)
                 is Int -> left.set(leftValue - 1)
                 is Double -> left.set(leftValue - 1)
-                is Long -> left.set(leftValue - 1)
                 is Byte -> left.set(leftValue - 1)
                 else -> throw BadOperator(operator)
             }
@@ -260,13 +234,11 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 is Float -> ExValue(-rightValue)
                 is Int -> ExValue(-rightValue)
                 is Double -> ExValue(-rightValue)
-                is Long -> ExValue(-rightValue)
                 is Byte -> ExValue(-rightValue)
                 else -> throw BadOperator(operator)
             }
             BITWISE_NOT -> when (rightValue) {
                 is Int -> ExValue(rightValue.inv())
-                is Long -> ExValue(rightValue.inv())
                 else -> throw BadOperator(operator)
             }
             LOGICAL_NOT -> when (rightValue) {
@@ -283,7 +255,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 Type.FLOAT -> text.toFloat()
                 Type.INT -> text.toInt()
                 Type.DOUBLE -> text.toDouble()
-                Type.LONG -> text.toLong()
                 Type.BYTE -> text.toByte()
                 Type.BOOLEAN -> text == "true"
                 else -> throw UnsupportedOperationException("Can't parse value '${text}'")

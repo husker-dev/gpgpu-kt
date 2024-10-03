@@ -1,13 +1,15 @@
 package com.huskerdev.gpkt.engines.cuda
 
-import jcuda.CudaException
-import jcuda.Pointer
-import jcuda.driver.*
-import jcuda.driver.CUdevice_attribute.CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X
-import jcuda.driver.JCudaDriver.*
-import jcuda.nvrtc.JNvrtc
-import jcuda.nvrtc.JNvrtc.*
-import jcuda.nvrtc.nvrtcProgram
+
+import com.huskerdev.gpkt.utils.*
+import org.lwjgl.PointerBuffer
+import org.lwjgl.cuda.CU.*
+import org.lwjgl.cuda.NVRTC.*
+import java.nio.Buffer
+import java.nio.ByteBuffer
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,115 +19,130 @@ class Cuda(
 ) {
     companion object {
         val supported = try {
-            JNvrtc.setExceptionsEnabled(true)
-
-            cuInit(0)
-            val buffer = IntArray(1)
-            cuDeviceGetCount(buffer)
-            if(buffer[0] == 0){
-                println("[INFO] CUDA is supported, but can't find supported devices.")
-                false
-            }else true
-        }catch (e: UnsatisfiedLinkError){
+            useStack {
+                cuInit(0)
+                val deviceCount = mallocInt(1)
+                cuDeviceGetCount(deviceCount)
+                if (deviceCount[0] == 0) {
+                    println("[INFO] CUDA is supported, but could not find supported devices.")
+                    false
+                } else true
+            }
+        }catch (e: Exception){
             println("[INFO] Failed to load CUDA. Check toolkit installation.")
             false
         }
     }
 
-    val deviceId: Int
-    private val device = CUdevice()
-    private val context = CUcontext()
+    var deviceId: Int = 0
+    private var device: Int = 0
+    private var context: Long = 0
 
-    val deviceName: String
-    private val maxBlockDimX: Int
-
-    private fun createString(bytes: ByteArray): String {
-        val sb = StringBuilder()
-        for (i in bytes.indices) {
-            val c = Char(bytes[i].toUShort())
-            if (c.code == 0)
-                break
-            sb.append(c)
-        }
-        return sb.toString()
-    }
+    lateinit var deviceName: String
+    private var maxBlockDimX: Int = 0
 
     init {
-        val buffer = IntArray(1)
-        cuDeviceGetCount(buffer)
+        useStack {
+            val deviceCount = mallocInt(1)
+            cuDeviceGetCount(deviceCount)
 
-        deviceId = max(0, min(requestedDeviceId, buffer[0] - 1))
-        cuDeviceGet(device, deviceId)
-        cuCtxCreate(context, 0, device)
+            deviceId = max(0, min(requestedDeviceId, deviceCount[0] - 1))
 
-        val nameBuffer = ByteArray(1024)
-        cuDeviceGetName(nameBuffer, nameBuffer.size, device)
-        deviceName = createString(nameBuffer)
+            val deviceBuffer = mallocInt(1)
+            cuDeviceGet(deviceBuffer, deviceId)
+            device = deviceBuffer[0]
 
-        cuDeviceGetAttribute(buffer, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, device)
-        maxBlockDimX = buffer[0]
+            val contextBuffer = mallocPointer(1)
+            cuCtxCreate(contextBuffer, 0, device)
+            context = contextBuffer[0]
+
+            val nameBuffer = malloc(1024)
+            cuDeviceGetName(nameBuffer, device)
+            val name = nameBuffer.readArray()
+            deviceName = name.decodeToString(endIndex = name.indexOfFirst { it.toInt() == 0 })
+
+            val maxBlockDimBuffer = mallocInt(1)
+            cuDeviceGetAttribute(maxBlockDimBuffer, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, device)
+            maxBlockDimX = maxBlockDimBuffer[0]
+        }
     }
 
-    fun alloc(pointer: Pointer, size: Long) = CUdeviceptr().apply {
-        cuMemAlloc(this, size)
-        cuMemcpyHtoD(this, pointer, size)
+    fun alloc(buffer: Buffer) = useStack {
+        val mem = mallocPointer(1)
+        cuMemAlloc(mem, buffer.capacity().toLong())
+        write(mem[0], buffer, 0)
+        mem[0]
     }
 
-    fun alloc(size: Long) = CUdeviceptr().apply {
-        cuMemAlloc(this, size)
+    fun alloc(size: Long) = useStack {
+        val mem = mallocPointer(1)
+        cuMemAlloc(mem, size)
+        mem[0]
     }
 
-    fun dealloc(ptr: CUdeviceptr) {
+    fun dealloc(ptr: Long) {
         cuMemFree(ptr)
     }
 
-    fun read(src: CUdeviceptr, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
-        cuMemcpyDtoH(shiftedDst, shiftedSrc, size)
+    fun read(src: Long, dst: Buffer, srcOffset: Int) = when(dst) {
+        is IntBuffer -> cuMemcpyDtoH(dst, src + srcOffset)
+        is DoubleBuffer -> cuMemcpyDtoH(dst, src + srcOffset)
+        is FloatBuffer -> cuMemcpyDtoH(dst, src + srcOffset)
+        is ByteBuffer -> cuMemcpyDtoH(dst, src + srcOffset)
+        else -> throw UnsupportedOperationException()
     }
 
-    fun write(dst: CUdeviceptr, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
-        cuMemcpyHtoD(shiftedDst, shiftedSrc, size)
+    fun write(dst: Long, src: Buffer, dstOffset: Int) = when(src) {
+        is IntBuffer -> cuMemcpyHtoD(dst + dstOffset, src)
+        is DoubleBuffer -> cuMemcpyHtoD(dst + dstOffset, src)
+        is FloatBuffer -> cuMemcpyHtoD(dst + dstOffset, src)
+        is ByteBuffer -> cuMemcpyHtoD(dst + dstOffset, src)
+        else -> throw UnsupportedOperationException()
     }
 
-    fun compileToModule(src: String): CUmodule{
-        val program = nvrtcProgram()
-        try {
-            nvrtcCreateProgram(program, src, null, 0, null, null)
-            nvrtcCompileProgram(program, 0, null)
-        }catch (e: CudaException){
-            val logBuffer = arrayOfNulls<String>(1)
-            nvrtcGetProgramLog(program, logBuffer)
-            throw Exception("Failed to compile CUDA program: \n${logBuffer[0]}")
+    fun compileToModule(src: String): Long = useStack {
+        val program = mallocPointer(1)
+        nvrtcCreateProgram(program, src, null, null, null)
+        val status = nvrtcCompileProgram(program[0], null)
+
+        if(status != 0){
+            val logSize = mallocPointer(1)
+            nvrtcGetProgramLogSize(program[0], logSize)
+
+            val logBuffer = malloc(logSize[0].toInt())
+            nvrtcGetProgramLog(program[0], logBuffer)
+            throw Exception("Failed to compile CUDA program: \n${logBuffer.readArray().decodeToString()}")
         }
 
-        val ptx = arrayOfNulls<String>(1)
-        nvrtcGetPTX(program, ptx)
+        val ptxSize = mallocPointer(1)
+        nvrtcGetPTXSize(program[0], ptxSize)
+
+        val ptx = malloc(ptxSize[0].toInt())
+        nvrtcGetPTX(program[0], ptx)
+
         nvrtcDestroyProgram(program)
 
-        val module = CUmodule()
-        cuModuleLoadData(module, ptx[0])
-        return module
+        val module = mallocPointer(1)
+        cuModuleLoadData(module, ptx)
+
+        return module[0]
     }
 
-    fun getFunctionPointer(module: CUmodule, name: String): CUfunction{
-        val function = CUfunction()
+    fun getFunctionPointer(module: Long, name: String) = useStack {
+        val function = mallocPointer(1)
         cuModuleGetFunction(function, module, name)
-        return function
+        function[0]
     }
 
-    fun launch(function: CUfunction, count: Int, vararg pointers: Pointer){
+    fun launch(function: Long, count: Int, values: PointerBuffer) = useStack {
         val blockSizeX = min(maxBlockDimX, count)
         val gridSizeX = (count + blockSizeX - 1) / blockSizeX
 
         cuLaunchKernel(function,
             gridSizeX, 1, 1,
             blockSizeX, 1, 1,
-            0, null,
-            Pointer.to(*pointers), null
+            0, 0,
+            values, null
         )
     }
 }
