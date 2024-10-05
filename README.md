@@ -2,13 +2,13 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available executions:
-|         | OpenCL             | CUDA               | Vulkan | Metal | WebGPU    | JS                 | javac              | Interpreter        |
-|---------|--------------------|--------------------|--------|-------|-----------|--------------------|--------------------|--------------------|
-| jvm     | :white_check_mark: | :white_check_mark: |   :x:  |  :x:  |           |                    | :white_check_mark: | :white_check_mark: |
-| js      |                    |                    |        |       |:warning:* | :white_check_mark: |                    | :white_check_mark: |
-| wasm    |                    |                    |        |       |    :x:    |         :x:        |                    | :white_check_mark: |
-| ios     |                    |                    |        |  :x:  |           |                    |                    | :white_check_mark: |
-| android |         :x:        |                    |   :x:  |       |           |                    |                    | :white_check_mark: |
+|         | OpenCL             | CUDA               | Vulkan | Metal | WebGPU    | JS                 | OpenGL    | javac              | Interpreter        |
+|---------|--------------------|--------------------|--------|-------|-----------|--------------------|-----------|--------------------|--------------------|
+| jvm     | :white_check_mark: | :white_check_mark: |   :x:  |  :x:  |           |                    | :warning: | :white_check_mark: | :white_check_mark: |
+| js      |                    |                    |        |       |:warning:* | :white_check_mark: |           |                    | :white_check_mark: |
+| wasm    |                    |                    |        |       |    :x:    |         :x:        |           |                    | :white_check_mark: |
+| ios     |                    |                    |        |  :x:  |           |                    |           |                    | :white_check_mark: |
+| android |         :x:        |                    |   :x:  |       |           |                    | :x:       |                    | :white_check_mark: |
 
 - :white_check_mark: - Fully implemented
 - :warning: - Partially working
