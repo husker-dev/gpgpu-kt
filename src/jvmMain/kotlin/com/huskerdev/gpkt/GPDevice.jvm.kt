@@ -9,6 +9,8 @@ import com.huskerdev.gpkt.engines.jdk.JavacSyncDevice
 import com.huskerdev.gpkt.engines.opencl.OpenCLSyncDevice
 import com.huskerdev.gpkt.engines.opencl.OpenCL
 import com.huskerdev.gpkt.engines.opencl.OpenCLAsyncDevice
+import com.huskerdev.gpkt.engines.opengl.OpenGLAsyncDevice
+import com.huskerdev.gpkt.engines.opengl.OpenGLSyncDevice
 
 internal actual val defaultExpectedTypes: Array<GPType> =
     System.getenv().getOrDefault("gp.order", "cuda,opencl,javac,interpreter")
@@ -27,6 +29,7 @@ internal actual fun createSupportedSyncInstance(
         it == GPType.Javac && ClassCompiler.supported -> return JavacSyncDevice()
         it == GPType.OpenCL && OpenCL.supported -> return OpenCLSyncDevice(requestedDeviceId)
         it == GPType.CUDA && Cuda.supported -> return CudaSyncDevice(requestedDeviceId)
+        it == GPType.OpenGL -> return OpenGLSyncDevice()
         else -> null
     }
 }
@@ -39,6 +42,7 @@ internal actual suspend fun createSupportedAsyncInstance(
         it == GPType.Javac && ClassCompiler.supported -> return JavacAsyncDevice()
         it == GPType.OpenCL && OpenCL.supported -> return OpenCLAsyncDevice(requestedDeviceId)
         it == GPType.CUDA && Cuda.supported -> return CudaAsyncDevice(requestedDeviceId)
+        it == GPType.OpenGL -> return OpenGLAsyncDevice()
         else -> null
     }
 }

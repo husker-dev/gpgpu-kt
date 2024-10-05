@@ -19,51 +19,43 @@ internal expect suspend fun createSupportedAsyncInstance(
 ): GPAsyncDevice?
 
 
-abstract class GPDeviceBase(
+interface GPDeviceBase{
     val type: GPType
-){
-    abstract val id: Int
-    abstract val name: String
-    abstract val isGPU: Boolean
+    val id: Int
+    val name: String
+    val isGPU: Boolean
 
-    val modules = GPModules(this)
+    val modules: GPModules
+
+    fun compile(ast: ScopeStatement): Program
+    fun compile(code: String) =
+        compile(GPAst.parse(code, this))
 }
 
-
-abstract class GPSyncDevice(
-    type: GPType
-): GPDeviceBase(type) {
+interface GPSyncDevice: GPDeviceBase {
     companion object {
         fun create(
             requestedDeviceId: Int = defaultExpectedDeviceId,
             vararg requestedType: GPType = defaultExpectedTypes,
         ) = createSupportedSyncInstance(requestedDeviceId, requestedType) ?:
-        if(GPType.Interpreter in requestedType) CPUSyncDevice() else null
+            if(GPType.Interpreter in requestedType) CPUSyncDevice() else null
     }
 
-    fun compile(code: String) =
-        compile(GPAst.parse(code, this))
+    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
+    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
 
-    abstract fun allocFloat(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncFloatMemoryPointer
-    abstract fun allocFloat(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncFloatMemoryPointer
+    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<DoubleArray>
+    fun allocDoubles(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<DoubleArray>
 
-    abstract fun allocDouble(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncDoubleMemoryPointer
-    abstract fun allocDouble(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncDoubleMemoryPointer
+    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
+    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
 
-    abstract fun allocLong(array: LongArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncLongMemoryPointer
-    abstract fun allocLong(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncLongMemoryPointer
-
-    abstract fun allocInt(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
-    abstract fun allocInt(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
-
-    abstract fun allocByte(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncByteMemoryPointer
-    abstract fun allocByte(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncByteMemoryPointer
-
-    abstract fun compile(ast: ScopeStatement): Program
+    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<ByteArray>
+    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<ByteArray>
 }
 
 
-abstract class GPAsyncDevice(type: GPType): GPDeviceBase(type) {
+interface GPAsyncDevice: GPDeviceBase {
     companion object {
         suspend fun create(
             requestedDeviceId: Int = defaultExpectedDeviceId,
@@ -72,23 +64,15 @@ abstract class GPAsyncDevice(type: GPType): GPDeviceBase(type) {
             if(GPType.Interpreter in requestedType) CPUAsyncDevice() else null
     }
 
-    fun compile(code: String) =
-        compile(GPAst.parse(code, this))
+    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
+    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
 
-    abstract fun allocFloat(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncFloatMemoryPointer
-    abstract fun allocFloat(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncFloatMemoryPointer
+    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<DoubleArray>
+    fun allocDoubles(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<DoubleArray>
 
-    abstract fun allocDouble(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncDoubleMemoryPointer
-    abstract fun allocDouble(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncDoubleMemoryPointer
+    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>
+    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>
 
-    abstract fun allocLong(array: LongArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncLongMemoryPointer
-    abstract fun allocLong(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncLongMemoryPointer
-
-    abstract fun allocInt(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer
-    abstract fun allocInt(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer
-
-    abstract fun allocByte(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncByteMemoryPointer
-    abstract fun allocByte(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncByteMemoryPointer
-
-    abstract fun compile(ast: ScopeStatement): Program
+    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<ByteArray>
+    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<ByteArray>
 }

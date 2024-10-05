@@ -15,14 +15,12 @@ enum class Type(
 
     FLOAT("float", 4, FLAG_NUMBER or FLAG_FLOATING_POINT),
     DOUBLE("double", 8, FLAG_NUMBER or FLAG_FLOATING_POINT),
-    LONG("long", 8, FLAG_NUMBER or FLAG_INTEGER),
     INT("int", 4, FLAG_NUMBER or FLAG_INTEGER),
     BYTE("byte", 1, FLAG_NUMBER or FLAG_INTEGER),
     BOOLEAN("boolean", 1, FLAG_LOGICAL),
 
     FLOAT_ARRAY("float[]", -1, FLAG_ARRAY),
     DOUBLE_ARRAY("double[]", -1, FLAG_ARRAY),
-    LONG_ARRAY("long[]", -1, FLAG_ARRAY),
     INT_ARRAY("int[]", -1, FLAG_ARRAY),
     BYTE_ARRAY("byte[]", -1, FLAG_ARRAY),
     BOOLEAN_ARRAY("boolean[]", -1, FLAG_ARRAY)
@@ -40,7 +38,6 @@ enum class Type(
         val allowedCastMap = mapOf(
             FLOAT to setOf(DOUBLE, FLOAT, INT, BYTE),
             DOUBLE to setOf(DOUBLE, FLOAT, INT, BYTE),
-            LONG to setOf(DOUBLE, FLOAT, INT, BYTE),
             INT to setOf(DOUBLE, FLOAT, INT, BYTE),
             BYTE to setOf(DOUBLE, FLOAT, INT, BYTE),
         )
@@ -48,7 +45,6 @@ enum class Type(
         fun toArrayType(type: Type) = when(type){
             FLOAT -> FLOAT_ARRAY
             DOUBLE -> DOUBLE_ARRAY
-            LONG -> LONG_ARRAY
             INT -> INT_ARRAY
             BYTE -> BYTE_ARRAY
             BOOLEAN -> BOOLEAN_ARRAY
@@ -58,7 +54,6 @@ enum class Type(
         fun toSingleType(type: Type) = when(type){
             DOUBLE_ARRAY -> DOUBLE
             FLOAT_ARRAY -> FLOAT
-            LONG_ARRAY -> LONG
             INT_ARRAY -> INT
             BYTE_ARRAY -> BYTE
             BOOLEAN_ARRAY -> BOOLEAN

@@ -55,7 +55,8 @@ fun processLexemes(block: String): List<Lexeme> {
                     (char == 'l' && i == lowerText.lastIndex)
                 )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
             }
-            return Lexeme.Type.LONG to text.replace("_", "").substring(0, text.lastIndex)
+            throw compilationError("Long is not supported :(", lineIndex, startIndex, block)
+            //return Lexeme.Type.LONG to text.replace("_", "").substring(0, text.lastIndex)
         }
 
         // Check for Float

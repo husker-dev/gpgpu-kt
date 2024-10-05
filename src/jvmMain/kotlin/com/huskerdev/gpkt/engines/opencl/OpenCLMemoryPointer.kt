@@ -1,55 +1,36 @@
 package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.*
-import org.jocl.Pointer
-import org.jocl.Sizeof
 import org.jocl.cl_mem
 
+private typealias CLReader<T> = (mem: cl_mem, length: Int, offset: Int) -> T
+private typealias CLWriter<T> = (mem: cl_mem, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit
 
-abstract class OpenCLMemoryPointer<T>(
-    private val typeSize: Int,
-    private val wrapper: (T) -> Pointer
-): MemoryPointer<T> {
+abstract class OpenCLMemoryPointer<T>: MemoryPointer<T> {
     abstract val cl: OpenCL
-    abstract val ptr: cl_mem
+    abstract val mem: cl_mem
 
     override fun dealloc() =
-        cl.dealloc(ptr)
-
-    protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
-        cl.write(ptr, wrapper(src),
-            size = length.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize
-        )
-    }
-
-    protected fun readImpl(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
-        cl.read(ptr, wrapper(dst),
-            size = length.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize
-        )
-    }
+        cl.deallocMemory(mem)
 
     abstract class Sync<T>(
-        typeSize: Int,
-        wrapper: (T) -> Pointer
-    ): OpenCLMemoryPointer<T>(typeSize, wrapper), SyncMemoryPointer<T>{
-        override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        private val reader: CLReader<T>,
+        private val writer: CLWriter<T>,
+    ): OpenCLMemoryPointer<T>(), SyncMemoryPointer<T>{
+        override fun read(length: Int, offset: Int) =
+            reader(mem, length, offset)
         override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
-            writeImpl(src, length, srcOffset, dstOffset)
+            writer(mem, src, length, srcOffset, dstOffset)
     }
 
     abstract class Async<T>(
-        typeSize: Int,
-        wrapper: (T) -> Pointer
-    ): OpenCLMemoryPointer<T>(typeSize, wrapper), AsyncMemoryPointer<T>{
-        override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        private val reader: CLReader<T>,
+        private val writer: CLWriter<T>,
+    ): OpenCLMemoryPointer<T>(), AsyncMemoryPointer<T>{
+        override suspend fun read(length: Int, offset: Int) =
+            reader(mem, length, offset)
         override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
-            writeImpl(src, length, srcOffset, dstOffset)
+            writer(mem, src, length, srcOffset, dstOffset)
     }
 }
 
@@ -61,45 +42,36 @@ class CLSyncFloatMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Sync<FloatArray>(
-    Sizeof.cl_float, Pointer::to
+    cl::readFloats, cl::writeFloats
 ), SyncFloatMemoryPointer
 
 class CLSyncDoubleMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Sync<DoubleArray>(
-    Sizeof.cl_double, Pointer::to
+    cl::readDoubles, cl::writeDoubles
 ), SyncDoubleMemoryPointer
-
-class CLSyncLongMemoryPointer(
-    override val cl: OpenCL,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: cl_mem
-): OpenCLMemoryPointer.Sync<LongArray>(
-    Sizeof.cl_long, Pointer::to
-), SyncLongMemoryPointer
 
 class CLSyncIntMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Sync<IntArray>(
-    Sizeof.cl_int, Pointer::to
+    cl::readInts, cl::writeInts
 ), SyncIntMemoryPointer
 
 class CLSyncByteMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Sync<ByteArray>(
-    Sizeof.cl_char, Pointer::to
+    cl::readBytes, cl::writeBytes
 ), SyncByteMemoryPointer
 
 // ===================
@@ -110,43 +82,34 @@ class CLAsyncFloatMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Async<FloatArray>(
-    Sizeof.cl_float, Pointer::to
+    cl::readFloats, cl::writeFloats
 ), AsyncFloatMemoryPointer
 
 class CLAsyncDoubleMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Async<DoubleArray>(
-    Sizeof.cl_double, Pointer::to
+    cl::readDoubles, cl::writeDoubles
 ), AsyncDoubleMemoryPointer
-
-class CLAsyncLongMemoryPointer(
-    override val cl: OpenCL,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: cl_mem
-): OpenCLMemoryPointer.Async<LongArray>(
-    Sizeof.cl_long, Pointer::to
-), AsyncLongMemoryPointer
 
 class CLAsyncIntMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Async<IntArray>(
-    Sizeof.cl_int, Pointer::to
+    cl::readInts, cl::writeInts
 ), AsyncIntMemoryPointer
 
 class CLAsyncByteMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val ptr: cl_mem
+    override val mem: cl_mem
 ): OpenCLMemoryPointer.Async<ByteArray>(
-    Sizeof.cl_char, Pointer::to
+    cl::readBytes, cl::writeBytes
 ), AsyncByteMemoryPointer

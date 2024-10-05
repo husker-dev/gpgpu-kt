@@ -15,11 +15,9 @@ interface SyncMemoryPointer<T>: MemoryPointer<T> {
         dstOffset: Int = 0
     )
     fun read(
-        dst: T,
         length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    )
+        offset: Int = 0,
+    ): T
 }
 
 interface AsyncMemoryPointer<T>: MemoryPointer<T> {
@@ -30,11 +28,9 @@ interface AsyncMemoryPointer<T>: MemoryPointer<T> {
         dstOffset: Int = 0
     )
     suspend fun read(
-        dst: T,
         length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    )
+        offset: Int = 0,
+    ): T
 }
 
 enum class MemoryUsage {
@@ -43,106 +39,16 @@ enum class MemoryUsage {
     READ_WRITE
 }
 
-interface SyncDoubleMemoryPointer: SyncMemoryPointer<DoubleArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = DoubleArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface SyncFloatMemoryPointer: SyncMemoryPointer<FloatArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = FloatArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface SyncLongMemoryPointer: SyncMemoryPointer<LongArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = LongArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface SyncIntMemoryPointer: SyncMemoryPointer<IntArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = IntArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface SyncByteMemoryPointer: SyncMemoryPointer<ByteArray>{
-    fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = ByteArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
+interface SyncDoubleMemoryPointer: SyncMemoryPointer<DoubleArray>
+interface SyncFloatMemoryPointer: SyncMemoryPointer<FloatArray>
+interface SyncIntMemoryPointer: SyncMemoryPointer<IntArray>
+interface SyncByteMemoryPointer: SyncMemoryPointer<ByteArray>
 
 // ===================
 //       Async
 // ===================
 
-interface AsyncDoubleMemoryPointer: AsyncMemoryPointer<DoubleArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = DoubleArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface AsyncFloatMemoryPointer: AsyncMemoryPointer<FloatArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = FloatArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface AsyncLongMemoryPointer: AsyncMemoryPointer<LongArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = LongArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface AsyncIntMemoryPointer: AsyncMemoryPointer<IntArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = IntArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
-
-interface AsyncByteMemoryPointer: AsyncMemoryPointer<ByteArray>{
-    suspend fun read(
-        length: Int = this.length,
-        dstOffset: Int = 0,
-        srcOffset: Int = 0
-    ) = ByteArray(length).apply {
-        read(this, length, 0, 0)
-    }
-}
+interface AsyncDoubleMemoryPointer: AsyncMemoryPointer<DoubleArray>
+interface AsyncFloatMemoryPointer: AsyncMemoryPointer<FloatArray>
+interface AsyncIntMemoryPointer: AsyncMemoryPointer<IntArray>
+interface AsyncByteMemoryPointer: AsyncMemoryPointer<ByteArray>

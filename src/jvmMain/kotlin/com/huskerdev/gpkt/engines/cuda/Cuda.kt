@@ -66,29 +66,88 @@ class Cuda(
         maxBlockDimX = buffer[0]
     }
 
-    fun alloc(pointer: Pointer, size: Long) = CUdeviceptr().apply {
-        cuMemAlloc(this, size)
-        cuMemcpyHtoD(this, pointer, size)
-    }
-
-    fun alloc(size: Long) = CUdeviceptr().apply {
-        cuMemAlloc(this, size)
-    }
-
     fun dealloc(ptr: CUdeviceptr) {
         cuMemFree(ptr)
     }
 
-    fun read(src: CUdeviceptr, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
-        cuMemcpyDtoH(shiftedDst, shiftedSrc, size)
+    fun alloc(size: Int) = CUdeviceptr().apply {
+        cuMemAlloc(this, size.toLong())
     }
 
-    fun write(dst: CUdeviceptr, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(dstOffset)
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
-        cuMemcpyHtoD(shiftedDst, shiftedSrc, size)
+    fun wrapFloats(array: FloatArray) = CUdeviceptr().apply {
+        cuMemAlloc(this, array.size.toLong() * Float.SIZE_BYTES)
+        writeFloats(this, array, array.size, 0, 0)
+    }
+
+    fun wrapDoubles(array: DoubleArray) = CUdeviceptr().apply {
+        cuMemAlloc(this, array.size.toLong() * Double.SIZE_BYTES)
+        writeDoubles(this, array, array.size, 0, 0)
+    }
+
+    fun wrapInts(array: IntArray) = CUdeviceptr().apply {
+        cuMemAlloc(this, array.size.toLong() * Int.SIZE_BYTES)
+        writeInts(this, array, array.size, 0, 0)
+    }
+
+    fun wrapBytes(array: ByteArray) = CUdeviceptr().apply {
+        cuMemAlloc(this, array.size.toLong())
+        writeBytes(this, array, array.size, 0, 0)
+    }
+
+    fun readFloats(src: CUdeviceptr, length: Int, offset: Int) = FloatArray(length).apply {
+        cuMemcpyDtoH(
+            Pointer.to(this),
+            src.withByteOffset(offset.toLong()),
+            length.toLong() * Float.SIZE_BYTES)
+    }
+
+    fun readDoubles(src: CUdeviceptr, length: Int, offset: Int) = DoubleArray(length).apply {
+        cuMemcpyDtoH(
+            Pointer.to(this),
+            src.withByteOffset(offset.toLong()),
+            length.toLong() * Double.SIZE_BYTES)
+    }
+
+    fun readInts(src: CUdeviceptr, length: Int, offset: Int) = IntArray(length).apply {
+        cuMemcpyDtoH(
+            Pointer.to(this),
+            src.withByteOffset(offset.toLong()),
+            length.toLong() * Int.SIZE_BYTES)
+    }
+
+    fun readBytes(src: CUdeviceptr, length: Int, offset: Int) = ByteArray(length).apply {
+        cuMemcpyDtoH(
+            Pointer.to(this),
+            src.withByteOffset(offset.toLong()),
+            length.toLong())
+    }
+
+    fun writeFloats(dst: CUdeviceptr, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuMemcpyHtoD(
+            dst.withByteOffset(dstOffset.toLong()),
+            Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            length.toLong() * Float.SIZE_BYTES)
+    }
+
+    fun writeDoubles(dst: CUdeviceptr, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuMemcpyHtoD(
+            dst.withByteOffset(dstOffset.toLong()),
+            Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            length.toLong() * Double.SIZE_BYTES)
+    }
+
+    fun writeInts(dst: CUdeviceptr, src: IntArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuMemcpyHtoD(
+            dst.withByteOffset(dstOffset.toLong()),
+            Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            length.toLong() * Int.SIZE_BYTES)
+    }
+
+    fun writeBytes(dst: CUdeviceptr, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuMemcpyHtoD(
+            dst.withByteOffset(dstOffset.toLong()),
+            Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            length.toLong())
     }
 
     fun compileToModule(src: String): CUmodule{

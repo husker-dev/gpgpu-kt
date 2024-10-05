@@ -283,7 +283,6 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
                 Type.FLOAT -> text.toFloat()
                 Type.INT -> text.toInt()
                 Type.DOUBLE -> text.toDouble()
-                Type.LONG -> text.toLong()
                 Type.BYTE -> text.toByte()
                 Type.BOOLEAN -> text == "true"
                 else -> throw UnsupportedOperationException("Can't parse value '${text}'")

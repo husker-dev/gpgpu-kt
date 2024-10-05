@@ -4,12 +4,17 @@ import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.engines.cpu.*
 
-class JavacSyncDevice: CPUSyncDeviceBase(GPType.Javac) {
+
+class JavacSyncDevice: CPUSyncDevice() {
+    override val type = GPType.Javac
+
     override fun compile(ast: ScopeStatement) =
         JavacProgram(ast)
 }
 
-class JavacAsyncDevice: CPUAsyncDeviceBase(GPType.Javac) {
+class JavacAsyncDevice: CPUAsyncDevice() {
+    override val type = GPType.Javac
+
     override fun compile(ast: ScopeStatement) =
         JavacProgram(ast)
 }

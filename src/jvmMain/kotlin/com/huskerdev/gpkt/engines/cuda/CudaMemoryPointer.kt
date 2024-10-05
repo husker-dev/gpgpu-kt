@@ -1,54 +1,36 @@
 package com.huskerdev.gpkt.engines.cuda
 
 import com.huskerdev.gpkt.*
-import jcuda.Pointer
-import jcuda.Sizeof
 import jcuda.driver.CUdeviceptr
 
+private typealias CUDAReader<T> = (ptr: CUdeviceptr, length: Int, offset: Int) -> T
+private typealias CUDAWriter<T> = (ptr: CUdeviceptr, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit
 
-abstract class CudaMemoryPointer<T>(
-    private val typeSize: Int,
-    private val wrapper: (T) -> Pointer
-): MemoryPointer<T> {
+abstract class CudaMemoryPointer<T>: MemoryPointer<T> {
     abstract val cuda: Cuda
     abstract val ptr: CUdeviceptr
 
-    override fun dealloc() = cuda.dealloc(ptr)
-
-    protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
-        cuda.write(ptr, wrapper(src),
-            size = length.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize
-        )
-    }
-
-    protected fun readImpl(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
-        cuda.read(ptr, wrapper(dst),
-            size = length.toLong() * typeSize,
-            dstOffset = dstOffset.toLong() * typeSize,
-            srcOffset = srcOffset.toLong() * typeSize
-        )
-    }
+    override fun dealloc() =
+        cuda.dealloc(ptr)
 
     abstract class Sync<T>(
-        typeSize: Int,
-        wrapper: (T) -> Pointer
-    ): CudaMemoryPointer<T>(typeSize, wrapper), SyncMemoryPointer<T>{
-        override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        val reader: CUDAReader<T>,
+        val writer: CUDAWriter<T>,
+    ): CudaMemoryPointer<T>(), SyncMemoryPointer<T>{
+        override fun read(length: Int, offset: Int) =
+            reader(ptr, length, offset)
         override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
-            writeImpl(src, length, srcOffset, dstOffset)
+            writer(ptr, src, length, srcOffset, dstOffset)
     }
 
     abstract class Async<T>(
-        typeSize: Int,
-        wrapper: (T) -> Pointer
-    ): CudaMemoryPointer<T>(typeSize, wrapper), AsyncMemoryPointer<T>{
-        override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        val reader: CUDAReader<T>,
+        val writer: CUDAWriter<T>,
+    ): CudaMemoryPointer<T>(), AsyncMemoryPointer<T>{
+        override suspend fun read(length: Int, offset: Int) =
+            reader(ptr, length, offset)
         override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
-            writeImpl(src, length, srcOffset, dstOffset)
+            writer(ptr, src, length, srcOffset, dstOffset)
     }
 }
 
@@ -62,7 +44,7 @@ class CudaSyncFloatMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Sync<FloatArray>(
-    Sizeof.FLOAT, Pointer::to
+    cuda::readFloats, cuda::writeFloats
 ), SyncFloatMemoryPointer
 
 class CudaSyncDoubleMemoryPointer(
@@ -71,17 +53,8 @@ class CudaSyncDoubleMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Sync<DoubleArray>(
-    Sizeof.DOUBLE, Pointer::to
+    cuda::readDoubles, cuda::writeDoubles
 ), SyncDoubleMemoryPointer
-
-class CudaSyncLongMemoryPointer(
-    override val cuda: Cuda,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: CUdeviceptr
-): CudaMemoryPointer.Sync<LongArray>(
-    Sizeof.LONG, Pointer::to
-), SyncLongMemoryPointer
 
 class CudaSyncIntMemoryPointer(
     override val cuda: Cuda,
@@ -89,7 +62,7 @@ class CudaSyncIntMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Sync<IntArray>(
-    Sizeof.INT, Pointer::to
+    cuda::readInts, cuda::writeInts
 ), SyncIntMemoryPointer
 
 class CudaSyncByteMemoryPointer(
@@ -98,7 +71,7 @@ class CudaSyncByteMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Sync<ByteArray>(
-    Sizeof.BYTE, Pointer::to
+    cuda::readBytes, cuda::writeBytes
 ), SyncByteMemoryPointer
 
 
@@ -112,7 +85,7 @@ class CudaAsyncFloatMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Async<FloatArray>(
-    Sizeof.FLOAT, Pointer::to
+    cuda::readFloats, cuda::writeFloats
 ), AsyncFloatMemoryPointer
 
 class CudaAsyncDoubleMemoryPointer(
@@ -121,17 +94,8 @@ class CudaAsyncDoubleMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Async<DoubleArray>(
-    Sizeof.DOUBLE, Pointer::to
+    cuda::readDoubles, cuda::writeDoubles
 ), AsyncDoubleMemoryPointer
-
-class CudaAsyncLongMemoryPointer(
-    override val cuda: Cuda,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: CUdeviceptr
-): CudaMemoryPointer.Async<LongArray>(
-    Sizeof.LONG, Pointer::to
-), AsyncLongMemoryPointer
 
 class CudaAsyncIntMemoryPointer(
     override val cuda: Cuda,
@@ -139,7 +103,7 @@ class CudaAsyncIntMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Async<IntArray>(
-    Sizeof.INT, Pointer::to
+    cuda::readInts, cuda::writeInts
 ), AsyncIntMemoryPointer
 
 class CudaAsyncByteMemoryPointer(
@@ -148,5 +112,5 @@ class CudaAsyncByteMemoryPointer(
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr
 ): CudaMemoryPointer.Async<ByteArray>(
-    Sizeof.BYTE, Pointer::to
+    cuda::readBytes, cuda::writeBytes
 ), AsyncByteMemoryPointer

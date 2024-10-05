@@ -2,9 +2,13 @@ package com.huskerdev.gpkt.engines.cpu
 
 import com.huskerdev.gpkt.*
 
+private typealias MemoryCopier<T> = (src: T, dst: T, dstOffset: Int, startIndex: Int, endIndex: Int) -> Unit
+private typealias MemoryAllocator<T> = (length: Int) -> T
+
 abstract class CPUMemoryPointer<T>(
     override val length: Int,
-    val copyInto: (src: T, dst: T, dstOffset: Int, startIndex: Int, endIndex: Int) -> Unit
+    val copyInto: MemoryCopier<T>,
+    val allocator: MemoryAllocator<T>
 ): MemoryPointer<T>{
     abstract var array: T?
 
@@ -15,27 +19,32 @@ abstract class CPUMemoryPointer<T>(
     protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
         copyInto(src, array!!, dstOffset, srcOffset, srcOffset + length)
 
-    protected fun readImpl(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-        copyInto(array!!, dst, dstOffset, srcOffset, srcOffset + length)
+    protected fun readImpl(length: Int, offset: Int) = allocator(length).apply {
+        copyInto(array!!, this, 0, offset, offset + length)
+    }
 
     abstract class Sync<T>(
         length: Int,
-        copyInto: (src: T, dst: T, dstOffset: Int, startIndex: Int, endIndex: Int) -> Unit
-    ): CPUMemoryPointer<T>(length, copyInto), SyncMemoryPointer<T>{
-        override fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        copyInto: MemoryCopier<T>,
+        allocator: MemoryAllocator<T>
+    ): CPUMemoryPointer<T>(length, copyInto, allocator), SyncMemoryPointer<T>{
         override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
             writeImpl(src, length, srcOffset, dstOffset)
+
+        override fun read(length: Int, offset: Int) =
+            readImpl(length, offset)
     }
 
     abstract class Async<T>(
         length: Int,
-        copyInto: (src: T, dst: T, dstOffset: Int, startIndex: Int, endIndex: Int) -> Unit
-    ): CPUMemoryPointer<T>(length, copyInto), AsyncMemoryPointer<T>{
-        override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) =
-            readImpl(dst, length, dstOffset, srcOffset)
+        copyInto: MemoryCopier<T>,
+        allocator: MemoryAllocator<T>
+    ): CPUMemoryPointer<T>(length, copyInto, allocator), AsyncMemoryPointer<T>{
         override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
             writeImpl(src, length, srcOffset, dstOffset)
+
+        override suspend fun read(length: Int, offset: Int) =
+            readImpl(length, offset)
     }
 }
 
@@ -48,7 +57,8 @@ class CPUSyncFloatMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Sync<FloatArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::FloatArray
 ), SyncFloatMemoryPointer
 
 class CPUSyncDoubleMemoryPointer(
@@ -56,23 +66,17 @@ class CPUSyncDoubleMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Sync<DoubleArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::DoubleArray
 ), SyncDoubleMemoryPointer
-
-class CPUSyncLongMemoryPointer(
-    override var array: LongArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Sync<LongArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
-), SyncLongMemoryPointer
 
 class CPUSyncIntMemoryPointer(
     override var array: IntArray?,
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Sync<IntArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::IntArray
 ), SyncIntMemoryPointer
 
 class CPUSyncByteMemoryPointer(
@@ -80,7 +84,8 @@ class CPUSyncByteMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Sync<ByteArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::ByteArray
 ), SyncByteMemoryPointer
 
 // ===================
@@ -92,7 +97,8 @@ class CPUAsyncFloatMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Async<FloatArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::FloatArray
 ), AsyncFloatMemoryPointer
 
 class CPUAsyncDoubleMemoryPointer(
@@ -100,23 +106,17 @@ class CPUAsyncDoubleMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Async<DoubleArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::DoubleArray
 ), AsyncDoubleMemoryPointer
-
-class CPUAsyncLongMemoryPointer(
-    override var array: LongArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Async<LongArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
-), AsyncLongMemoryPointer
 
 class CPUAsyncIntMemoryPointer(
     override var array: IntArray?,
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Async<IntArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::IntArray
 ), AsyncIntMemoryPointer
 
 class CPUAsyncByteMemoryPointer(
@@ -124,5 +124,6 @@ class CPUAsyncByteMemoryPointer(
     override val usage: MemoryUsage
 ): CPUMemoryPointer.Async<ByteArray>(
     array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) }
+    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
+    ::ByteArray
 ), AsyncByteMemoryPointer

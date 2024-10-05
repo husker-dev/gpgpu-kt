@@ -1,5 +1,6 @@
 package com.huskerdev.gpkt.engines.opencl
 
+import com.huskerdev.gpkt.MemoryUsage
 import org.jocl.*
 import org.jocl.CL.*
 import kotlin.math.ceil
@@ -88,42 +89,111 @@ class OpenCL(
         commandQueue = clCreateCommandQueueWithProperties(context, device, null, null)
     }
 
-    fun allocate(pointer: Pointer, size: Long, flags: Long): cl_mem = clCreateBuffer(
-        context, flags or CL_MEM_COPY_HOST_PTR,
-        size, pointer, null
-    )
+    private fun MemoryUsage.toCL(with: Long = 0) = when(this){
+        MemoryUsage.READ_ONLY -> CL_MEM_READ_ONLY
+        MemoryUsage.WRITE_ONLY -> CL_MEM_WRITE_ONLY
+        MemoryUsage.READ_WRITE -> CL_MEM_READ_WRITE
+    } or with
 
-    fun allocate(size: Int, flags: Long): cl_mem = clCreateBuffer(
-        context, flags,
-        size.toLong(), null, null
-    )
-
-    fun dealloc(mem: cl_mem) {
+    fun deallocMemory(mem: cl_mem) {
         clReleaseMemObject(mem)
     }
 
-    fun dealloc(program: cl_program) {
+    fun deallocProgram(program: cl_program) {
         clReleaseProgram(program)
     }
 
-    fun dealloc(kernel: cl_kernel) {
+    fun deallocKernel(kernel: cl_kernel) {
         clReleaseKernel(kernel)
     }
 
-    fun read(src: cl_mem, dst: Pointer, size: Long, dstOffset: Long, srcOffset: Long) {
-        val shiftedDst = if(dstOffset == 0L) dst else dst.withByteOffset(srcOffset)
+    fun allocate(size: Int, usage: MemoryUsage): cl_mem = clCreateBuffer(
+        context, usage.toCL(),
+        size.toLong(), null, null
+    )
+
+    fun wrapFloats(array: FloatArray, usage: MemoryUsage) = clCreateBuffer(
+        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+        array.size.toLong() * Float.SIZE_BYTES, Pointer.to(array), null
+    )
+
+    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) = clCreateBuffer(
+        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+        array.size.toLong() * Double.SIZE_BYTES, Pointer.to(array), null
+    )
+
+    fun wrapInts(array: IntArray, usage: MemoryUsage) = clCreateBuffer(
+        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+        array.size.toLong() * Int.SIZE_BYTES, Pointer.to(array), null
+    )
+
+    fun wrapBytes(array: ByteArray, usage: MemoryUsage) = clCreateBuffer(
+        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+        array.size.toLong(), Pointer.to(array), null
+    )
+
+
+    fun readFloats(src: cl_mem, length: Int, offset: Int) = FloatArray(length).apply {
         clEnqueueReadBuffer(
-            commandQueue, src, CL_TRUE, srcOffset,
-            size, shiftedDst,
+            commandQueue, src, CL_TRUE, offset.toLong(),
+            length.toLong() * Float.SIZE_BYTES, Pointer.to(this),
             0, null, null
         )
     }
 
-    fun write(dst: cl_mem, src: Pointer, size: Long, srcOffset: Long, dstOffset: Long) {
-        val shiftedSrc = if(srcOffset == 0L) src else src.withByteOffset(srcOffset)
+    fun readDoubles(src: cl_mem, length: Int, offset: Int) = DoubleArray(length).apply {
+        clEnqueueReadBuffer(
+            commandQueue, src, CL_TRUE, offset.toLong(),
+            length.toLong() * Double.SIZE_BYTES, Pointer.to(this),
+            0, null, null
+        )
+    }
+
+    fun readInts(src: cl_mem, length: Int, offset: Int) = IntArray(length).apply {
+        clEnqueueReadBuffer(
+            commandQueue, src, CL_TRUE, offset.toLong(),
+            length.toLong() * Int.SIZE_BYTES, Pointer.to(this),
+            0, null, null
+        )
+    }
+
+    fun readBytes(src: cl_mem, length: Int, offset: Int) = ByteArray(length).apply {
+        clEnqueueReadBuffer(
+            commandQueue, src, CL_TRUE, offset.toLong(),
+            length.toLong(), Pointer.to(this),
+            0, null, null
+        )
+    }
+
+
+    fun writeFloats(dst: cl_mem, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int){
         clEnqueueWriteBuffer(
-            commandQueue, dst, CL_TRUE, dstOffset,
-            size, shiftedSrc,
+            commandQueue, dst, CL_TRUE, dstOffset.toLong(),
+            length.toLong() * Float.SIZE_BYTES, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            0, null, null
+        )
+    }
+
+    fun writeDoubles(dst: cl_mem, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int){
+        clEnqueueWriteBuffer(
+            commandQueue, dst, CL_TRUE, dstOffset.toLong(),
+            length.toLong() * Double.SIZE_BYTES, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            0, null, null
+        )
+    }
+
+    fun writeInts(dst: cl_mem, src: IntArray, length: Int, srcOffset: Int, dstOffset: Int){
+        clEnqueueWriteBuffer(
+            commandQueue, dst, CL_TRUE, dstOffset.toLong(),
+            length.toLong() * Int.SIZE_BYTES, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+            0, null, null
+        )
+    }
+
+    fun writeBytes(dst: cl_mem, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int){
+        clEnqueueWriteBuffer(
+            commandQueue, dst, CL_TRUE, dstOffset.toLong(),
+            length.toLong() * Byte.SIZE_BYTES, Pointer.to(src).withByteOffset(srcOffset.toLong()),
             0, null, null
         )
     }

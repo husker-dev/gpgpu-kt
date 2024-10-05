@@ -45,8 +45,8 @@ fun test() = Promise<Boolean> { _, _ ->
             val device = GPAsyncDevice.create()!!
             println("Device created: ${device.name}")
 
-            val result = device.allocFloat(FloatArray(20))
-            val data = device.allocFloat(FloatArray(20){ it.toFloat() })
+            val result = device.wrapFloats(FloatArray(20))
+            val data = device.wrapFloats(FloatArray(20){ it.toFloat() })
 
             val program = device.compile("""
                 extern readonly float[] data;

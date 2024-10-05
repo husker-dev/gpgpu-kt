@@ -49,8 +49,8 @@ fun main() {
         exitProcess(0)
     }
 
-    val arr1 = device.allocFloat(exampleArray())
-    val result = device.allocFloat(arr1.length)
+    val arr1 = device.wrapFloats(exampleArray())
+    val result = device.allocFloats(arr1.length)
     program.execute(
         instances = result.length,
         "data" to arr1,

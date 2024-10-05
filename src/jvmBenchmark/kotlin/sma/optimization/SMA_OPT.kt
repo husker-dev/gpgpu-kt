@@ -15,9 +15,9 @@ const val maxShift = 200
 class GP(
     device: GPSyncDevice
 ) {
-    private var data = device.allocFloat(FloatArray(candles) { Math.random().toFloat() * 10000 })
-    private var sma = device.allocFloat(candles * (maxPeriod - minPeriod) * (maxShift - minShift))
-    private var result = device.allocFloat(sma.length)
+    private var data = device.wrapFloats(FloatArray(candles) { Math.random().toFloat() * 10000 })
+    private var sma = device.allocFloats(candles * (maxPeriod - minPeriod) * (maxShift - minShift))
+    private var result = device.allocFloats(sma.length)
 
     private var progSMA = device.compile("""
         extern float[] candlesData;

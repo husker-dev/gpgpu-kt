@@ -184,7 +184,6 @@ fun findExpressionStart(from: Int, lexemes: List<Lexeme>, codeBlock: String): In
 fun createConstExpression(index: Int, lexeme: Lexeme, codeBlock: String) = when (lexeme.type) {
     Lexeme.Type.DOUBLE  -> ConstExpression(lexeme, Type.DOUBLE, index, 1)
     Lexeme.Type.FLOAT   -> ConstExpression(lexeme, Type.FLOAT, index, 1)
-    Lexeme.Type.LONG    -> ConstExpression(lexeme, Type.LONG, index, 1)
     Lexeme.Type.INT     -> ConstExpression(lexeme, Type.INT, index, 1)
     Lexeme.Type.BYTE    -> ConstExpression(lexeme, Type.BYTE, index, 1)
     Lexeme.Type.LOGICAL -> ConstExpression(lexeme, Type.BOOLEAN, index, 1)

@@ -48,7 +48,7 @@ class OpenCLProgram(
                 }
                 cl.setArgument(kernel, i, size, ptr)
             }else
-                cl.setArgument(kernel, i, value.ptr)
+                cl.setArgument(kernel, i, value.mem)
         }
         // Set index offset variable
         cl.setArgument(kernel, buffers.size, Sizeof.cl_int.toLong(), Pointer.to(intArrayOf(indexOffset)))
@@ -57,8 +57,8 @@ class OpenCLProgram(
     }
 
     override fun dealloc() {
-        cl.dealloc(program)
-        cl.dealloc(kernel)
+        cl.deallocProgram(program)
+        cl.deallocKernel(kernel)
     }
 
     override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {

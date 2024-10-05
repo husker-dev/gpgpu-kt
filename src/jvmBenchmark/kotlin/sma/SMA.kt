@@ -11,8 +11,8 @@ val maxPeriod = 500
 class GP(
     engine: GPSyncDevice
 ) {
-    private var data = engine.allocFloat(FloatArray(candles) { it.toFloat() })
-    private var result = engine.allocFloat(candles * (maxPeriod - minPeriod))
+    private var data = engine.wrapFloats(FloatArray(candles) { it.toFloat() })
+    private var result = engine.allocFloats(candles * (maxPeriod - minPeriod))
 
     private var program = engine.compile("""
         extern float[] data;

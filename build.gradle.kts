@@ -7,6 +7,9 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 plugins {
     id("org.jetbrains.kotlin.multiplatform") version "2.0.20"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
+
+    id("com.android.library") version "8.6.1"
+
     id("maven-publish")
 }
 
@@ -31,6 +34,12 @@ kotlin {
         binaries.executable()
     }
 
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+        }
+    }
+
     sourceSets {
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -47,6 +56,13 @@ kotlin {
                 }
                 api("org.jcuda:jcuda-natives:12.0.0:windows-x86_64")
                 api("org.jcuda:jcuda-natives:12.0.0:linux-x86_64")
+
+                // OpenGL
+                api("com.huskerdev:grapl-gl:2.2.0")
+                implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:3.3.4"))
+                api("org.lwjgl:lwjgl")
+                api("org.lwjgl:lwjgl-opengl")
+                api(fileTree("natives"))
             }
         }
 
@@ -57,6 +73,15 @@ kotlin {
         }
     }
 }
+
+android {
+    namespace = "com.huskerdev.gpkt"
+    compileSdk = 32
+    defaultConfig {
+        minSdk = 19
+    }
+}
+
 
 benchmark {
     targets {

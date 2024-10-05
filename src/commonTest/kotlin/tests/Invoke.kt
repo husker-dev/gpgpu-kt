@@ -8,9 +8,9 @@ fun testInvocation(type: GPType, instances: Int){
     val arraySize = instances + 100
 
     val engine = GPSyncDevice.create(requestedType = arrayOf(type))!!
-    val data1 = engine.allocFloat(FloatArray(instances) { it.toFloat() + 1 })
-    val data2 = engine.allocFloat(FloatArray(instances) { it.toFloat() + 1 })
-    val result = engine.allocFloat(arraySize)
+    val data1 = engine.wrapFloats(FloatArray(instances) { it.toFloat() + 1 })
+    val data2 = engine.wrapFloats(FloatArray(instances) { it.toFloat() + 1 })
+    val result = engine.allocFloats(arraySize)
 
     val program = engine.compile("""
             extern float[] data1, data2;

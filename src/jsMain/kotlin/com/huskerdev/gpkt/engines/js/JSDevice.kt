@@ -4,12 +4,16 @@ import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.engines.cpu.*
 
-class JSSyncDevice: CPUSyncDeviceBase(GPType.JS) {
+class JSSyncDevice: CPUSyncDevice() {
+    override val type = GPType.JS
+
     override fun compile(ast: ScopeStatement) =
         JSProgram(ast)
 }
 
-class JSAsyncDevice: CPUAsyncDeviceBase(GPType.JS){
+class JSAsyncDevice: CPUAsyncDevice(){
+    override val type = GPType.JS
+
     override fun compile(ast: ScopeStatement) =
         JSProgram(ast)
 }

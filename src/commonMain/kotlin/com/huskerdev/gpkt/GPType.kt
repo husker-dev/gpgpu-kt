@@ -8,7 +8,8 @@ enum class GPType(
     Interpreter("interpreter"),
     Javac("javac"),
     WebGPU("webgpu"),
-    JS("js")
+    JS("js"),
+    OpenGL("opengl")
     ;
 
     companion object {
