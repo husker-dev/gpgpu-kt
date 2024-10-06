@@ -17,7 +17,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 - \* Doesn't support loops, Double and Byte arrays 
 
 ### TODO List:
-  - [x] Add `sizeof` function
+  - [ ] Add `sizeof()` function
   - [ ] Add array creation support
   - [ ] Add Vulkan support
   - [ ] Add Metal support
