@@ -2,7 +2,7 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available executions:
-|         | OpenCL              | CUDA               | Vulkan | Metal | WebGPU    | JS                 | OpenGL    | javac              | Interpreter        |
+|         | OpenCL              | CUDA               | Vulkan | Metal | WebGPU    | JS                 | OpenGL    | Bytecode           | Interpreter        |
 |---------|---------------------|--------------------|--------|-------|-----------|--------------------|-----------|--------------------|--------------------|
 | jvm     | :white_check_mark:  | :white_check_mark: |   :x:  |  :x:  |           |                    | :warning: | :white_check_mark: | :white_check_mark: |
 | js      |                     |                    |        |       |:warning:* | :white_check_mark: |           |                    | :white_check_mark: |
@@ -14,19 +14,15 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 - :warning: - Partially working
 - :x: - Not implemented
 
-- \* Doesn't support loops, Double, Long and Byte arrays 
+- \* Doesn't support loops, Double and Byte arrays 
 
 ### TODO List:
-  - [x] Add standard functions (pow, sqrt, etc)
-  - [x] Add argument `from` to execute()
-  - [x] Add single value updating in memory objects
-  - [x] Add JS support
-  - [x] Add WebGPU support (Beta)
+  - [x] Add `sizeof` function
   - [ ] Add array creation support
   - [ ] Add Vulkan support
   - [ ] Add Metal support
 
-## Simple usage 
+## Simple example 
 1. Create GPDevice
 ```kotlin
 val device = GPDevice.create()
@@ -35,7 +31,8 @@ val device = GPDevice.create()
 2. Compile a program
 ```kotlin
 val program = device.compile("""
-    extern float[] arr1, arr2, result;
+    extern readonly float[] arr1, arr2;
+    extern float[] result;
     extern float multiplier;
     
     void main(const int i){
@@ -44,16 +41,16 @@ val program = device.compile("""
 """.trimIndent())
 ```
 
-3. Allocate buffers on GPU
+3. Allocate buffers in GPU memory
 ```kotlin
-val arr1 = device.allocFloat(exampleArray())
-val arr2 = device.allocFloat(exampleArray())
-val result = engine.allocFloat(arr1.length)
+val arr1 = device.wrapFloats(exampleArray())
+val arr2 = device.wrapFloats(exampleArray())
+val result = engine.allocFloats(arr1.length)
 
 fun exampleArray() = FloatArray(1_000_000) { it.toFloat() }
 ```
 
-4. Execute
+4. Execute the program with arguments
 ```kotlin
 program.execute(
     instances = 1_000_000,
@@ -64,7 +61,7 @@ program.execute(
 )
 ```
 
-5. Read changed buffers
+5. Read the result from buffer
 ```kotlin
-result.read()
+val modifiedResultArray = result.read()
 ```
