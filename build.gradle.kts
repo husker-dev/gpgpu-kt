@@ -17,6 +17,7 @@ group = "com.huskerdev"
 version = "1.0"
 
 repositories {
+    google()
     mavenCentral()
 }
 
@@ -35,12 +36,26 @@ kotlin {
     }
 
     androidTarget {
+        publishLibraryVariants("release")
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_1_8)
         }
     }
 
     sourceSets {
+        val commonOpenGL by creating {
+            dependsOn(commonMain.get())
+
+            jvmMain.get().dependsOn(this)
+        }
+
+        val commonOpenCL by creating {
+            dependsOn(commonMain.get())
+
+            jvmMain.get().dependsOn(this)
+            androidMain.get().dependsOn(this)
+        }
+
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
@@ -76,9 +91,18 @@ kotlin {
 
 android {
     namespace = "com.huskerdev.gpkt"
-    compileSdk = 32
+    compileSdk = 34
+    ndkVersion = "19.2.5345600"
+
     defaultConfig {
         minSdk = 19
+    }
+
+    externalNativeBuild {
+        cmake {
+            path("src/androidMain/cpp/CMakeLists.txt")
+            version = "3.30.4"
+        }
     }
 }
 

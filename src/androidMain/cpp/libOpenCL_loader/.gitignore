@@ -1,0 +1,11 @@
+build/**
+bin/**
+get-opencl-headers.sh
+lib/*
+.DS_Store
+*.so
+*.o
+*.o.d
+libs
+obj
+build

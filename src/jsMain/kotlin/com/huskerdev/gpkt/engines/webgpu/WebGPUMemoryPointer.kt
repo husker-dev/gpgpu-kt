@@ -14,10 +14,8 @@ import kotlin.js.Promise
 
 
 abstract class WebGPUMemoryPointer<T>(
-    private val typeSize: Int,
     private val toArrayBuffer: (T) -> ArrayBuffer,
-    private val toTypedArray: (ArrayBuffer) -> ArrayBufferView,
-    private val copyInto: (src: T, dst: T, dstOffset: Int) -> Unit
+    private val toTypedArray: (ArrayBuffer) -> ArrayBufferView
 ): AsyncMemoryPointer<T> {
     abstract val webgpu: WebGPU
     abstract val gpuBuffer: dynamic
@@ -26,14 +24,16 @@ abstract class WebGPUMemoryPointer<T>(
         webgpu.dealloc(gpuBuffer)
 
     override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
-        val writeBuffer = webgpu.allocWrite(toArrayBuffer(src))
-        webgpu.copyBufferToBuffer(writeBuffer, gpuBuffer, srcOffset, dstOffset, length * typeSize)
+        val buffer = toArrayBuffer(src)
+        val writeBuffer = webgpu.allocWrite(buffer)
+        webgpu.copyBufferToBuffer(writeBuffer, gpuBuffer, srcOffset, dstOffset, gpuBuffer.size as Int)
         webgpu.dealloc(writeBuffer)
     }
 
-    override suspend fun read(dst: T, length: Int, dstOffset: Int, srcOffset: Int) {
-        val readBuffer = webgpu.allocRead(length * typeSize)
-        webgpu.copyBufferToBuffer(gpuBuffer, readBuffer, srcOffset, 0, length * typeSize)
+    override suspend fun read(length: Int, offset: Int): T {
+        val size = gpuBuffer.size as Int
+        val readBuffer = webgpu.allocRead(size)
+        webgpu.copyBufferToBuffer(gpuBuffer, readBuffer, offset, 0, size)
 
         // Set readable
         (readBuffer.mapAsync(js("GPUMapMode.READ")) as Promise<*>).await()
@@ -44,8 +44,8 @@ abstract class WebGPUMemoryPointer<T>(
         // Convert from ArrayBuffer to typed array
         val result = js("Array").from(toTypedArray(arrayBuffer)) as T
 
-        copyInto(result, dst, dstOffset)
         webgpu.dealloc(readBuffer)
+        return result
     }
 }
 
@@ -55,10 +55,8 @@ class WebGPUFloatMemoryPointer(
     override val usage: MemoryUsage,
     override val gpuBuffer: dynamic,
 ): WebGPUMemoryPointer<FloatArray>(
-    Float.SIZE_BYTES,
     FloatArray::toArrayBuffer,
-    ::Float32Array,
-    { src, dst, dstOffset -> src.copyInto(dst, destinationOffset = dstOffset) }
+    ::Float32Array
 ), AsyncFloatMemoryPointer
 
 class WebGPUIntMemoryPointer(
@@ -67,9 +65,7 @@ class WebGPUIntMemoryPointer(
     override val usage: MemoryUsage,
     override val gpuBuffer: dynamic,
 ): WebGPUMemoryPointer<IntArray>(
-    Int.SIZE_BYTES,
     IntArray::toArrayBuffer,
-    ::Int32Array,
-    { src, dst, dstOffset -> src.copyInto(dst, destinationOffset = dstOffset) }
+    ::Int32Array
 ), AsyncIntMemoryPointer
 

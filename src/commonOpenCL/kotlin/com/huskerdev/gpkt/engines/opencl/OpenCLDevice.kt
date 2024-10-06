@@ -2,11 +2,10 @@ package com.huskerdev.gpkt.engines.opencl
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
-import org.jocl.Sizeof
 
 
 abstract class CLDeviceBase(requestedDeviceId: Int): GPDeviceBase{
-    protected val cl = OpenCL(requestedDeviceId)
+    protected val cl = createCL(requestedDeviceId).init()
 
     override val type = GPType.OpenCL
     override val id = cl.deviceId
@@ -25,19 +24,19 @@ class OpenCLSyncDevice(
         CLSyncFloatMemoryPointer(cl, array.size, usage, cl.wrapFloats(array, usage))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CLSyncFloatMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_float * length, usage))
+        CLSyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES * length, usage))
 
     override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
         CLSyncDoubleMemoryPointer(cl, array.size, usage, cl.wrapDoubles(array, usage))
 
     override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CLSyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_double * length, usage))
+        CLSyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES * length, usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CLSyncIntMemoryPointer(cl, array.size, usage, cl.wrapInts(array, usage))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CLSyncIntMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_int * length, usage))
+        CLSyncIntMemoryPointer(cl, length, usage, cl.allocate(Int.SIZE_BYTES * length, usage))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
         CLSyncByteMemoryPointer(cl, array.size, usage, cl.wrapBytes(array, usage))
@@ -53,19 +52,19 @@ class OpenCLAsyncDevice(
         CLAsyncFloatMemoryPointer(cl, array.size, usage, cl.wrapFloats(array, usage))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CLAsyncFloatMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_float * length, usage))
+        CLAsyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES * length, usage))
 
     override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
         CLAsyncDoubleMemoryPointer(cl, array.size, usage, cl.wrapDoubles(array, usage))
 
     override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CLAsyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_double * length, usage))
+        CLAsyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES * length, usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CLAsyncIntMemoryPointer(cl, array.size, usage, cl.wrapInts(array, usage))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CLAsyncIntMemoryPointer(cl, length, usage, cl.allocate(Sizeof.cl_int * length, usage))
+        CLAsyncIntMemoryPointer(cl, length, usage, cl.allocate(Int.SIZE_BYTES * length, usage))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
         CLAsyncByteMemoryPointer(cl, array.size, usage, cl.wrapBytes(array, usage))
