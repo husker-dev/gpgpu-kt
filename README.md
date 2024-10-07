@@ -2,13 +2,15 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available executions:
-|         | OpenCL              | CUDA               | Vulkan | Metal | WebGPU    | JS                 | OpenGL    | Bytecode           | Interpreter        |
-|---------|---------------------|--------------------|--------|-------|-----------|--------------------|-----------|--------------------|--------------------|
-| jvm     | :white_check_mark:  | :white_check_mark: |   :x:  |  :x:  |           |                    | :warning: | :white_check_mark: | :white_check_mark: |
-| js      |                     |                    |        |       |:warning:* | :white_check_mark: |           |                    | :white_check_mark: |
-| wasm    |                     |                    |        |       |    :x:    |         :x:        |           |                    | :white_check_mark: |
-| ios     |                     |                    |        |  :x:  |           |                    |           |                    | :white_check_mark: |
-| android | :white_check_mark:  |                    |   :x:  |       |           |                    | :x:       |                    | :white_check_mark: |
+|            | OpenCL              | CUDA               | Vulkan | Metal                | WebGPU    | JS                 | OpenGL    | Bytecode           | Interpreter        |
+|------------|---------------------|--------------------|--------|----------------------|-----------|--------------------|-----------|--------------------|--------------------|
+| jvm        | :white_check_mark:  | :white_check_mark: |   :x:  |  :x:                 |           |                    | :warning: | :white_check_mark: | :white_check_mark: |
+| js         |                     |                    |        |                      |:warning:* | :white_check_mark: |           |                    | :white_check_mark: |
+| wasm       |                     |                    |        |                      |    :x:    |         :x:        |           |                    | :white_check_mark: |
+| ios        |                     |                    |        |  :white_check_mark:  |           |                    |           |                    | :white_check_mark: |
+| android    | :white_check_mark:  |                    |   :x:  |                      |           |                    | :x:       |                    | :white_check_mark: |
+| macosArm64 |                     |                    |        |  :white_check_mark:  |           |                    |           |                    | :white_check_mark: |
+| macosx64   |                     |                    |        |  :white_check_mark:  |           |                    |           |                    | :white_check_mark: |
 
 - :white_check_mark: - Fully implemented
 - :warning: - Partially working
@@ -20,7 +22,6 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
   - [ ] Add `sizeof()` function
   - [ ] Add array creation support
   - [ ] Add Vulkan support
-  - [ ] Add Metal support
 
 ## Simple example 
 1. Create GPDevice
