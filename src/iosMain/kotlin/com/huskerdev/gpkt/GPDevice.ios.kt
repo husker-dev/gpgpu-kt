@@ -3,7 +3,7 @@ package com.huskerdev.gpkt
 import com.huskerdev.gpkt.engines.metal.MetalAsyncDevice
 import com.huskerdev.gpkt.engines.metal.MetalSyncDevice
 
-internal actual val defaultExpectedTypes = arrayOf(GPType.Metal, GPType.OpenCL, GPType.Interpreter)
+internal actual val defaultExpectedTypes = arrayOf(GPType.Metal, GPType.Interpreter)
 internal actual val defaultExpectedDeviceId = 0
 
 internal actual fun createSupportedSyncInstance(

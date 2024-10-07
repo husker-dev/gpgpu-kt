@@ -39,7 +39,7 @@ fun main(){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
                 int localCandle = i % (maxPeriod - minPeriod);
             
-                result[i] = sma(data, localCandle, localPeriod) + a;
+                result[i] = sma(data, localCandle, localPeriod);
             }
         """.trimIndent())
     }catch (e: GPCompilationException){

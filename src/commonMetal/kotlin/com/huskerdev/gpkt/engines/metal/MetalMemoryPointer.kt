@@ -1,15 +1,14 @@
 package com.huskerdev.gpkt.engines.metal
 
 import com.huskerdev.gpkt.*
-import platform.Metal.MTLBufferProtocol
 
 
-typealias MetalReader<T> = (buffer: MTLBufferProtocol, length: Int, offset: Int) -> T
-typealias MetalWriter<T> = (buffer: MTLBufferProtocol, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit
+typealias MetalReader<T> = (buffer: MTLBuffer, length: Int, offset: Int) -> T
+typealias MetalWriter<T> = (buffer: MTLBuffer, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit
 
 abstract class MetalMemoryPointer<T>: MemoryPointer<T> {
     abstract val metal: Metal
-    abstract val buffer: MTLBufferProtocol
+    abstract val buffer: MTLBuffer
 
     override fun dealloc() =
         metal.deallocBuffer(buffer)
@@ -45,7 +44,7 @@ class MetalSyncFloatMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Sync<FloatArray>(
     metal::readFloats,
     metal::writeFloats
@@ -55,7 +54,7 @@ class MetalSyncIntMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Sync<IntArray>(
     metal::readInts,
     metal::writeInts
@@ -65,7 +64,7 @@ class MetalSyncByteMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Sync<ByteArray>(
     metal::readBytes,
     metal::writeBytes
@@ -80,7 +79,7 @@ class MetalAsyncFloatMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Async<FloatArray>(
     metal::readFloats,
     metal::writeFloats
@@ -90,7 +89,7 @@ class MetalAsyncIntMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Async<IntArray>(
     metal::readInts,
     metal::writeInts
@@ -100,7 +99,7 @@ class MetalAsyncByteMemoryPointer(
     override val metal: Metal,
     override val length: Int,
     override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
+    override val buffer: MTLBuffer
 ): MetalMemoryPointer.Async<ByteArray>(
     metal::readBytes,
     metal::writeBytes

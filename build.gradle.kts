@@ -35,6 +35,9 @@ kotlin {
         binaries.executable()
     }
     macosArm64()
+    macosX64()
+    iosX64()
+    iosArm64()
 
     androidTarget {
         publishLibraryVariants("release")
@@ -44,6 +47,16 @@ kotlin {
     }
 
     sourceSets {
+        val macosMain by creating {
+            macosX64Main.get().dependsOn(this)
+            macosArm64Main.get().dependsOn(this)
+        }
+
+        val iosMain by creating {
+            iosX64Main.get().dependsOn(this)
+            iosArm64Main.get().dependsOn(this)
+        }
+
         val commonOpenGL by creating {
             dependsOn(commonMain.get())
 
@@ -55,6 +68,19 @@ kotlin {
 
             jvmMain.get().dependsOn(this)
             androidMain.get().dependsOn(this)
+        }
+
+        val commonMetal by creating {
+            dependsOn(commonMain.get())
+
+            //jvmMain.get().dependsOn(this)
+        }
+
+        val commonMetalNative by creating {
+            dependsOn(commonMetal)
+
+            macosMain.dependsOn(this)
+            iosMain.dependsOn(this)
         }
 
         commonTest.dependencies {

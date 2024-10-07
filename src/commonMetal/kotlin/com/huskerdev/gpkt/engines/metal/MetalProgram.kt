@@ -8,23 +8,17 @@ import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.objcPtr
-import kotlinx.cinterop.objc_release
-import platform.Metal.MTLComputeCommandEncoderProtocol
-import platform.Metal.MTLComputePipelineStateProtocol
-import platform.Metal.MTLFunctionProtocol
-import platform.Metal.MTLLibraryProtocol
+
 
 class MetalProgram(
     private val metal: Metal,
     ast: ScopeStatement
 ): SimpleCProgram(ast) {
 
-    private val library: MTLLibraryProtocol
-    private val function: MTLFunctionProtocol
-    private val pipeline: MTLComputePipelineStateProtocol
-    private val commandEncoder: MTLComputeCommandEncoderProtocol
+    private val library: MTLLibrary
+    private val function: MTLFunction
+    private val pipeline: MTLComputePipelineState
+    private val commandEncoder: MTLComputeCommandEncoder
 
     init {
         val buffer = StringBuilder()
@@ -36,7 +30,7 @@ class MetalProgram(
         stringifyScopeStatement(buffer, ast, false)
 
         library = metal.createLibrary(buffer.toString())
-        function = metal.getFunction(library, "_m")!!
+        function = metal.getFunction(library, "_m")
         pipeline = metal.createPipeline(metal.device, function)
         commandEncoder = metal.createCommandEncoder(pipeline)
     }
@@ -61,12 +55,11 @@ class MetalProgram(
         metal.execute(commandEncoder, instances)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     override fun dealloc() {
-        objc_release(library.objcPtr())
-        objc_release(function.objcPtr())
-        objc_release(pipeline.objcPtr())
-        objc_release(commandEncoder.objcPtr())
+        metal.deallocLibrary(library)
+        metal.deallocFunction(function)
+        metal.deallocPipeline(pipeline)
+        metal.deallocCommandEncoder(commandEncoder)
     }
 
     override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder) {

@@ -6,7 +6,7 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 abstract class MetalDeviceBase(
     requestedDeviceId: Int
 ): GPDeviceBase{
-    protected val metal = Metal(requestedDeviceId)
+    protected val metal = createMetal(requestedDeviceId).init()
 
     override val type = GPType.Metal
     override val id = metal.deviceId

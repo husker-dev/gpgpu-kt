@@ -2,15 +2,14 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available accelerations:
-|            | OpenCL              | CUDA               | Vulkan | Metal                | WebGPU    | JS                 | OpenGL    | Bytecode           |
-|------------|---------------------|--------------------|--------|----------------------|-----------|--------------------|-----------|--------------------|
-| jvm        | :white_check_mark:  | :white_check_mark: |   :x:  |  :x:                 |           |                    | :warning: | :white_check_mark: |
-| js         |                     |                    |        |                      |:warning:* | :white_check_mark: |           |                    |
-| wasm       |                     |                    |        |                      |    :x:    |         :x:        |           |                    |
-| ios        |                     |                    |        |  :white_check_mark:  |           |                    |           |                    |
-| android    | :white_check_mark:  |                    |   :x:  |                      |           |                    | :x:       |                    |
-| macosArm64 |                     |                    |        |  :white_check_mark:  |           |                    |           |                    |
-| macosx64   |                     |                    |        |  :white_check_mark:  |           |                    |           |                    |
+|          | OpenCL             | CUDA               | Vulkan | Metal                | WebGPU    | JS                 | OpenGL    | Bytecode           |
+|----------|--------------------|--------------------|--------|----------------------|-----------|--------------------|-----------|--------------------|
+| jvm      | :white_check_mark: | :white_check_mark: |   :x:  |  :x:                 |           |                    | :warning: | :white_check_mark: |
+| js       |                    |                    |        |                      |:warning:* | :white_check_mark: |           |                    |
+| wasm     |                    |                    |        |                      |    :x:    |         :x:        |           |                    |
+| ios      | :x:                |                    |        |  :white_check_mark:  |           |                    |           |                    |
+| android  | :white_check_mark: |                    |   :x:  |                      |           |                    | :x:       |                    |
+| macos    | :x:                |                    |        |  :white_check_mark:  |           |                    |           |                    |
 
 - :white_check_mark: - Fully implemented
 - :warning: - Partially working
