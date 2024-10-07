@@ -16,7 +16,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 - :warning: - Partially working
 - :x: - Not implemented
 
-- \* Doesn't support loops, Double and Byte arrays 
+- \* Doesn't support loops and Byte 
 
 ### TODO List:
   - [ ] Add `sizeof()` function
