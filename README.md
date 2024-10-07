@@ -7,7 +7,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 | jvm      | :white_check_mark: | :white_check_mark: |   :x:  |  :x:                 |           |                    | :warning: | :white_check_mark: |
 | js       |                    |                    |        |                      |:warning:* | :white_check_mark: |           |                    |
 | wasm     |                    |                    |        |                      |    :x:    |         :x:        |           |                    |
-| ios      | :x:                |                    |        |  :white_check_mark:  |           |                    |           |                    |
+| ios      |                    |                    |        |  :white_check_mark:  |           |                    |           |                    |
 | android  | :white_check_mark: |                    |   :x:  |                      |           |                    | :x:       |                    |
 | macos    | :x:                |                    |        |  :white_check_mark:  |           |                    |           |                    |
 
