@@ -13,7 +13,7 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 
 - :white_check_mark: - Fully implemented
 - :warning: - Partially working
-- :x: - Not implemented
+- :x: - Not implemented, but planned
 
 - \* Doesn't support loops and Byte 
 
