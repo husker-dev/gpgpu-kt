@@ -9,7 +9,8 @@ enum class GPType(
     Javac("javac"),
     WebGPU("webgpu"),
     JS("js"),
-    OpenGL("opengl")
+    OpenGL("opengl"),
+    Metal("metal")
     ;
 
     companion object {

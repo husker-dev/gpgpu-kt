@@ -34,6 +34,7 @@ kotlin {
         browser()
         binaries.executable()
     }
+    macosArm64()
 
     androidTarget {
         publishLibraryVariants("release")
