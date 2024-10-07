@@ -2,7 +2,7 @@
 Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### Available accelerations:
-|          | OpenCL             | CUDA               | Vulkan | Metal                | WebGPU    | JS                 | OpenGL    | Bytecode           |
+|          | OpenCL             | CUDA               | Vulkan | Metal                | WebGPU    | JS                 | ~OpenGL~  | Bytecode           |
 |----------|--------------------|--------------------|--------|----------------------|-----------|--------------------|-----------|--------------------|
 | jvm      | :white_check_mark: | :white_check_mark: |   :x:  |  :x:                 |           |                    | :warning: | :white_check_mark: |
 | js       |                    |                    |        |                      |:warning:* | :white_check_mark: |           |                    |
