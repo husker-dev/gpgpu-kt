@@ -39,7 +39,6 @@ enum class MemoryUsage {
     READ_WRITE
 }
 
-interface SyncDoubleMemoryPointer: SyncMemoryPointer<DoubleArray>
 interface SyncFloatMemoryPointer: SyncMemoryPointer<FloatArray>
 interface SyncIntMemoryPointer: SyncMemoryPointer<IntArray>
 interface SyncByteMemoryPointer: SyncMemoryPointer<ByteArray>
@@ -48,7 +47,6 @@ interface SyncByteMemoryPointer: SyncMemoryPointer<ByteArray>
 //       Async
 // ===================
 
-interface AsyncDoubleMemoryPointer: AsyncMemoryPointer<DoubleArray>
 interface AsyncFloatMemoryPointer: AsyncMemoryPointer<FloatArray>
 interface AsyncIntMemoryPointer: AsyncMemoryPointer<IntArray>
 interface AsyncByteMemoryPointer: AsyncMemoryPointer<ByteArray>

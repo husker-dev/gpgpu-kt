@@ -19,7 +19,6 @@ interface OpenGL {
 
     fun setBufferIndex(index: Int, ssbo: Int)
     fun setUniform1f(index: Int, value: Float)
-    fun setUniform1d(index: Int, value: Double)
     fun setUniform1i(index: Int, value: Int)
     fun setUniform1b(index: Int, value: Byte)
 
@@ -29,12 +28,10 @@ interface OpenGL {
     fun wrapByte(array: ByteArray, usage: MemoryUsage): Int
 
     fun readFloat(ssbo: Int, length: Int, offset: Int): FloatArray
-    fun readDouble(ssbo: Int, length: Int, offset: Int): DoubleArray
     fun readInt(ssbo: Int, length: Int, offset: Int): IntArray
     fun readByte(ssbo: Int, length: Int, offset: Int): ByteArray
 
     fun writeFloat(ssbo: Int, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int)
-    fun writeDouble(ssbo: Int, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int)
     fun writeInt(ssbo: Int, src: IntArray, length: Int, srcOffset: Int, dstOffset: Int)
     fun writeByte(ssbo: Int, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int)
 }

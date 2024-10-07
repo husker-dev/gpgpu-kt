@@ -91,7 +91,6 @@ class GLProgram(
             if(value !is GLMemoryPointer<*>) {
                 when(value){
                     is Float -> openGL.setUniform1f(i, value)
-                    is Double -> openGL.setUniform1d(i, value)
                     is Int -> openGL.setUniform1i(i, value)
                     is Byte -> openGL.setUniform1b(i, value)
                     else -> throw UnsupportedOperationException()

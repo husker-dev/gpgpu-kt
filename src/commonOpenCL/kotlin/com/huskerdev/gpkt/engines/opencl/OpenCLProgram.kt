@@ -150,7 +150,6 @@ class OpenCLProgram(
 
     override fun toCType(type: Type) = when(type){
         Type.FLOAT_ARRAY -> "__global float"
-        Type.DOUBLE_ARRAY -> "__global double"
         Type.INT_ARRAY -> "__global int"
         Type.BYTE_ARRAY -> "__global char"
         Type.BOOLEAN_ARRAY -> "__global bool"

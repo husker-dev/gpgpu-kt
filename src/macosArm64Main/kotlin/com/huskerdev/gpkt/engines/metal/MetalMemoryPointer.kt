@@ -51,16 +51,6 @@ class MetalSyncFloatMemoryPointer(
     metal::writeFloats
 ), SyncFloatMemoryPointer
 
-class MetalSyncDoubleMemoryPointer(
-    override val metal: Metal,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
-): MetalMemoryPointer.Sync<DoubleArray>(
-    metal::readDoubles,
-    metal::writeDoubles
-), SyncDoubleMemoryPointer
-
 class MetalSyncIntMemoryPointer(
     override val metal: Metal,
     override val length: Int,
@@ -95,16 +85,6 @@ class MetalAsyncFloatMemoryPointer(
     metal::readFloats,
     metal::writeFloats
 ), AsyncFloatMemoryPointer
-
-class MetalAsyncDoubleMemoryPointer(
-    override val metal: Metal,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val buffer: MTLBufferProtocol
-): MetalMemoryPointer.Async<DoubleArray>(
-    metal::readDoubles,
-    metal::writeDoubles
-), AsyncDoubleMemoryPointer
 
 class MetalAsyncIntMemoryPointer(
     override val metal: Metal,

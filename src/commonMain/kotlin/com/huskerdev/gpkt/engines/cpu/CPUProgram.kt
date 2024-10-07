@@ -23,15 +23,12 @@ class CPUProgram(
 
             val desc = when (value) {
                 is CPUAsyncFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
-                is CPUAsyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
                 is CPUAsyncIntMemoryPointer -> Type.INT_ARRAY to value.array!!
                 is CPUAsyncByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
                 is CPUSyncFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
-                is CPUSyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY to value.array!!
                 is CPUSyncIntMemoryPointer -> Type.INT_ARRAY to value.array!!
                 is CPUSyncByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!
                 is Float -> Type.FLOAT to value
-                is Double -> Type.DOUBLE to value
                 is Int -> Type.INT to value
                 is Byte -> Type.BYTE to value
                 else -> throw UnsupportedOperationException()

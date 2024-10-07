@@ -61,15 +61,6 @@ class CPUSyncFloatMemoryPointer(
     ::FloatArray
 ), SyncFloatMemoryPointer
 
-class CPUSyncDoubleMemoryPointer(
-    override var array: DoubleArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Sync<DoubleArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
-    ::DoubleArray
-), SyncDoubleMemoryPointer
-
 class CPUSyncIntMemoryPointer(
     override var array: IntArray?,
     override val usage: MemoryUsage
@@ -100,15 +91,6 @@ class CPUAsyncFloatMemoryPointer(
     { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
     ::FloatArray
 ), AsyncFloatMemoryPointer
-
-class CPUAsyncDoubleMemoryPointer(
-    override var array: DoubleArray?,
-    override val usage: MemoryUsage
-): CPUMemoryPointer.Async<DoubleArray>(
-    array!!.size,
-    { src, dst, dstOffset, startIndex, endIndex -> src.copyInto(dst, dstOffset, startIndex, endIndex) },
-    ::DoubleArray
-), AsyncDoubleMemoryPointer
 
 class CPUAsyncIntMemoryPointer(
     override var array: IntArray?,

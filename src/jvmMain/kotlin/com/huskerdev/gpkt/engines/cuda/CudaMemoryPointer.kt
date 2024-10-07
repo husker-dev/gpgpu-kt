@@ -47,15 +47,6 @@ class CudaSyncFloatMemoryPointer(
     cuda::readFloats, cuda::writeFloats
 ), SyncFloatMemoryPointer
 
-class CudaSyncDoubleMemoryPointer(
-    override val cuda: Cuda,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: CUdeviceptr
-): CudaMemoryPointer.Sync<DoubleArray>(
-    cuda::readDoubles, cuda::writeDoubles
-), SyncDoubleMemoryPointer
-
 class CudaSyncIntMemoryPointer(
     override val cuda: Cuda,
     override val length: Int,
@@ -87,15 +78,6 @@ class CudaAsyncFloatMemoryPointer(
 ): CudaMemoryPointer.Async<FloatArray>(
     cuda::readFloats, cuda::writeFloats
 ), AsyncFloatMemoryPointer
-
-class CudaAsyncDoubleMemoryPointer(
-    override val cuda: Cuda,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val ptr: CUdeviceptr
-): CudaMemoryPointer.Async<DoubleArray>(
-    cuda::readDoubles, cuda::writeDoubles
-), AsyncDoubleMemoryPointer
 
 class CudaAsyncIntMemoryPointer(
     override val cuda: Cuda,

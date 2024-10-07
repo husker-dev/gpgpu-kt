@@ -46,15 +46,6 @@ class CLSyncFloatMemoryPointer(
     cl::readFloats, cl::writeFloats
 ), SyncFloatMemoryPointer
 
-class CLSyncDoubleMemoryPointer(
-    override val cl: OpenCL,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val mem: CLMem
-): OpenCLMemoryPointer.Sync<DoubleArray>(
-    cl::readDoubles, cl::writeDoubles
-), SyncDoubleMemoryPointer
-
 class CLSyncIntMemoryPointer(
     override val cl: OpenCL,
     override val length: Int,
@@ -85,15 +76,6 @@ class CLAsyncFloatMemoryPointer(
 ): OpenCLMemoryPointer.Async<FloatArray>(
     cl::readFloats, cl::writeFloats
 ), AsyncFloatMemoryPointer
-
-class CLAsyncDoubleMemoryPointer(
-    override val cl: OpenCL,
-    override val length: Int,
-    override val usage: MemoryUsage,
-    override val mem: CLMem
-): OpenCLMemoryPointer.Async<DoubleArray>(
-    cl::readDoubles, cl::writeDoubles
-), AsyncDoubleMemoryPointer
 
 class CLAsyncIntMemoryPointer(
     override val cl: OpenCL,

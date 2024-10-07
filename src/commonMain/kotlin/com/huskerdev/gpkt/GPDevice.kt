@@ -44,9 +44,6 @@ interface GPSyncDevice: GPDeviceBase {
     fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
     fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
 
-    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<DoubleArray>
-    fun allocDoubles(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<DoubleArray>
-
     fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
     fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
 
@@ -66,9 +63,6 @@ interface GPAsyncDevice: GPDeviceBase {
 
     fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
     fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
-
-    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<DoubleArray>
-    fun allocDoubles(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<DoubleArray>
 
     fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>
     fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>

@@ -27,12 +27,6 @@ class MetalSyncDevice(
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         MetalSyncFloatMemoryPointer(metal, length, usage, metal.createBuffer(length * Float.SIZE_BYTES))
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        MetalSyncDoubleMemoryPointer(metal, array.size, usage, metal.wrapDoubles(array))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        MetalSyncDoubleMemoryPointer(metal, length, usage, metal.createBuffer(length * Double.SIZE_BYTES))
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         MetalSyncIntMemoryPointer(metal, array.size, usage, metal.wrapInts(array))
 
@@ -54,12 +48,6 @@ class MetalAsyncDevice(
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         MetalAsyncFloatMemoryPointer(metal, length, usage, metal.createBuffer(length * Float.SIZE_BYTES))
-
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        MetalAsyncDoubleMemoryPointer(metal, array.size, usage, metal.wrapDoubles(array))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        MetalAsyncDoubleMemoryPointer(metal, length, usage, metal.createBuffer(length * Double.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         MetalAsyncIntMemoryPointer(metal, array.size, usage, metal.wrapInts(array))

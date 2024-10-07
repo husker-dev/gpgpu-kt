@@ -102,12 +102,10 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
     private fun Type.toJavaClass() = when(this) {
         Type.VOID -> Unit::class.java
         Type.FLOAT -> Float::class.java
-        Type.DOUBLE -> Double::class.java
         Type.INT -> Int::class.java
         Type.BYTE -> Byte::class.java
         Type.BOOLEAN -> Boolean::class.java
         Type.FLOAT_ARRAY -> FloatArray::class.java
-        Type.DOUBLE_ARRAY -> DoubleArray::class.java
         Type.INT_ARRAY -> IntArray::class.java
         Type.BYTE_ARRAY -> ByteArray::class.java
         Type.BOOLEAN_ARRAY -> BooleanArray::class.java
@@ -116,12 +114,10 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
     override fun toCType(type: Type) = when (type) {
         Type.VOID -> "void"
         Type.FLOAT -> "float"
-        Type.DOUBLE -> "double"
         Type.INT -> "int"
         Type.BYTE -> "byte"
         Type.BOOLEAN -> "boolean"
         Type.FLOAT_ARRAY -> "float[]"
-        Type.DOUBLE_ARRAY -> "double[]"
         Type.INT_ARRAY -> "int[]"
         Type.BYTE_ARRAY -> "byte[]"
         Type.BOOLEAN_ARRAY -> "boolean[]"

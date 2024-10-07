@@ -28,14 +28,6 @@ class WebGPUAsyncDevice(
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         WebGPUFloatMemoryPointer(webgpu, length, usage, webgpu.alloc(length * Float.SIZE_BYTES))
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage): AsyncDoubleMemoryPointer {
-        TODO("Not yet implemented")
-    }
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage): AsyncDoubleMemoryPointer {
-        TODO("Not yet implemented")
-    }
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         WebGPUIntMemoryPointer(webgpu, array.size, usage, webgpu.alloc(array.toArrayBuffer()))
 

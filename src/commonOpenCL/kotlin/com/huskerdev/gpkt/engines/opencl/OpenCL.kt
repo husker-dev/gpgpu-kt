@@ -51,17 +51,14 @@ abstract class OpenCL(
 
     abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long): CLMem
     abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray): CLMem
-    abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: DoubleArray): CLMem
     abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray): CLMem
     abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray): CLMem
 
     abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: FloatArray)
-    abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: DoubleArray)
     abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: IntArray)
     abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: ByteArray)
 
     abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: FloatArray, srcOffset: Int)
-    abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: DoubleArray, srcOffset: Int)
     abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: IntArray, srcOffset: Int)
     abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: ByteArray, srcOffset: Int)
 
@@ -120,11 +117,6 @@ abstract class OpenCL(
         array.size.toLong() * Float.SIZE_BYTES, array
     )
 
-    fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) = clCreateBuffer(
-        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
-        array.size.toLong() * Double.SIZE_BYTES, array
-    )
-
     fun wrapInts(array: IntArray, usage: MemoryUsage) = clCreateBuffer(
         context, usage.toCL(CL_MEM_COPY_HOST_PTR),
         array.size.toLong() * Int.SIZE_BYTES, array
@@ -140,13 +132,6 @@ abstract class OpenCL(
         clEnqueueReadBuffer(
             commandQueue, src, true, offset.toLong(),
             length.toLong() * Float.SIZE_BYTES, this
-        )
-    }
-
-    fun readDoubles(src: CLMem, length: Int, offset: Int) = DoubleArray(length).apply {
-        clEnqueueReadBuffer(
-            commandQueue, src, true, offset.toLong(),
-            length.toLong() * Double.SIZE_BYTES, this
         )
     }
 
@@ -169,13 +154,6 @@ abstract class OpenCL(
         clEnqueueWriteBuffer(
             commandQueue, dst, true, dstOffset.toLong(),
             length.toLong() * Float.SIZE_BYTES, src, srcOffset
-        )
-    }
-
-    fun writeDoubles(dst: CLMem, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int){
-        clEnqueueWriteBuffer(
-            commandQueue, dst, true, dstOffset.toLong(),
-            length.toLong() * Double.SIZE_BYTES, src, srcOffset
         )
     }
 

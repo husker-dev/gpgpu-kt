@@ -90,7 +90,8 @@ fun processLexemes(block: String): List<Lexeme> {
             }
             if(text.indexOf('.') != text.lastIndexOf('.'))
                 throw tooManyFloatingsException(lineIndex, startIndex + text.lastIndexOf('.'), block)
-            return Lexeme.Type.DOUBLE to text.replace("_", "")
+            throw compilationError("Double is not supported :(", lineIndex, startIndex, block)
+            //return Lexeme.Type.DOUBLE to text.replace("_", "")
         }
 
         // > Check for Int

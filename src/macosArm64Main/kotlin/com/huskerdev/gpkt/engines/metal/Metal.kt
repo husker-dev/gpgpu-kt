@@ -61,12 +61,6 @@ class Metal(
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    fun setDoubleAt(commandEncoder: MTLComputeCommandEncoderProtocol, value: Double, index: Int) = memScoped {
-        val valueVar = alloc(value)
-        commandEncoder.setBytes(valueVar.ptr, Double.SIZE_BYTES.toULong(), index.toULong())
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
     fun setIntAt(commandEncoder: MTLComputeCommandEncoderProtocol, value: Int, index: Int) = memScoped {
         val valueVar = alloc(value)
         commandEncoder.setBytes(valueVar.ptr, Int.SIZE_BYTES.toULong(), index.toULong())
@@ -107,13 +101,6 @@ class Metal(
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    fun wrapDoubles(array: DoubleArray) = array.usePinned {
-        val size = array.size * Double.SIZE_BYTES
-        device.newBufferWithBytes(it.addressOf(0), size.toULong(), MTLResourceStorageModeShared)
-            ?: throw FailedToAllocateMemoryException(size)
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
     fun wrapInts(array: IntArray) = array.usePinned {
         val size = array.size * Int.SIZE_BYTES
         device.newBufferWithBytes(it.addressOf(0), size.toULong(), MTLResourceStorageModeShared)
@@ -134,16 +121,6 @@ class Metal(
                 it.addressOf(0),
                 interpretCPointer<CPointed>(buffer.contents()!!.getRawValue() + offset.toLong() * Float.SIZE_BYTES),
                 (length * Float.SIZE_BYTES).toULong())
-        }
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    fun readDoubles(buffer: MTLBufferProtocol, length: Int, offset: Int) = DoubleArray(length).apply {
-        usePinned {
-            memcpy(
-                it.addressOf(0),
-                interpretCPointer<CPointed>(buffer.contents()!!.getRawValue() + offset.toLong() * Double.SIZE_BYTES),
-                (length * Double.SIZE_BYTES).toULong())
         }
     }
 
@@ -174,17 +151,6 @@ class Metal(
                 interpretCPointer<CPointed>(buffer.contents()!!.getRawValue() + dstOffset.toLong() * Float.SIZE_BYTES),
                 it.addressOf(srcOffset),
                 (length * Float.SIZE_BYTES).toULong()
-            )
-        }
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    fun writeDoubles(buffer: MTLBufferProtocol, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int){
-        src.usePinned {
-            memcpy(
-                interpretCPointer<CPointed>(buffer.contents()!!.getRawValue() + dstOffset.toLong() * Double.SIZE_BYTES),
-                it.addressOf(srcOffset),
-                (length * Double.SIZE_BYTES).toULong()
             )
         }
     }

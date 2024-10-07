@@ -23,12 +23,6 @@ class OpenGLSyncDevice: OpenGLDeviceBase(), GPSyncDevice {
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         GLSyncFloatMemoryPointer(openGL, usage, length, openGL.alloc(length * Float.SIZE_BYTES, usage))
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        GLSyncDoubleMemoryPointer(openGL, usage, array.size, openGL.wrapDouble(array, usage))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        GLSyncDoubleMemoryPointer(openGL, usage, length, openGL.alloc(length * Double.SIZE_BYTES, usage))
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         GLSyncIntMemoryPointer(openGL, usage, array.size, openGL.wrapInt(array, usage))
 
@@ -48,12 +42,6 @@ class OpenGLAsyncDevice: OpenGLDeviceBase(), GPAsyncDevice {
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         GLAsyncFloatMemoryPointer(openGL, usage, length, openGL.alloc(length * Float.SIZE_BYTES, usage))
-
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        GLAsyncDoubleMemoryPointer(openGL, usage, array.size, openGL.wrapDouble(array, usage))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        GLAsyncDoubleMemoryPointer(openGL, usage, length, openGL.alloc(length * Double.SIZE_BYTES, usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         GLAsyncIntMemoryPointer(openGL, usage, array.size, openGL.wrapInt(array, usage))

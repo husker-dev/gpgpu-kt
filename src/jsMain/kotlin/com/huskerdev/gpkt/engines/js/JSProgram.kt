@@ -106,7 +106,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         val type = expression.type
 
         buffer.append(expression.lexeme.text)
-        if((type == Type.FLOAT || type == Type.DOUBLE) && "." !in expression.lexeme.text)
+        if(type == Type.FLOAT && "." !in expression.lexeme.text)
             buffer.append(".0")
     }
 }

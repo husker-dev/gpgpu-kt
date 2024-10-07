@@ -94,10 +94,6 @@ internal actual fun createGL(): OpenGL? = object: OpenGL{
         glUniform1f(index, value)
     }
 
-    override fun setUniform1d(index: Int, value: Double) = useContext {
-        glUniform1d(index, value)
-    }
-
     override fun setUniform1i(index: Int, value: Int) = useContext {
         glUniform1i(index, value)
     }
@@ -148,16 +144,6 @@ internal actual fun createGL(): OpenGL? = object: OpenGL{
         array
     }
 
-    override fun readDouble(ssbo: Int, length: Int, offset: Int) = useContext {
-        val buffer = MemoryUtil.memAllocDouble(length)
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, offset.toLong(), buffer)
-        val array = DoubleArray(length)
-        buffer.get(array)
-        MemoryUtil.memFree(buffer)
-        array
-    }
-
     override fun readInt(ssbo: Int, length: Int, offset: Int)= useContext {
         val buffer = MemoryUtil.memAllocInt(length)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
@@ -180,13 +166,6 @@ internal actual fun createGL(): OpenGL? = object: OpenGL{
 
     override fun writeFloat(ssbo: Int, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int) = useContextUnit {
         val buffer = MemoryUtil.memAllocFloat(length).put(src, srcOffset, length).flip()
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, dstOffset.toLong(), buffer)
-        MemoryUtil.memFree(buffer)
-    }
-
-    override fun writeDouble(ssbo: Int, src: DoubleArray, length: Int, srcOffset: Int, dstOffset: Int) = useContextUnit {
-        val buffer = MemoryUtil.memAllocDouble(length).put(src, srcOffset, length).flip()
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, dstOffset.toLong(), buffer)
         MemoryUtil.memFree(buffer)

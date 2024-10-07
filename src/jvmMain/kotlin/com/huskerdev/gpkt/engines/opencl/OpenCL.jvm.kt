@@ -116,9 +116,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
     override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray) =
         JOCLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
 
-    override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: DoubleArray) =
-        JOCLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
-
     override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray) =
         JOCLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
 
@@ -132,21 +129,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
         offset: Long,
         size: Long,
         dst: FloatArray
-    ) {
-        clEnqueueReadBuffer(
-            commandQueue.ptr, mem.ptr, blockingRead, offset,
-            size, Pointer.to(dst),
-            0, null, null
-        )
-    }
-
-    override fun clEnqueueReadBuffer(
-        commandQueue: CLCommandQueue,
-        mem: CLMem,
-        blockingRead: Boolean,
-        offset: Long,
-        size: Long,
-        dst: DoubleArray
     ) {
         clEnqueueReadBuffer(
             commandQueue.ptr, mem.ptr, blockingRead, offset,
@@ -192,22 +174,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
         offset: Long,
         size: Long,
         src: FloatArray,
-        srcOffset: Int
-    ) {
-        clEnqueueWriteBuffer(
-            commandQueue.ptr, mem.ptr, blockingRead, offset,
-            size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
-            0, null, null
-        )
-    }
-
-    override fun clEnqueueWriteBuffer(
-        commandQueue: CLCommandQueue,
-        mem: CLMem,
-        blockingRead: Boolean,
-        offset: Long,
-        size: Long,
-        src: DoubleArray,
         srcOffset: Int
     ) {
         clEnqueueWriteBuffer(

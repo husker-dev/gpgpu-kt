@@ -28,12 +28,6 @@ class CudaSyncDevice(
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CudaSyncFloatMemoryPointer(cuda, length, usage, cuda.alloc(length * Sizeof.FLOAT))
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CudaSyncDoubleMemoryPointer(cuda, array.size, usage, cuda.wrapDoubles(array))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CudaSyncDoubleMemoryPointer(cuda, length, usage, cuda.alloc(length * Sizeof.DOUBLE))
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CudaSyncIntMemoryPointer(cuda, array.size, usage, cuda.wrapInts(array))
 
@@ -55,12 +49,6 @@ class CudaAsyncDevice(
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CudaAsyncFloatMemoryPointer(cuda, length, usage, cuda.alloc(length * Sizeof.FLOAT))
-
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CudaAsyncDoubleMemoryPointer(cuda, array.size, usage, cuda.wrapDoubles(array))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CudaAsyncDoubleMemoryPointer(cuda, length, usage, cuda.alloc(length * Sizeof.DOUBLE))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CudaAsyncIntMemoryPointer(cuda, array.size, usage, cuda.wrapInts(array))

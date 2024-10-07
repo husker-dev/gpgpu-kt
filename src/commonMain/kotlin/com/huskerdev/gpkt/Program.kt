@@ -34,11 +34,9 @@ abstract class BasicProgram(ast: ScopeStatement): Program {
         val actualType = when(actual){
             is AsyncFloatMemoryPointer, is SyncFloatMemoryPointer -> Type.FLOAT_ARRAY
             is AsyncIntMemoryPointer, is SyncIntMemoryPointer -> Type.INT_ARRAY
-            is AsyncDoubleMemoryPointer, is SyncDoubleMemoryPointer -> Type.DOUBLE_ARRAY
             is AsyncByteMemoryPointer, is SyncByteMemoryPointer -> Type.BYTE_ARRAY
             is Float -> Type.FLOAT
             is Int -> Type.INT
-            is Double -> Type.DOUBLE
             is Byte -> Type.BYTE
             else -> throw UnsupportedOperationException("Unsupported type: $actual")
         }
@@ -258,7 +256,6 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
         Type.VOID -> "void"
         Type.FLOAT, Type.FLOAT_ARRAY -> "float"
         Type.INT, Type.INT_ARRAY -> "int"
-        Type.DOUBLE, Type.DOUBLE_ARRAY -> "double"
         Type.BYTE, Type.BYTE_ARRAY -> "char"
         Type.BOOLEAN, Type.BOOLEAN_ARRAY -> "bool"
     }

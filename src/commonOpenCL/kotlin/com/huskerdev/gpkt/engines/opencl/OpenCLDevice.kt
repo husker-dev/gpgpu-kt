@@ -26,12 +26,6 @@ class OpenCLSyncDevice(
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CLSyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES * length, usage))
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CLSyncDoubleMemoryPointer(cl, array.size, usage, cl.wrapDoubles(array, usage))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CLSyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES * length, usage))
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CLSyncIntMemoryPointer(cl, array.size, usage, cl.wrapInts(array, usage))
 
@@ -53,12 +47,6 @@ class OpenCLAsyncDevice(
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CLAsyncFloatMemoryPointer(cl, length, usage, cl.allocate(Float.SIZE_BYTES * length, usage))
-
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CLAsyncDoubleMemoryPointer(cl, array.size, usage, cl.wrapDoubles(array, usage))
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CLAsyncDoubleMemoryPointer(cl, length, usage, cl.allocate(Double.SIZE_BYTES * length, usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CLAsyncIntMemoryPointer(cl, array.size, usage, cl.wrapInts(array, usage))

@@ -21,12 +21,6 @@ open class CPUSyncDevice: CPUDeviceBase(), GPSyncDevice {
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CPUSyncFloatMemoryPointer(FloatArray(length), usage)
 
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CPUSyncDoubleMemoryPointer(array.copyOf(), usage)
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CPUSyncDoubleMemoryPointer(DoubleArray(length), usage)
-
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CPUSyncIntMemoryPointer(array.copyOf(), usage)
 
@@ -47,12 +41,6 @@ open class CPUAsyncDevice: CPUDeviceBase(), GPAsyncDevice {
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
         CPUAsyncFloatMemoryPointer(FloatArray(length), usage)
-
-    override fun wrapDoubles(array: DoubleArray, usage: MemoryUsage) =
-        CPUAsyncDoubleMemoryPointer(array.copyOf(), usage)
-
-    override fun allocDoubles(length: Int, usage: MemoryUsage) =
-        CPUAsyncDoubleMemoryPointer(DoubleArray(length), usage)
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CPUAsyncIntMemoryPointer(array.copyOf(), usage)

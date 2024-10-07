@@ -15,7 +15,6 @@ open class ExValue(
     fun castToType(type: Type?) = when{
         type == Type.FLOAT && value !is Float -> ExValue((value as Number).toFloat())
         type == Type.INT && value !is Double -> ExValue((value as Number).toInt())
-        type == Type.DOUBLE && value !is Float -> ExValue((value as Number).toDouble())
         type == Type.BYTE && value !is Float -> ExValue((value as Number).toByte())
         else -> this
     }
@@ -29,8 +28,6 @@ class ExArrayAccessValue(
     override fun set(newValue: Any?): ExValue{
         when (array) {
             is FloatArray -> array[index] = newValue as Float
-            is DoubleArray -> array[index] = newValue as Double
-            is LongArray -> array[index] = newValue as Long
             is IntArray -> array[index] = newValue as Int
             is ByteArray -> array[index] = newValue as Byte
             else -> throw UnsupportedOperationException("Can't set element in $array")
@@ -39,8 +36,6 @@ class ExArrayAccessValue(
     }
     override fun get(): Any = when (array) {
         is FloatArray -> array.getOrElse(index) { 0f }
-        is DoubleArray -> array.getOrElse(index) { 0.0 }
-        is LongArray -> array.getOrElse(index) { 0L }
         is IntArray -> array.getOrElse(index) { 0 }
         is ByteArray -> array.getOrElse(index) { 0.toByte() }
         else -> throw UnsupportedOperationException("Can't get element in $array")

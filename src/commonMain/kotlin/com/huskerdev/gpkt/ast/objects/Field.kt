@@ -18,8 +18,8 @@ class Field(
 }
 
 val predefinedMathFields = hashMapOf(
-    fieldPair("PI", Type.DOUBLE),
-    fieldPair("E", Type.DOUBLE),
+    fieldPair("PI", Type.FLOAT),
+    fieldPair("E", Type.FLOAT),
 )
 
 val allPredefinedFields = predefinedMathFields

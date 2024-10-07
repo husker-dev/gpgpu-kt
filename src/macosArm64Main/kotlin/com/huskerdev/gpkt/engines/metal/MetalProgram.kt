@@ -51,7 +51,6 @@ class MetalProgram(
 
             when(value){
                 is Float -> metal.setFloatAt(commandEncoder, value, i)
-                is Double -> metal.setDoubleAt(commandEncoder, value, i)
                 is Int -> metal.setIntAt(commandEncoder, value, i)
                 is Byte -> metal.setByteAt(commandEncoder, value, i)
                 is MetalMemoryPointer<*> -> metal.setBufferAt(commandEncoder, value.buffer, i)
@@ -160,7 +159,6 @@ class MetalProgram(
 
     override fun toCType(type: Type) = when(type){
         Type.FLOAT_ARRAY -> "device float"
-        Type.DOUBLE_ARRAY -> "device double"
         Type.INT_ARRAY -> "device int"
         Type.BYTE_ARRAY -> "device char"
         Type.BOOLEAN_ARRAY -> "device bool"

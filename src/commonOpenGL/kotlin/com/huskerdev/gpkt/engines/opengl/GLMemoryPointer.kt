@@ -48,15 +48,6 @@ class GLSyncFloatMemoryPointer(
     openGL::readFloat, openGL::writeFloat
 ), SyncFloatMemoryPointer
 
-class GLSyncDoubleMemoryPointer(
-    override val openGL: OpenGL,
-    override val usage: MemoryUsage,
-    override val length: Int,
-    override val ssbo: Int,
-): GLMemoryPointer.Sync<DoubleArray>(
-    openGL::readDouble, openGL::writeDouble
-), SyncDoubleMemoryPointer
-
 class GLSyncIntMemoryPointer(
     override val openGL: OpenGL,
     override val usage: MemoryUsage,
@@ -88,15 +79,6 @@ class GLAsyncFloatMemoryPointer(
 ): GLMemoryPointer.Async<FloatArray>(
     openGL::readFloat, openGL::writeFloat
 ), AsyncFloatMemoryPointer
-
-class GLAsyncDoubleMemoryPointer(
-    override val openGL: OpenGL,
-    override val usage: MemoryUsage,
-    override val length: Int,
-    override val ssbo: Int,
-): GLMemoryPointer.Async<DoubleArray>(
-    openGL::readDouble, openGL::writeDouble
-), AsyncDoubleMemoryPointer
 
 class GLAsyncIntMemoryPointer(
     override val openGL: OpenGL,
