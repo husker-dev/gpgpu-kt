@@ -101,9 +101,8 @@ kotlin {
 
                 // OpenGL
                 api("com.huskerdev:grapl-gl:2.2.0")
-                implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:3.3.4"))
-                api("org.lwjgl:lwjgl")
-                api("org.lwjgl:lwjgl-opengl")
+                api("org.lwjgl:lwjgl:3.3.4")
+                api("org.lwjgl:lwjgl-opengl:3.3.4")
                 api(fileTree("natives"))
             }
         }

@@ -150,9 +150,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
     override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray) =
         NCLMem(nCreateFloatBuffer(context.ptr, usage, array))
 
-    override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: DoubleArray) =
-        NCLMem(nCreateDoubleBuffer(context.ptr, usage, array))
-
     override fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray) =
         NCLMem(nCreateIntBuffer(context.ptr, usage, array))
 
@@ -167,15 +164,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
         size: Long,
         dst: FloatArray
     ) = nReadFloatBuffer(commandQueue.ptr, mem.ptr, blockingRead, offset, size, dst)
-
-    override fun clEnqueueReadBuffer(
-        commandQueue: CLCommandQueue,
-        mem: CLMem,
-        blockingRead: Boolean,
-        offset: Long,
-        size: Long,
-        dst: DoubleArray
-    )  = nReadDoubleBuffer(commandQueue.ptr, mem.ptr, blockingRead, offset, size, dst)
 
     override fun clEnqueueReadBuffer(
         commandQueue: CLCommandQueue,
@@ -204,16 +192,6 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
         src: FloatArray,
         srcOffset: Int
     ) = nWriteFloatBuffer(commandQueue.ptr, mem.ptr, blockingRead, offset, size, src, srcOffset.toLong())
-
-    override fun clEnqueueWriteBuffer(
-        commandQueue: CLCommandQueue,
-        mem: CLMem,
-        blockingRead: Boolean,
-        offset: Long,
-        size: Long,
-        src: DoubleArray,
-        srcOffset: Int
-    ) = nWriteDoubleBuffer(commandQueue.ptr, mem.ptr, blockingRead, offset, size, src, srcOffset.toLong())
 
     override fun clEnqueueWriteBuffer(
         commandQueue: CLCommandQueue,
