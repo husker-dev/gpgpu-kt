@@ -124,7 +124,7 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
         buffer.append(")")
         stringifyStatement(buffer, statement.body)
         if(statement.elseBody != null){
-            buffer.append("else")
+            buffer.append("else ")
             stringifyStatement(buffer, statement.elseBody)
         }
     }
@@ -167,7 +167,7 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
         appendCFunctionHeader(
             buffer = buffer,
             modifiers = function.modifiers.map { it.text },
-            type = toCType(function.returnType),
+            type = convertToReturnType(function.returnType),
             name = function.name,
             args = function.arguments.map(::convertToFuncArg)
         )
@@ -245,6 +245,10 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
         else buffer.append(field.name)
         return buffer.toString()
     }
+
+    protected open fun convertToReturnType(type: Type) =
+        if(type.isArray) "${toCType(type)}*"
+        else toCType(type)
 
     protected open fun toCModifier(modifier: Modifiers) = when(modifier){
         Modifiers.EXTERNAL -> "extern"

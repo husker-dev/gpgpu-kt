@@ -67,29 +67,35 @@ class Cuda(
     }
 
     fun dealloc(ptr: CUdeviceptr) {
+        cuCtxSetCurrent(context)
         cuMemFree(ptr)
     }
 
     fun alloc(size: Int) = CUdeviceptr().apply {
+        cuCtxSetCurrent(context)
         cuMemAlloc(this, size.toLong())
     }
 
     fun wrapFloats(array: FloatArray) = CUdeviceptr().apply {
+        cuCtxSetCurrent(context)
         cuMemAlloc(this, array.size.toLong() * Float.SIZE_BYTES)
         writeFloats(this, array, array.size, 0, 0)
     }
 
     fun wrapInts(array: IntArray) = CUdeviceptr().apply {
+        cuCtxSetCurrent(context)
         cuMemAlloc(this, array.size.toLong() * Int.SIZE_BYTES)
         writeInts(this, array, array.size, 0, 0)
     }
 
     fun wrapBytes(array: ByteArray) = CUdeviceptr().apply {
+        cuCtxSetCurrent(context)
         cuMemAlloc(this, array.size.toLong())
         writeBytes(this, array, array.size, 0, 0)
     }
 
     fun readFloats(src: CUdeviceptr, length: Int, offset: Int) = FloatArray(length).apply {
+        cuCtxSetCurrent(context)
         cuMemcpyDtoH(
             Pointer.to(this),
             src.withByteOffset(offset.toLong()),
@@ -97,6 +103,7 @@ class Cuda(
     }
 
     fun readInts(src: CUdeviceptr, length: Int, offset: Int) = IntArray(length).apply {
+        cuCtxSetCurrent(context)
         cuMemcpyDtoH(
             Pointer.to(this),
             src.withByteOffset(offset.toLong()),
@@ -104,6 +111,7 @@ class Cuda(
     }
 
     fun readBytes(src: CUdeviceptr, length: Int, offset: Int) = ByteArray(length).apply {
+        cuCtxSetCurrent(context)
         cuMemcpyDtoH(
             Pointer.to(this),
             src.withByteOffset(offset.toLong()),
@@ -111,6 +119,7 @@ class Cuda(
     }
 
     fun writeFloats(dst: CUdeviceptr, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuCtxSetCurrent(context)
         cuMemcpyHtoD(
             dst.withByteOffset(dstOffset.toLong()),
             Pointer.to(src).withByteOffset(srcOffset.toLong()),
@@ -118,6 +127,7 @@ class Cuda(
     }
 
     fun writeInts(dst: CUdeviceptr, src: IntArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuCtxSetCurrent(context)
         cuMemcpyHtoD(
             dst.withByteOffset(dstOffset.toLong()),
             Pointer.to(src).withByteOffset(srcOffset.toLong()),
@@ -125,6 +135,7 @@ class Cuda(
     }
 
     fun writeBytes(dst: CUdeviceptr, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int) {
+        cuCtxSetCurrent(context)
         cuMemcpyHtoD(
             dst.withByteOffset(dstOffset.toLong()),
             Pointer.to(src).withByteOffset(srcOffset.toLong()),
@@ -132,6 +143,7 @@ class Cuda(
     }
 
     fun compileToModule(src: String): CUmodule{
+        cuCtxSetCurrent(context)
         val program = nvrtcProgram()
         try {
             nvrtcCreateProgram(program, src, null, 0, null, null)
@@ -152,12 +164,14 @@ class Cuda(
     }
 
     fun getFunctionPointer(module: CUmodule, name: String): CUfunction{
+        cuCtxSetCurrent(context)
         val function = CUfunction()
         cuModuleGetFunction(function, module, name)
         return function
     }
 
     fun launch(function: CUfunction, count: Int, vararg pointers: Pointer){
+        cuCtxSetCurrent(context)
         val blockSizeX = min(maxBlockDimX, count)
         val gridSizeX = (count + blockSizeX - 1) / blockSizeX
 

@@ -225,7 +225,7 @@ internal actual fun createCL(requestedDeviceId: Int): OpenCL = object: OpenCL(re
         val size = LongArray(1)
         clGetProgramBuildInfo(program.ptr, device.ptr, CL_PROGRAM_BUILD_LOG, 0, null, size)
 
-        val buffer = CharArray(size[0].toInt())
+        val buffer = ByteArray(size[0].toInt())
         clGetProgramBuildInfo(program.ptr, device.ptr, CL_PROGRAM_BUILD_LOG, size[0], Pointer.to(buffer), null)
         return String(buffer, 0, buffer.lastIndex)
     }

@@ -3,9 +3,7 @@ package com.huskerdev.gpkt.engines.cuda
 import com.huskerdev.gpkt.FieldNotSetException
 import com.huskerdev.gpkt.SimpleCProgram
 import com.huskerdev.gpkt.TypesMismatchException
-import com.huskerdev.gpkt.ast.FieldExpression
-import com.huskerdev.gpkt.ast.FunctionStatement
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
@@ -78,7 +76,7 @@ class CudaProgram(
             buffer.append("const int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x+__o;")
             buffer.append("if(${function.arguments[0].name}>__c+__o)return;")
             buffers.forEach {
-                buffer.append("${it.name}=__v_${it.name};")
+                buffer.append("${it.name}=__v${it.name};")
             }
             stringifyScopeStatement(buffer, statement.function.body, false)
             buffer.append("}")
@@ -86,7 +84,7 @@ class CudaProgram(
             appendCFunctionHeader(
                 buffer = buffer,
                 modifiers = listOf("__device__") + function.modifiers.map { it.text },
-                type = function.returnType.text,
+                type = convertToReturnType(function.returnType),
                 name = function.name,
                 args = function.arguments.map(::convertToFuncArg)
             )
@@ -96,9 +94,9 @@ class CudaProgram(
 
     private fun transformKernelArg(field: Field): String{
         return if(field.type.isArray)
-            "${toCType(field.type)}*__v_${field.name}"
+            "${toCType(field.type)}*__v${field.name}"
         else
-            "${toCType(field.type)} __v_${field.name}"
+            "${toCType(field.type)} __v${field.name}"
     }
 
 

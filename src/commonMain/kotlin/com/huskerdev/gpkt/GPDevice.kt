@@ -41,14 +41,14 @@ interface GPSyncDevice: GPDeviceBase {
             if(GPType.Interpreter in requestedType) CPUSyncDevice() else null
     }
 
-    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
-    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<FloatArray>
+    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncFloatMemoryPointer
+    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncFloatMemoryPointer
 
-    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
-    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<IntArray>
+    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
+    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncIntMemoryPointer
 
-    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<ByteArray>
-    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncMemoryPointer<ByteArray>
+    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncByteMemoryPointer
+    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): SyncByteMemoryPointer
 }
 
 
@@ -61,12 +61,12 @@ interface GPAsyncDevice: GPDeviceBase {
             if(GPType.Interpreter in requestedType) CPUAsyncDevice() else null
     }
 
-    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
-    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<FloatArray>
+    fun wrapFloats(array: FloatArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncFloatMemoryPointer
+    fun allocFloats(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncFloatMemoryPointer
 
-    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>
-    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<IntArray>
+    fun wrapInts(array: IntArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer
+    fun allocInts(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncIntMemoryPointer
 
-    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<ByteArray>
-    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncMemoryPointer<ByteArray>
+    fun wrapBytes(array: ByteArray, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncByteMemoryPointer
+    fun allocBytes(length: Int, usage: MemoryUsage = MemoryUsage.READ_WRITE): AsyncByteMemoryPointer
 }

@@ -91,7 +91,7 @@ class OpenCLProgram(
             // Struct with inputs
             buffer.append("__in __v={")
             buffers.forEachIndexed { index, field ->
-                buffer.append("__v").append(index)
+                buffer.append("__v").append(field.name)
                 if(index != buffers.lastIndex)
                     buffer.append(",")
             }
@@ -106,7 +106,7 @@ class OpenCLProgram(
             appendCFunctionHeader(
                 buffer = buffer,
                 modifiers = function.modifiers.map { it.text },
-                type = toCType(function.returnType),
+                type = convertToReturnType(function.returnType),
                 name = function.name,
                 args = listOf("__in __v") + function.arguments.map(::convertToFuncArg)
             )
@@ -143,9 +143,9 @@ class OpenCLProgram(
 
     private fun transformKernelArg(field: Field): String{
         return if(field.type.isArray)
-            "${toCType(field.type)}*__v${buffers.indexOf(field)}"
+            "${toCType(field.type)}*__v${field.name}"
         else
-            "${toCType(field.type)} __v${buffers.indexOf(field)}"
+            "${toCType(field.type)} __v${field.name}"
     }
 
     override fun toCType(type: Type) = when(type){
