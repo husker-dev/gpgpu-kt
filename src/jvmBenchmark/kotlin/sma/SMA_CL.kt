@@ -1,17 +1,18 @@
 package sma
 
-import com.huskerdev.gpkt.GPSyncDevice
-import com.huskerdev.gpkt.GPType
+import com.huskerdev.gpkt.GPApiType
+import com.huskerdev.gpkt.GPSyncApi
 import org.openjdk.jmh.annotations.*
 
 
 @State(Scope.Benchmark)
+@Suppress("unused")
 open class SMA_CL {
     private lateinit var gp: GP
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncDevice.create(requestedType = arrayOf(GPType.OpenCL))!!)
+        gp = GP(GPSyncApi.getByType(GPApiType.OpenCL).defaultDevice)
     }
 
     @Benchmark

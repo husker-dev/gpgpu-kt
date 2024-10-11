@@ -1,6 +1,6 @@
 package com.huskerdev.gpkt.ast.parser
 
-import com.huskerdev.gpkt.GPDeviceBase
+import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.Field
@@ -16,7 +16,7 @@ fun parseScopeStatement(
     codeBlock: String,
     from: Int,
     to: Int,
-    device: GPDeviceBase?   = parentScope?.device,
+    device: GPContext?   = parentScope?.context,
     returnType: Type?       = null,
     iterable: Boolean       = false,
     fields: MutableList<Field> = mutableListOf(),
@@ -24,7 +24,7 @@ fun parseScopeStatement(
 ): ScopeStatement {
     //println("==== SCOPE: ${from}-${to} ====")
     val scope = Scope(
-        device = device,
+        context = device,
         parentScope = parentScope,
         returnType = returnType,
         iterable = iterable,

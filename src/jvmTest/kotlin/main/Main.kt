@@ -1,7 +1,7 @@
 package main
 
-import com.huskerdev.gpkt.GPSyncDevice
-import com.huskerdev.gpkt.GPType
+import com.huskerdev.gpkt.GPApiType
+import com.huskerdev.gpkt.GPSyncApi
 import com.huskerdev.gpkt.ast.GPCompilationException
 import kotlin.system.exitProcess
 
@@ -10,14 +10,25 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncDevice.create(requestedType = arrayOf(GPType.OpenCL))!!
+    val device = GPSyncApi.getByType(GPApiType.Interpreter).defaultDevice
+    val context = device.createContext()
     println("======== Device info ========")
-    println("Type: ${device.type}")
+    println("Type: ${device.api.type}")
     println("Name: ${device.name}")
-    println("Id:   ${device.id}")
     println("=============================")
 
-    device.modules.add("sma", """
+    context.modules.add("sma", """
+        const int a = 1;
+        
+        int test(int index){
+            if(index == 0) return 100;
+            if(index == 1) return 101;
+            if(index == 2) return 102;
+            if(index == 3) return 103;
+            return 99;
+        }
+        
+        
         float sma(float[] d, int from, int period){
             float sum = 0;
             for(int i = 0; i < period; i++)
@@ -27,7 +38,7 @@ fun main() {
     """.trimIndent())
 
     val program = try {
-        device.compile("""
+        context.compile("""
             import sma;
             
             extern float[] data;
@@ -37,11 +48,14 @@ fun main() {
             extern int maxPeriod;
             extern int count;
             
+            
+            
             void main(const int i){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
                 int localCandle = i % (maxPeriod - minPeriod);
             
-                result[i] = sma(data, localCandle, localPeriod);
+                //result[i] = sma(data, localCandle, localPeriod) + a;
+                result[i] = test(0);
             }
         """.trimIndent())
     }catch (e: GPCompilationException){
@@ -49,8 +63,8 @@ fun main() {
         exitProcess(0)
     }
 
-    val arr1 = device.wrapFloats(exampleArray())
-    val result = device.allocFloats(arr1.length)
+    val arr1 = context.wrapFloats(exampleArray())
+    val result = context.allocFloats(arr1.length)
     program.execute(
         instances = result.length,
         "data" to arr1,

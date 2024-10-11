@@ -61,7 +61,7 @@ fun parseForStatement(
     }
 
     // body
-    val iterableScope = Scope(scope.device, scope, iterable = true, fields = fields.toMutableList())
+    val iterableScope = Scope(scope.context, scope, iterable = true, fields = fields.toMutableList())
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
     i += body.lexemeLength
 

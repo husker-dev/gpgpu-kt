@@ -22,32 +22,13 @@ class ParsingTest {
             float _f5 = 1;
             float _f6 = (byte)1;
             
-            double _d1 = 1.0;
-            double _d2 = 1.;
-            double _d3 = .0;
-            double _d4 = 1;
-            double _d5 = (byte)1;
-            double _d6 = 1L;
-            
             int _i1 = 0b1;
             int _i2 = 0xffFFffff;
-            
-            int _l1 = 0b1;
-            int _l2 = 0xffFFffff;
-            
             
             extern float[] inputs1, inputs2;
             extern float[] outputs1, outputs2;
             
             void emptyFunc(){
-            }
-            
-            double doubleFunc(int arg1, float arg2){
-                return 1.2;
-            }
-            
-            long longFunc(int arg1, float arg2){
-                return 1;
             }
             
             float floatFunc(int arg1, float arg2){
@@ -76,8 +57,8 @@ class ParsingTest {
                 /* ================= *\
                          Parse
                 \* ================= */
-                int iVar1 = (int)123.0;
-                int iVar2 = (int)(123.0 + floatFunc(1, 1f));
+                int iVar1 = (int)123f;
+                int iVar2 = (int)(123f + floatFunc(1, 1f));
                 int iVar3 = (int)(float)1;
                 
                 float fVar1 = (float)123;

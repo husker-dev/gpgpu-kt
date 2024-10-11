@@ -1,4 +1,4 @@
-import com.huskerdev.gpkt.GPSyncDevice
+import com.huskerdev.gpkt.GPSyncApi
 import com.huskerdev.gpkt.ast.GPCompilationException
 import kotlin.system.exitProcess
 import kotlin.test.Test
@@ -8,14 +8,15 @@ fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 @Test
 fun main(){
-    val device = GPSyncDevice.create()!!
+    val api = GPSyncApi.getDefault()
+    val device = api.defaultDevice
+    val context = device.createContext()
     println("======== Device info ========")
-    println("Type: ${device.type}")
+    println("Type: ${api.type}")
     println("Name: ${device.name}")
-    println("Id:   ${device.id}")
     println("=============================")
 
-    device.modules.add("sma", """
+    context.modules.add("sma", """
         float sma(float[] d, int from, int period){
             float sum = 0;
             for(int i = 0; i < period; i++)
@@ -25,7 +26,7 @@ fun main(){
     """.trimIndent())
 
     val program = try {
-        device.compile("""
+        context.compile("""
             import sma;
             
             extern float[] data;
@@ -47,8 +48,8 @@ fun main(){
         exitProcess(0)
     }
 
-    val arr1 = device.wrapFloats(exampleArray())
-    val result = device.allocFloats(arr1.length)
+    val arr1 = context.wrapFloats(exampleArray())
+    val result = context.allocFloats(arr1.length)
     program.execute(
         instances = result.length,
         "data" to arr1,

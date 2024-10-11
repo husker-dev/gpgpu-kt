@@ -1,26 +1,26 @@
 package tests
 
-import com.huskerdev.gpkt.GPType
+import com.huskerdev.gpkt.GPApiType
 import com.huskerdev.gpkt.utils.threads
 import kotlin.test.Test
 
 class InvokeCL {
 
     @Test
-    fun invoke1() = testInvocation(GPType.OpenCL, 1)
+    fun invoke1() = testInvocation(GPApiType.OpenCL, 1)
 
     @Test
-    fun invoke5() = testInvocation(GPType.OpenCL, 2)
+    fun invoke5() = testInvocation(GPApiType.OpenCL, 2)
 
     @Test
-    fun invokeAllThreads() = testInvocation(GPType.OpenCL, threads)
+    fun invokeAllThreads() = testInvocation(GPApiType.OpenCL, threads)
 
     @Test
-    fun invoke50() = testInvocation(GPType.OpenCL, 50)
+    fun invoke50() = testInvocation(GPApiType.OpenCL, 50)
 
     @Test
-    fun invoke500() = testInvocation(GPType.OpenCL, 500)
+    fun invoke500() = testInvocation(GPApiType.OpenCL, 500)
 
     @Test
-    fun invoke100_000() = testInvocation(GPType.OpenCL, 100_000)
+    fun invoke100_000() = testInvocation(GPApiType.OpenCL, 100_000)
 }

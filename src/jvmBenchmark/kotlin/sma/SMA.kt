@@ -9,12 +9,14 @@ val maxPeriod = 500
 
 
 class GP(
-    engine: GPSyncDevice
+    device: GPSyncDevice
 ) {
-    private var data = engine.wrapFloats(FloatArray(candles) { it.toFloat() })
-    private var result = engine.allocFloats(candles * (maxPeriod - minPeriod))
+    private val context = device.createContext()
 
-    private var program = engine.compile("""
+    private var data = context.wrapFloats(FloatArray(candles) { it.toFloat() })
+    private var result = context.allocFloats(candles * (maxPeriod - minPeriod))
+
+    private var program = context.compile("""
         extern float[] data;
         extern float[] result;
         
@@ -47,6 +49,7 @@ class GP(
     }
 
     fun cleanup() {
+        context.dispose()
         data.dealloc()
         result.dealloc()
         program.dealloc()

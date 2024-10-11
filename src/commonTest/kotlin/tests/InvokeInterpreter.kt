@@ -1,26 +1,26 @@
 package tests
 
-import com.huskerdev.gpkt.GPType
+import com.huskerdev.gpkt.GPApiType
 import com.huskerdev.gpkt.utils.threads
 import kotlin.test.Test
 
 class InvokeInterpreter {
 
     @Test
-    fun invoke1() = testInvocation(GPType.Interpreter, 1)
+    fun invoke1() = testInvocation(GPApiType.Interpreter, 1)
 
     @Test
-    fun invoke5() = testInvocation(GPType.Interpreter, 2)
+    fun invoke5() = testInvocation(GPApiType.Interpreter, 2)
 
     @Test
-    fun invokeAllThreads() = testInvocation(GPType.Interpreter, threads)
+    fun invokeAllThreads() = testInvocation(GPApiType.Interpreter, threads)
 
     @Test
-    fun invoke50() = testInvocation(GPType.Interpreter, 50)
+    fun invoke50() = testInvocation(GPApiType.Interpreter, 50)
 
     @Test
-    fun invoke500() = testInvocation(GPType.Interpreter, 500)
+    fun invoke500() = testInvocation(GPApiType.Interpreter, 500)
 
     @Test
-    fun invoke100_000() = testInvocation(GPType.Interpreter, 100_000)
+    fun invoke100_000() = testInvocation(GPApiType.Interpreter, 100_000)
 }

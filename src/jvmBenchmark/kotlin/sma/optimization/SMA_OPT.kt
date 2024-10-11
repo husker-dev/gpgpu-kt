@@ -1,7 +1,6 @@
 package sma.optimization
 
 import com.huskerdev.gpkt.GPSyncDevice
-import com.huskerdev.gpkt.GPType
 
 const val candles = 1000
 
@@ -15,11 +14,13 @@ const val maxShift = 200
 class GP(
     device: GPSyncDevice
 ) {
-    private var data = device.wrapFloats(FloatArray(candles) { Math.random().toFloat() * 10000 })
-    private var sma = device.allocFloats(candles * (maxPeriod - minPeriod) * (maxShift - minShift))
-    private var result = device.allocFloats(sma.length)
+    val context = device.createContext()
 
-    private var progSMA = device.compile("""
+    private var data = context.wrapFloats(FloatArray(candles) { Math.random().toFloat() * 10000 })
+    private var sma = context.allocFloats(candles * (maxPeriod - minPeriod) * (maxShift - minShift))
+    private var result = context.allocFloats(sma.length)
+
+    private var progSMA = context.compile("""
         extern float[] candlesData;
         extern float[] smaData;
         
@@ -53,7 +54,7 @@ class GP(
         }
     """.trimIndent())
 
-    private var progSignals = device.compile("""
+    private var progSignals = context.compile("""
         extern float[] smaData;
         extern float[] closeData;
         extern float[] result;
@@ -93,17 +94,11 @@ class GP(
     }
 
     fun cleanup() {
+        context.dispose()
         data.dealloc()
         sma.dealloc()
         result.dealloc()
         progSMA.dealloc()
         progSignals.dealloc()
-    }
-}
-
-fun main(){
-    GP(GPSyncDevice.create(requestedType = arrayOf(GPType.CUDA))!!).apply {
-        execute()
-        cleanup()
     }
 }

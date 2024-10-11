@@ -1,13 +1,17 @@
 package com.huskerdev.gpkt
 
 interface MemoryPointer<T> {
+    val context: GPContext
     val length: Int
     val usage: MemoryUsage
+    val disposed: Boolean
 
     fun dealloc()
 }
 
 interface SyncMemoryPointer<T>: MemoryPointer<T> {
+    override val context: GPSyncContext
+
     fun write(
         src: T,
         length: Int = this.length,
@@ -21,6 +25,8 @@ interface SyncMemoryPointer<T>: MemoryPointer<T> {
 }
 
 interface AsyncMemoryPointer<T>: MemoryPointer<T> {
+    override val context: GPAsyncContext
+
     suspend fun write(
         src: T,
         length: Int = this.length,
@@ -38,6 +44,10 @@ enum class MemoryUsage {
     WRITE_ONLY,
     READ_WRITE
 }
+
+// ===================
+//        Sync
+// ===================
 
 interface SyncFloatMemoryPointer: SyncMemoryPointer<FloatArray>
 interface SyncIntMemoryPointer: SyncMemoryPointer<IntArray>

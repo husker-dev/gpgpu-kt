@@ -57,12 +57,6 @@ kotlin {
             iosArm64Main.get().dependsOn(this)
         }
 
-        val commonOpenGL by creating {
-            dependsOn(commonMain.get())
-
-            jvmMain.get().dependsOn(this)
-        }
-
         val commonOpenCL by creating {
             dependsOn(commonMain.get())
 
@@ -98,12 +92,6 @@ kotlin {
                 }
                 api("org.jcuda:jcuda-natives:12.0.0:windows-x86_64")
                 api("org.jcuda:jcuda-natives:12.0.0:linux-x86_64")
-
-                // OpenGL
-                api("com.huskerdev:grapl-gl:2.2.0")
-                api("org.lwjgl:lwjgl:3.3.4")
-                api("org.lwjgl:lwjgl-opengl:3.3.4")
-                api(fileTree("natives"))
             }
         }
 

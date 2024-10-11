@@ -38,7 +38,7 @@ abstract class BasicProgram(ast: ScopeStatement): Program {
             is Float -> Type.FLOAT
             is Int -> Type.INT
             is Byte -> Type.BYTE
-            else -> throw UnsupportedOperationException("Unsupported type: $actual")
+            else -> throw UnsupportedOperationException("Unsupported type: '${actual::class}'")
         }
         return actualType == expected
     }
@@ -214,6 +214,8 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
 
     protected open fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression){
         buffer.append(expression.lexeme.text)
+        if(expression.type.isFloating && "." !in expression.lexeme.text)
+            buffer.append(".0")
         if(expression.type == Type.FLOAT)
             buffer.append("f")
     }
