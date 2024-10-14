@@ -31,9 +31,7 @@ class CudaProgram(
         function = cuda.getFunctionPointer(context.peer, module, "__m")
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
-        val map = hashMapOf(*mapping)
-
+    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val instancesVal = Pointer.to(intArrayOf(instances))
         val offsetVal = Pointer.to(intArrayOf(indexOffset))
         val arrays = buffers.map { field ->

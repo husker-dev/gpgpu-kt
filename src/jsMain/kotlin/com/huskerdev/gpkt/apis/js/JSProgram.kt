@@ -22,8 +22,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         source = buffer.toString()
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
-        val map = hashMapOf(*mapping)
+    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val scope = js("{}")
         scope["__o"] = indexOffset
         scope["__c"] = instances

@@ -95,7 +95,7 @@ class ExScope(
             }
             is BreakStatement -> return BreakMarker
             is ContinueStatement -> return ContinueMarker
-            is ImportStatement -> Unit
+            is ImportStatement, is EmptyStatement -> Unit
             else -> throw UnsupportedOperationException("Unsupported statement '$it'")
         }
         return null

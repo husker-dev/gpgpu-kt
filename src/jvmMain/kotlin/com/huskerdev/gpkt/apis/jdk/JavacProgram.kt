@@ -78,9 +78,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         )
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
-        val map = hashMapOf(*mapping)
-
+    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val arrays = buffers.map { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
             if(!areEqualTypes(value, field.type))

@@ -9,7 +9,7 @@ class GPModules(
     val ast = hashMapOf<String, ScopeStatement>()
 
     fun add(name: String, code: String){
-        ast[name] = GPAst.parse(code, contextDevice)
+        ast[name] = GPAst.parse(code, contextDevice, false)
     }
 }
 

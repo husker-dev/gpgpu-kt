@@ -21,12 +21,13 @@ fun parseImportStatement(
     while(i < to){
         names += lexemes[i].text
 
-        val next = lexemes[i+1]
+        i++
+        val next = lexemes[i]
         if(next.text == ";")
             break
-        else if(next.text == ","){
-            i += 2
-        }else
+        else if(next.text == ",")
+            i++
+        else
             throw compilationError("Unrecognized symbol '${next.text}' in import declaration", lexemes[i], codeBlock)
     }
 

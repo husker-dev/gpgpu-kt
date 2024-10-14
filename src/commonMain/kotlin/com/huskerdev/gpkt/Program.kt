@@ -11,12 +11,23 @@ interface Program {
         indexOffset: Int,
         instances: Int,
         vararg mapping: Pair<String, Any>
-    )
+    ) = executeRange(0, instances, mapOf(*mapping))
 
     fun execute(
         instances: Int,
         vararg mapping: Pair<String, Any>
-    ) = executeRange(0, instances, *mapping)
+    ) = executeRange(0, instances, mapOf(*mapping))
+
+    fun executeRange(
+        indexOffset: Int,
+        instances: Int,
+        map: Map<String, Any>
+    )
+
+    fun execute(
+        instances: Int,
+        map: Map<String, Any>
+    )  = executeRange(0, instances, map)
 
     fun dealloc()
 }

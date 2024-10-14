@@ -19,7 +19,7 @@ fun parseScopeStatement(
     device: GPContext?      = parentScope?.context,
     returnType: Type?       = null,
     iterable: Boolean       = false,
-    modules: HashSet<ScopeStatement> = hashSetOf(),
+    modules: LinkedHashSet<ScopeStatement> = LinkedHashSet(),
     fields: MutableList<Field> = mutableListOf(),
     functions: MutableList<Function> = mutableListOf()
 ): ScopeStatement {
@@ -74,8 +74,8 @@ fun parseScopeStatement(
                             throw compilationError("Module '${path}' not found", import.lexeme, codeBlock)
 
                         val module = device.modules.ast[path]!!
-                        scope.modules += module                 // Get module itself
-                        scope.modules += module.scope.modules   // and its dependencies
+                        scope.modules += module.scope.modules   // Get dependent modules,
+                        scope.modules += module                 // and itself
                     }
                 }
             }
@@ -85,13 +85,6 @@ fun parseScopeStatement(
     }catch (e: IndexOutOfBoundsException){
         e.printStackTrace()
         throw unexpectedEofException(lexemes.last(), codeBlock)
-    }
-
-    if(parentScope == null){
-        // If this scope is main, then add module statements
-        statements.addAll(0, scope.modules.flatMap { module ->
-            module.statements.filter { it is FieldStatement || it is FunctionStatement }
-        })
     }
     return ScopeStatement(scope, statements, returns, from, to - from)
 }

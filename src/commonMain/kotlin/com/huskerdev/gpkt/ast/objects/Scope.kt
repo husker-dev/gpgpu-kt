@@ -10,7 +10,7 @@ open class Scope(
     private val parentScope: Scope?,
     val returnType: Type? = null,
     val iterable: Boolean = false,
-    val modules: HashSet<ScopeStatement> = hashSetOf(),
+    val modules: LinkedHashSet<ScopeStatement> = linkedSetOf(),
     val fields: MutableList<Field> = mutableListOf(),
     val functions: MutableList<Function> = mutableListOf(),
 ) {

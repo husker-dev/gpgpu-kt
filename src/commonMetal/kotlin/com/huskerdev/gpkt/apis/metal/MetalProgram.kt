@@ -36,9 +36,7 @@ class MetalProgram(
         commandEncoder = metal.createCommandEncoder(context.commandBuffer, pipeline)
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) {
-        val map = hashMapOf(*mapping)
-
+    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         buffers.forEachIndexed { i, field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
             if(!areEqualTypes(value, field.type))
