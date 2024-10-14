@@ -10,16 +10,14 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.Interpreter).defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.OpenCL).defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
     println("Name: ${device.name}")
     println("=============================")
 
-    context.modules.add("sma", """
-        const int a = 1;
-        
+    context.modules.add("test", """
         int test(int index){
             if(index == 0) return 100;
             if(index == 1) return 101;
@@ -27,7 +25,10 @@ fun main() {
             if(index == 3) return 103;
             return 99;
         }
-        
+    """.trimIndent())
+
+    context.modules.add("sma", """
+        const int a = 1;
         
         float sma(float[] d, int from, int period){
             float sum = 0;
@@ -39,7 +40,7 @@ fun main() {
 
     val program = try {
         context.compile("""
-            import sma;
+            import sma, test;
             
             extern float[] data;
             extern float[] result;
@@ -55,7 +56,7 @@ fun main() {
                 int localCandle = i % (maxPeriod - minPeriod);
             
                 //result[i] = sma(data, localCandle, localPeriod) + a;
-                result[i] = test(0);
+                result[i] = test(0) + sma(data, localCandle, localPeriod) + a;
             }
         """.trimIndent())
     }catch (e: GPCompilationException){

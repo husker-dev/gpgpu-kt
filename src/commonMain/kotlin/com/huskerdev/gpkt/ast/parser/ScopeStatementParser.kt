@@ -16,18 +16,19 @@ fun parseScopeStatement(
     codeBlock: String,
     from: Int,
     to: Int,
-    device: GPContext?   = parentScope?.context,
+    device: GPContext?      = parentScope?.context,
     returnType: Type?       = null,
     iterable: Boolean       = false,
+    modules: HashSet<ScopeStatement> = hashSetOf(),
     fields: MutableList<Field> = mutableListOf(),
     functions: MutableList<Function> = mutableListOf()
 ): ScopeStatement {
-    //println("==== SCOPE: ${from}-${to} ====")
     val scope = Scope(
         context = device,
         parentScope = parentScope,
         returnType = returnType,
         iterable = iterable,
+        modules = modules,
         fields = fields,
         functions = functions
     )
@@ -42,7 +43,6 @@ fun parseScopeStatement(
         while (i < to) {
             val lexeme = lexemes[i]
             val text = lexeme.text
-            //println("current: ${lexemes.subList(i, kotlin.math.min(to, i+3)).joinToString(" ") { it.text }}")
 
             if(text == "}"){
                 if(returnType != null && returnType != Type.VOID && !statements.any { it.returns })
@@ -69,21 +69,13 @@ fun parseScopeStatement(
                 }
                 is ImportStatement -> {
                     val import = statement.import
-                    if(device == null || !device.modules.ast.containsKey(import.path))
-                        throw compilationError("Module '${import.path}' not found", import.lexeme, codeBlock)
+                    import.paths.forEach { path ->
+                        if(device == null || !device.modules.ast.containsKey(path))
+                            throw compilationError("Module '${path}' not found", import.lexeme, codeBlock)
 
-                    val module = device.modules.ast[import.path]!!
-                    module.statements.forEach {
-                        when(it){
-                            is FieldStatement -> {
-                                statements += it
-                                scope.fields += it.fields
-                            }
-                            is FunctionStatement -> {
-                                statements += it
-                                scope.functions += it.function
-                            }
-                        }
+                        val module = device.modules.ast[path]!!
+                        scope.modules += module                 // Get module itself
+                        scope.modules += module.scope.modules   // and its dependencies
                     }
                 }
             }
@@ -93,6 +85,13 @@ fun parseScopeStatement(
     }catch (e: IndexOutOfBoundsException){
         e.printStackTrace()
         throw unexpectedEofException(lexemes.last(), codeBlock)
+    }
+
+    if(parentScope == null){
+        // If this scope is main, then add module statements
+        statements.addAll(0, scope.modules.flatMap { module ->
+            module.statements.filter { it is FieldStatement || it is FunctionStatement }
+        })
     }
     return ScopeStatement(scope, statements, returns, from, to - from)
 }

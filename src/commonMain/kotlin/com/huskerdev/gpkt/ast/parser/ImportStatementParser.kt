@@ -17,11 +17,18 @@ fun parseImportStatement(
     if(lexemes[i].type != Lexeme.Type.NAME)
         throw compilationError("Expected module name", lexemes[i], codeBlock)
 
-    val path = StringBuilder()
-    while(lexemes[i].text != ";" && i < to){
-        path.append(lexemes[i++].text)
+    val names = arrayListOf<String>()
+    while(i < to){
+        names += lexemes[i].text
+
+        val next = lexemes[i+1]
+        if(next.text == ";")
+            break
+        else if(next.text == ","){
+            i += 2
+        }else
+            throw compilationError("Unrecognized symbol '${next.text}' in import declaration", lexemes[i], codeBlock)
     }
-    if(path.endsWith('.'))
-        throw compilationError("Module path cannot ends with '.'", lexemes[i], codeBlock)
-    return ImportStatement(scope, Import(path.toString(), lexemes[from+1]), from, i - from + 1)
+
+    return ImportStatement(scope, Import(names, lexemes[from+1]), from, i - from + 1)
 }

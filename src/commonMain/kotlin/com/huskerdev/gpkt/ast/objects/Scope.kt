@@ -10,6 +10,7 @@ open class Scope(
     private val parentScope: Scope?,
     val returnType: Type? = null,
     val iterable: Boolean = false,
+    val modules: HashSet<ScopeStatement> = hashSetOf(),
     val fields: MutableList<Field> = mutableListOf(),
     val functions: MutableList<Function> = mutableListOf(),
 ) {
@@ -17,6 +18,8 @@ open class Scope(
     fun findDefinedField(name: String): Field? =
         fields.firstOrNull {
             it.name == name
+        } ?: modules.firstNotNullOfOrNull {
+            it.scope.findDefinedField(name)
         } ?: if(parentScope == null)
             allPredefinedFields[name]
         else parentScope.findDefinedField(name)
@@ -24,6 +27,8 @@ open class Scope(
     fun findDefinedFunction(name: String, arguments: List<Type> = emptyList()): Function? =
         functions.firstOrNull {
             it.name == name && it.canAcceptArguments(arguments)
+        } ?: modules.firstNotNullOfOrNull {
+            it.scope.findDefinedFunction(name, arguments)
         } ?: if(parentScope == null){
             val func = allPredefinedFunctions[name]
             if(func != null && func.canAcceptArguments(arguments))
