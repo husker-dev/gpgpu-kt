@@ -133,8 +133,7 @@ fun processLexemes(block: String): List<Lexeme> {
                 if (char == '/') {
                     if (!inComment && line[i + 1] == '/') { // Line comment
                         flush(lineIndex, i)
-                        i = line.length
-                        continue
+                        return@forEachIndexed
                     } else if (!inComment && line[i + 1] == '*') { // Multi-line comment begin
                         flush(lineIndex, i)
                         inComment = true
