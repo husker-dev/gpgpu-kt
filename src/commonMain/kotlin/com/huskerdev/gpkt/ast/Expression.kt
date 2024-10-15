@@ -23,8 +23,8 @@ abstract class Expression {
 // Wrapped by brackets
 class BracketExpression(
     val wrapped: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Expression() {
     override val type = wrapped.type
 }
@@ -41,8 +41,8 @@ class AxBExpression(
     override val type: Type,
     val left: Expression,
     val right: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): OperatorExpression(operator)
 
 // Ax
@@ -50,8 +50,8 @@ class AxExpression(
     operator: Operator,
     override val type: Type,
     val left: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): OperatorExpression(operator)
 
 // Ax
@@ -59,16 +59,16 @@ class XBExpression(
     operator: Operator,
     override val type: Type,
     val right: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): OperatorExpression(operator)
 
 // A[]
 class ArrayAccessExpression(
     val array: Field,
     val index: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): OperatorExpression(Operator.ARRAY_ACCESS) {
     override val type = Type.toSingleType(array.type)
 }
@@ -78,8 +78,8 @@ class FunctionCallExpression(
     operator: Operator,
     val function: Function,
     val arguments: List<Expression>,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): OperatorExpression(operator) {
     override val type = function.returnType
 }
@@ -87,8 +87,8 @@ class FunctionCallExpression(
 // A
 class FieldExpression(
     val field: Field,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Expression() {
     override val type = field.type
 }
@@ -97,14 +97,14 @@ class FieldExpression(
 class CastExpression(
     override val type: Type,
     val right: Expression,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Expression()
 
 // Const
 data class ConstExpression(
     val lexeme: Lexeme,
     override val type: Type,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Expression()

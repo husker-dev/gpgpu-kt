@@ -11,5 +11,12 @@ class GPModules(
     fun add(name: String, code: String){
         ast[name] = GPAst.parse(code, contextDevice, false)
     }
+
+    operator fun set(name: String, code: String) =
+        add(name, code)
+
+    operator fun get(name: String) =
+        ast[name]
+
 }
 

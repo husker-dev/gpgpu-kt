@@ -17,8 +17,8 @@ class ScopeStatement(
     override val scope: Scope,
     val statements: MutableList<Statement> = mutableListOf(),
     override val returns: Boolean,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement
 
 class ExpressionStatement(
@@ -33,8 +33,8 @@ class ExpressionStatement(
 class ImportStatement(
     override val scope: Scope,
     val import: Import,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
@@ -42,16 +42,16 @@ class ImportStatement(
 class FunctionStatement(
     override val scope: Scope,
     val function: Function,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
 
 class EmptyStatement(
     override val scope: Scope,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ) : Statement {
     override val returns = false
 }
@@ -59,8 +59,8 @@ class EmptyStatement(
 class FieldStatement(
     override val scope: Scope,
     val fields: List<Field>,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
@@ -68,24 +68,24 @@ class FieldStatement(
 class ReturnStatement(
     override val scope: Scope,
     val expression: Expression?,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = true
 }
 
 class BreakStatement(
     override val scope: Scope,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
 
 class ContinueStatement(
     override val scope: Scope,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
@@ -95,8 +95,8 @@ class IfStatement(
     val condition: Expression,
     val body: Statement,
     val elseBody: Statement?,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = body.returns && (elseBody == null || elseBody.returns)
 }
@@ -105,8 +105,8 @@ class WhileStatement(
     override val scope: Scope,
     val condition: Expression,
     val body: Statement,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }
@@ -117,8 +117,8 @@ class ForStatement(
     val condition: Expression?,
     val iteration: Expression?,
     val body: Statement,
-    override val lexemeIndex: Int,
-    override val lexemeLength: Int
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
 ): Statement {
     override val returns = false
 }

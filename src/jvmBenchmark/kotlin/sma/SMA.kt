@@ -17,6 +17,7 @@ class GP(
     private var result = context.allocFloats(candles * (maxPeriod - minPeriod))
 
     private var program = context.compile("""
+        // gpkt
         extern float[] data;
         extern float[] result;
         

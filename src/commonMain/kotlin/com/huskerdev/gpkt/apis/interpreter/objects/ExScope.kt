@@ -49,7 +49,7 @@ class ExScope(
             is FieldStatement -> it.fields.forEach { field ->
                 if(Modifiers.EXTERNAL !in field.modifiers) {
                     val value = if (field.initialExpression != null)
-                        executeExpression(this, field.initialExpression).castToType(field.type)
+                        executeExpression(this, field.initialExpression!!).castToType(field.type)
                     else null
                     addField(field.name, ExField(field.type, value))
                 }

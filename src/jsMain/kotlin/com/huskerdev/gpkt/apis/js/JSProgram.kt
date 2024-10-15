@@ -73,7 +73,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
             buffer.append(field.name)
             if(field.initialExpression != null){
                 buffer.append("=")
-                stringifyExpression(buffer, field.initialExpression)
+                stringifyExpression(buffer, field.initialExpression!!)
             }
             if(i < fieldStatement.fields.lastIndex)
                 buffer.append(",")

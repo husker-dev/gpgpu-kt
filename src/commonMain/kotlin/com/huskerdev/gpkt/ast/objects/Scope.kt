@@ -7,7 +7,7 @@ import com.huskerdev.gpkt.ast.types.Type
 
 open class Scope(
     val context: GPContext?,
-    private val parentScope: Scope?,
+    val parentScope: Scope?,
     val returnType: Type? = null,
     val iterable: Boolean = false,
     val modules: LinkedHashSet<ScopeStatement> = linkedSetOf(),

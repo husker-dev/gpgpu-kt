@@ -165,7 +165,7 @@ abstract class SimpleCProgram(ast: ScopeStatement): BasicProgram(ast) {
                 buffer.append(field.name)
             if(field.initialExpression != null){
                 buffer.append("=")
-                stringifyExpression(buffer, field.initialExpression)
+                stringifyExpression(buffer, field.initialExpression!!)
             }
             if(i != fields.lastIndex)
                 buffer.append(",")

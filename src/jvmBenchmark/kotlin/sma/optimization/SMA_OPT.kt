@@ -21,6 +21,7 @@ class GP(
     private var result = context.allocFloats(sma.length)
 
     private var progSMA = context.compile("""
+        // gpkt
         extern float[] candlesData;
         extern float[] smaData;
         

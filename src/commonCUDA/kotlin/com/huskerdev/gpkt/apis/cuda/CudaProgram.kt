@@ -86,6 +86,12 @@ class CudaProgram(
         }
     }
 
+    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
+        if(fieldStatement.scope.parentScope == null && fieldStatement.fields[0].modifiers.isEmpty())
+            buffer.append("__device__ ")
+        super.stringifyFieldStatement(fieldStatement, buffer)
+    }
+
     private fun transformKernelArg(field: Field): String{
         return if(field.type.isArray)
             "${toCType(field.type)}*__v${field.name}"

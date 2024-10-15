@@ -9,9 +9,10 @@ class Field(
     val name: String,
     val modifiers: MutableList<Modifiers>,
     val type: Type,
-    val initialExpression: Expression? = null
+    var initialExpression: Expression? = null
 ) {
     constructor(name: String, type: Type): this(name, mutableListOf(), type, null)
+    constructor(name: String, type: Type, initialExpression: Expression): this(name, mutableListOf(), type, initialExpression)
 
     val isConstant = Modifiers.CONST in modifiers
     val isReadonly = Modifiers.READONLY in modifiers
