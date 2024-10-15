@@ -183,6 +183,7 @@ class ParsingTest {
                 println(buffer)
             }
             override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = Unit
+            override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) = Unit
             override fun dealloc() = Unit
         }
     }

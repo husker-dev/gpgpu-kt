@@ -1,0 +1,2 @@
+headers = nvrtc.h
+package = nvrtc

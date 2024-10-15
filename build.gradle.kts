@@ -1,7 +1,9 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
@@ -22,6 +24,10 @@ repositories {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     jvm {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
@@ -38,6 +44,16 @@ kotlin {
     macosX64()
     iosX64()
     iosArm64()
+
+    linuxArm64 {
+        linkCUDA()
+    }
+    linuxX64 {
+        linkCUDA()
+    }
+    mingwX64 {
+        linkCUDA()
+    }
 
     androidTarget {
         publishLibraryVariants("release")
@@ -57,11 +73,33 @@ kotlin {
             iosArm64Main.get().dependsOn(this)
         }
 
+        val windowsMain by creating {
+            mingwX64Main.get().dependsOn(this)
+        }
+
+        val linuxMain by creating {
+            linuxX64Main.get().dependsOn(this)
+            linuxArm64Main.get().dependsOn(this)
+        }
+
         val commonOpenCL by creating {
             dependsOn(commonMain.get())
 
             jvmMain.get().dependsOn(this)
             androidMain.get().dependsOn(this)
+        }
+
+        val commonCUDA by creating {
+            dependsOn(commonMain.get())
+
+            jvmMain.get().dependsOn(this)
+        }
+
+        val commonCUDANative by creating {
+            dependsOn(commonCUDA)
+
+            windowsMain.dependsOn(this)
+            linuxMain.dependsOn(this)
         }
 
         val commonMetal by creating {
@@ -130,5 +168,33 @@ benchmark {
 tasks.withType(KotlinJsCompile::class.java).configureEach {
     compilerOptions {
         target = "es2015"
+    }
+}
+
+fun KotlinNativeTarget.linkCUDA(){
+    compilations.getByName("main"){
+        cinterops {
+            val dir = System.getenv()["CUDA_PATH"]
+            val staticLibExt = when{
+                DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "lib"
+                else -> "a"
+            }
+
+            val cuda by creating {
+                includeDirs("$dir/include")
+                extraOpts(
+                    "-libraryPath", "${dir}/lib/x64",
+                    "-staticLibrary", "cuda.$staticLibExt"
+                )
+            }
+
+            val nvrtc by creating {
+                includeDirs("$dir/include")
+                extraOpts(
+                    "-libraryPath", "${dir}/lib/x64",
+                    "-staticLibrary", "nvrtc.$staticLibExt"
+                )
+            }
+        }
     }
 }

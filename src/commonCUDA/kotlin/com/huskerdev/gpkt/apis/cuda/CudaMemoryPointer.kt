@@ -1,8 +1,6 @@
 package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.*
-import jcuda.driver.CUcontext
-import jcuda.driver.CUdeviceptr
 
 private typealias CUDAReader<T> = (context: CUcontext, ptr: CUdeviceptr, length: Int, offset: Int) -> T
 private typealias CUDAWriter<T> = (context: CUcontext, ptr: CUdeviceptr, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit

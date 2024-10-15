@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
-import jcuda.Sizeof
+
 
 abstract class CudaContext(
     cudaDevice: CudaDevice
@@ -31,13 +31,13 @@ class CudaSyncContext(
         CudaSyncFloatMemoryPointer(this, array.size, usage, cuda.wrapFloats(peer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CudaSyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Sizeof.FLOAT))
+        CudaSyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CudaSyncIntMemoryPointer(this, array.size, usage, cuda.wrapInts(peer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CudaSyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Sizeof.INT))
+        CudaSyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
         CudaSyncByteMemoryPointer(this, array.size, usage, cuda.wrapBytes(peer, array))
@@ -53,13 +53,13 @@ class CudaAsyncContext(
         CudaAsyncFloatMemoryPointer(this, array.size, usage, cuda.wrapFloats(peer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CudaAsyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Sizeof.FLOAT))
+        CudaAsyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
         CudaAsyncIntMemoryPointer(this, array.size, usage, cuda.wrapInts(peer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CudaAsyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Sizeof.INT))
+        CudaAsyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
         CudaAsyncByteMemoryPointer(this, array.size, usage, cuda.wrapBytes(peer, array))

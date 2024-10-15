@@ -7,9 +7,6 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.appendCFunctionHeader
-import jcuda.Pointer
-import jcuda.driver.CUfunction
-import jcuda.driver.CUmodule
 
 
 class CudaProgram(
@@ -32,26 +29,21 @@ class CudaProgram(
     }
 
     override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
-        val instancesVal = Pointer.to(intArrayOf(instances))
-        val offsetVal = Pointer.to(intArrayOf(indexOffset))
         val arrays = buffers.map { field ->
             val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
             if(!areEqualTypes(value, field.type))
                 throw TypesMismatchException(field.name)
 
             when(value){
-                is Float -> Pointer.to(floatArrayOf(value))
-                is Double -> Pointer.to(doubleArrayOf(value))
-                is Long -> Pointer.to(longArrayOf(value))
-                is Int -> Pointer.to(intArrayOf(value))
-                is Byte -> Pointer.to(byteArrayOf(value))
-                is CudaMemoryPointer<*> -> Pointer.to(value.ptr)
+                is Float, is Int, is Byte -> value
+                is CudaMemoryPointer<*> -> value.ptr
                 else -> throw UnsupportedOperationException()
             }
         }.toTypedArray()
         cuda.launch(
             context.device.peer, context.peer,
-            function, instances, instancesVal, offsetVal, *arrays)
+            function, instances,
+            instances, indexOffset, *arrays)
     }
 
     override fun dealloc() = Unit

@@ -1,7 +1,6 @@
 package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.*
-import jcuda.driver.CUdevice
 
 abstract class CudaDevice(
     override val api: CudaApi,
