@@ -96,14 +96,6 @@ extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBin
     return result;
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateDoubleBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jdoubleArray array) {
-    jboolean isCopy = false;
-    auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
-    auto result = (jlong) clCreateBuffer((cl_context)context, flags, 8 * env->GetArrayLength(array), arr, nullptr);
-    env->ReleasePrimitiveArrayCritical(array, arr, JNI_ABORT);
-    return result;
-}
-
 extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateIntBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jintArray array) {
     jboolean isCopy = false;
     auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
@@ -130,16 +122,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBind
     delete[] arr;
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nReadDoubleBuffer(JNIEnv* env, jclass, jlong commandQueue, jlong mem, jboolean blockingRead, jlong offset, jlong size, jdoubleArray dst) {
-    auto arr = new char[size];
-    clEnqueueReadBuffer(
-            (cl_command_queue)commandQueue, (cl_mem)mem, blockingRead,
-            offset, size, arr, 0, nullptr, nullptr
-    );
-    env->SetDoubleArrayRegion(dst, 0, env->GetArrayLength(dst), (jdouble*)arr);
-    delete[] arr;
-}
-
 extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nReadIntBuffer(JNIEnv* env, jclass, jlong commandQueue, jlong mem, jboolean blockingRead, jlong offset, jlong size, jintArray dst) {
     auto arr = new char[size];
     clEnqueueReadBuffer(
@@ -161,17 +143,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBind
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nWriteFloatBuffer(JNIEnv* env, jclass, jlong commandQueue, jlong mem, jboolean blockingRead, jlong offset, jlong size, jfloatArray src, jlong srcOffset) {
-    jboolean isCopy = false;
-    auto arr = (char*)env->GetPrimitiveArrayCritical(src, &isCopy);
-    clEnqueueWriteBuffer(
-            (cl_command_queue)commandQueue, (cl_mem)mem, blockingRead,
-            offset, size, arr + srcOffset, 0, nullptr, nullptr
-    );
-    env->ReleasePrimitiveArrayCritical(src, arr, JNI_ABORT);
-    delete[] arr;
-}
-
-extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nWriteDoubleBuffer(JNIEnv* env, jclass, jlong commandQueue, jlong mem, jboolean blockingRead, jlong offset, jlong size, jdoubleArray src, jlong srcOffset) {
     jboolean isCopy = false;
     auto arr = (char*)env->GetPrimitiveArrayCritical(src, &isCopy);
     clEnqueueWriteBuffer(
@@ -270,10 +241,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBind
 
 extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nSetKernelArg1f(JNIEnv* env, jclass, jlong kernel, jint index, jfloat value) {
     clSetKernelArg((cl_kernel)kernel, index, 4, &value);
-}
-
-extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nSetKernelArg1d(JNIEnv* env, jclass, jlong kernel, jint index, jdouble value) {
-    clSetKernelArg((cl_kernel)kernel, index, 8, &value);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nSetKernelArg1i(JNIEnv* env, jclass, jlong kernel, jint index, jint value) {

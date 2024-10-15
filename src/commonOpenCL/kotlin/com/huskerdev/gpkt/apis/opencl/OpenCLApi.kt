@@ -3,7 +3,7 @@ package com.huskerdev.gpkt.apis.opencl
 import com.huskerdev.gpkt.*
 
 abstract class OpenCLApi: GPApi {
-    val opencl = createCL()
+    val opencl = OpenCL()
 
     override val type = GPApiType.OpenCL
 }

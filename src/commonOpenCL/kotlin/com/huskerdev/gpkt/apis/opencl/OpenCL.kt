@@ -14,57 +14,55 @@ private const val CL_MEM_COPY_HOST_PTR = (1L shl 5)
 private const val CL_KERNEL_WORK_GROUP_SIZE = 0x11B0
 
 internal expect fun isCLSupported(): Boolean
-internal expect fun createCL(): OpenCL
 
-abstract class CLPlatformId
-abstract class CLDeviceId
-abstract class CLContext
-abstract class CLCommandQueue
-abstract class CLMem
-abstract class CLProgram
-abstract class CLKernel
+expect class CLPlatformId
+expect class CLDeviceId
+expect class CLContext
+expect class CLCommandQueue
+expect class CLMem
+expect class CLProgram
+expect class CLKernel
 
-abstract class OpenCL {
+internal expect fun clGetPlatformIDs(): Array<CLPlatformId>
+internal expect fun clGetDeviceIDs(platform: CLPlatformId, type: Long): Array<CLDeviceId>
+internal expect fun clGetDeviceInfo(device: CLDeviceId, param: Int): ByteArray
+internal expect fun clCreateContext(properties: Array<Any>, device: CLDeviceId): CLContext
+internal expect fun clReleaseContext(context: CLContext)
+internal expect fun clCreateCommandQueue(context: CLContext, device: CLDeviceId): CLCommandQueue
+
+internal expect fun clReleaseMemObject(mem: CLMem)
+internal expect fun clReleaseProgram(program: CLProgram)
+internal expect fun clReleaseKernel(kernel: CLKernel)
+
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray): CLMem
+
+internal expect fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: FloatArray)
+internal expect fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: IntArray)
+internal expect fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: ByteArray)
+
+internal expect fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: FloatArray, srcOffset: Int)
+internal expect fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: IntArray, srcOffset: Int)
+internal expect fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: ByteArray, srcOffset: Int)
+
+internal expect fun clCreateProgramWithSource(context: CLContext, source: String, error: IntArray): CLProgram
+internal expect fun clBuildProgram(program: CLProgram): Int
+internal expect fun clGetProgramBuildInfo(program: CLProgram, device: CLDeviceId): String
+internal expect fun clCreateKernel(program: CLProgram, main: String): CLKernel
+internal expect fun clGetKernelWorkGroupInfo(kernel: CLKernel, device: CLDeviceId, param: Int): LongArray
+internal expect fun clEnqueueNDRangeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray)
+
+internal expect fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem)
+internal expect fun clSetKernelArg1f(kernel: CLKernel, index: Int, value: Float)
+internal expect fun clSetKernelArg1i(kernel: CLKernel, index: Int, value: Int)
+internal expect fun clSetKernelArg1b(kernel: CLKernel, index: Int, value: Byte)
+
+class OpenCL {
     companion object {
         val supported = isCLSupported()
     }
-
-    abstract fun clGetPlatformIDs(): Array<CLPlatformId>
-    abstract fun clGetDeviceIDs(platform: CLPlatformId, type: Long): Array<CLDeviceId>
-    abstract fun clGetDeviceInfo(device: CLDeviceId, param: Int): ByteArray
-    abstract fun clCreateContext(properties: Array<Any>, device: CLDeviceId): CLContext
-    abstract fun clReleaseContext(context: CLContext)
-    abstract fun clCreateCommandQueue(context: CLContext, device: CLDeviceId): CLCommandQueue
-
-    abstract fun clReleaseMemObject(mem: CLMem)
-    abstract fun clReleaseProgram(program: CLProgram)
-    abstract fun clReleaseKernel(kernel: CLKernel)
-
-    abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long): CLMem
-    abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray): CLMem
-    abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray): CLMem
-    abstract fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray): CLMem
-
-    abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: FloatArray)
-    abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: IntArray)
-    abstract fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: ByteArray)
-
-    abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: FloatArray, srcOffset: Int)
-    abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: IntArray, srcOffset: Int)
-    abstract fun clEnqueueWriteBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, src: ByteArray, srcOffset: Int)
-
-    abstract fun clCreateProgramWithSource(context: CLContext, source: String, error: IntArray): CLProgram
-    abstract fun clBuildProgram(program: CLProgram): Int
-    abstract fun clGetProgramBuildInfo(program: CLProgram, device: CLDeviceId): String
-    abstract fun clCreateKernel(program: CLProgram, main: String): CLKernel
-    abstract fun clGetKernelWorkGroupInfo(kernel: CLKernel, device: CLDeviceId, param: Int): LongArray
-    abstract fun clEnqueueNDRangeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray)
-
-    abstract fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem)
-    abstract fun clSetKernelArg1f(kernel: CLKernel, index: Int, value: Float)
-    abstract fun clSetKernelArg1d(kernel: CLKernel, index: Int, value: Double)
-    abstract fun clSetKernelArg1i(kernel: CLKernel, index: Int, value: Int)
-    abstract fun clSetKernelArg1b(kernel: CLKernel, index: Int, value: Byte)
 
     fun getDevices() =
         clGetDeviceIDs(clGetPlatformIDs()[0], CL_DEVICE_TYPE_ALL)
@@ -197,9 +195,6 @@ abstract class OpenCL {
 
     fun setArgument1f(kernel: CLKernel, index: Int, value: Float) =
         clSetKernelArg1f(kernel, index, value)
-
-    fun setArgument1d(kernel: CLKernel, index: Int, value: Double) =
-        clSetKernelArg1d(kernel, index, value)
 
     fun setArgument1i(kernel: CLKernel, index: Int, value: Int) =
         clSetKernelArg1i(kernel, index, value)
