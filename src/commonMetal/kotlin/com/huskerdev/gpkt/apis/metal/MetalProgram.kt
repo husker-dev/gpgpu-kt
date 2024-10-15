@@ -14,8 +14,6 @@ class MetalProgram(
     private val context: MetalContext,
     ast: ScopeStatement
 ): SimpleCProgram(ast) {
-    private val metal = context.metal
-
     private val library: MTLLibrary
     private val function: MTLFunction
     private val pipeline: MTLComputePipelineState
@@ -30,10 +28,10 @@ class MetalProgram(
 
         stringifyScopeStatement(buffer, ast, false)
 
-        library = metal.createLibrary(buffer.toString())
-        function = metal.getFunction(library, "_m")
-        pipeline = metal.createPipeline(context.device.peer, function)
-        commandEncoder = metal.createCommandEncoder(context.commandBuffer, pipeline)
+        library = mtlCreateLibrary(context.device.peer, buffer.toString())
+        function = mtlGetFunction(library, "_m")
+        pipeline = mtlCreatePipeline(context.device.peer, function)
+        commandEncoder = mtlCreateCommandEncoder(context.commandBuffer, pipeline)
     }
 
     override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
@@ -43,22 +41,22 @@ class MetalProgram(
                 throw TypesMismatchException(field.name)
 
             when(value){
-                is Float -> metal.setFloatAt(commandEncoder, value, i)
-                is Int -> metal.setIntAt(commandEncoder, value, i)
-                is Byte -> metal.setByteAt(commandEncoder, value, i)
-                is MetalMemoryPointer<*> -> metal.setBufferAt(commandEncoder, value.buffer, i)
+                is Float -> mtlSetFloatAt(commandEncoder, value, i)
+                is Int -> mtlSetIntAt(commandEncoder, value, i)
+                is Byte -> mtlSetByteAt(commandEncoder, value, i)
+                is MetalMemoryPointer<*> -> mtlSetBufferAt(commandEncoder, value.buffer, i)
                 else -> throw UnsupportedOperationException()
             }
         }
-        metal.setIntAt(commandEncoder, indexOffset, buffers.size)
-        metal.execute(context.commandBuffer, commandEncoder, instances)
+        mtlSetIntAt(commandEncoder, indexOffset, buffers.size)
+        mtlExecute(context.commandBuffer, commandEncoder, instances)
     }
 
     override fun dealloc() {
-        metal.deallocLibrary(library)
-        metal.deallocFunction(function)
-        metal.deallocPipeline(pipeline)
-        metal.deallocCommandEncoder(commandEncoder)
+        mtlDeallocLibrary(library)
+        mtlDeallocFunction(function)
+        mtlDeallocPipeline(pipeline)
+        mtlDeallocCommandEncoder(commandEncoder)
     }
 
     override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder) {

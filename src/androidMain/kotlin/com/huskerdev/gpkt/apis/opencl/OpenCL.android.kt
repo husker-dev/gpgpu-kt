@@ -92,7 +92,7 @@ actual class CLProgram(val ptr: Long)
 actual class CLKernel(val ptr: Long)
 
 
-internal actual fun clGetPlatformIDs(): Array<CLPlatformId> =
+actual fun clGetPlatformIDs(): Array<CLPlatformId> =
     nGetPlatforms().map { CLPlatformId(it) }.toTypedArray()
 
 internal actual fun clGetDeviceIDs(platform: CLPlatformId, type: Long): Array<CLDeviceId> =
@@ -113,7 +113,7 @@ internal actual fun clCreateContext(properties: Array<Any>, device: CLDeviceId) 
 internal actual fun clReleaseContext(context: CLContext) =
     nReleaseContext(context.ptr)
 
-internal actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
+actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
     CLCommandQueue(nCreateCommandQueue(context.ptr, device.ptr))
 
 internal actual fun clReleaseMemObject(mem: CLMem) =

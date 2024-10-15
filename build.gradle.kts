@@ -171,6 +171,9 @@ tasks.withType(KotlinJsCompile::class.java).configureEach {
 }
 
 fun KotlinNativeTarget.linkCUDA(){
+    if(DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX)
+        return
+
     compilations.getByName("main"){
         cinterops {
             val dir = System.getenv()["CUDA_PATH"]

@@ -33,7 +33,7 @@ actual class CLProgram(val ptr: cl_program)
 actual class CLKernel(val ptr: cl_kernel)
 
 
-internal actual fun clGetPlatformIDs(): Array<CLPlatformId> {
+actual fun clGetPlatformIDs(): Array<CLPlatformId> {
     val numPlatformsArray = IntArray(1)
     clGetPlatformIDs(0, null, numPlatformsArray)
     val numPlatforms = numPlatformsArray[0]
@@ -79,7 +79,7 @@ internal actual fun clReleaseContext(context: CLContext) {
     clReleaseContext(context.ptr)
 }
 
-internal actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
+actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
     CLCommandQueue(clCreateCommandQueue(
         context.ptr, device.ptr, 0, null
     ))

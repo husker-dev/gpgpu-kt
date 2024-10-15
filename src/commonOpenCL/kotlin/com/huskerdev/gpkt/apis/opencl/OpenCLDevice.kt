@@ -9,7 +9,7 @@ abstract class OpenCLDevice(
     val peer: CLDeviceId,
     val opencl: OpenCL = api.opencl
 ): GPDevice {
-    val platform = opencl.clGetPlatformIDs()[0]
+    val platform = clGetPlatformIDs()[0]
 
     override val name = opencl.getDeviceName(peer)
     override val isAccelerated = true

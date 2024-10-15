@@ -11,7 +11,7 @@ abstract class OpenCLContext(
 
     val opencl = clDevice.opencl
     val peer = opencl.createContext(clDevice.platform, clDevice.peer)
-    val commandQueue = opencl.clCreateCommandQueue(peer, clDevice.peer)
+    val commandQueue = clCreateCommandQueue(peer, clDevice.peer)
 
     override var disposed = true
     override val modules = GPModules(this)

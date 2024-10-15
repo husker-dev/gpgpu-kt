@@ -23,12 +23,12 @@ expect class CLMem
 expect class CLProgram
 expect class CLKernel
 
-internal expect fun clGetPlatformIDs(): Array<CLPlatformId>
+expect fun clGetPlatformIDs(): Array<CLPlatformId>
 internal expect fun clGetDeviceIDs(platform: CLPlatformId, type: Long): Array<CLDeviceId>
 internal expect fun clGetDeviceInfo(device: CLDeviceId, param: Int): ByteArray
 internal expect fun clCreateContext(properties: Array<Any>, device: CLDeviceId): CLContext
 internal expect fun clReleaseContext(context: CLContext)
-internal expect fun clCreateCommandQueue(context: CLContext, device: CLDeviceId): CLCommandQueue
+expect fun clCreateCommandQueue(context: CLContext, device: CLDeviceId): CLCommandQueue
 
 internal expect fun clReleaseMemObject(mem: CLMem)
 internal expect fun clReleaseProgram(program: CLProgram)

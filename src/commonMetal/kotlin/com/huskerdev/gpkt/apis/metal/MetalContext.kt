@@ -6,11 +6,11 @@ import com.huskerdev.gpkt.ast.ScopeStatement
 abstract class MetalContext(
     metalDevice: MetalDevice
 ): GPContext{
-    val metal = metalDevice.metal
+    protected val devicePeer = metalDevice.peer
     override val device = metalDevice
 
-    private val commandQueue = metal.newCommandQueue(metalDevice.peer)
-    val commandBuffer = metal.newCommandBuffer(commandQueue)
+    private val commandQueue = mtlNewCommandQueue(metalDevice.peer)
+    val commandBuffer = mtlNewCommandBuffer(commandQueue)
 
     override var disposed = false
     override val modules = GPModules(this)
@@ -21,8 +21,8 @@ abstract class MetalContext(
     override fun dispose() {
         if(disposed) return
         disposed = true
-        metal.deallocCommandQueue(commandQueue)
-        metal.deallocCommandBuffer(commandBuffer)
+        mtlDeallocCommandQueue(commandQueue)
+        mtlDeallocCommandBuffer(commandBuffer)
     }
 }
 
@@ -30,43 +30,43 @@ class MetalSyncContext(
     metalDevice: MetalDevice
 ): MetalContext(metalDevice), GPSyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        MetalSyncFloatMemoryPointer(this, array.size, usage, metal.wrapFloats(array))
+        MetalSyncFloatMemoryPointer(this, array.size, usage, mtlWrapFloats(devicePeer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        MetalSyncFloatMemoryPointer(this, length, usage, metal.createBuffer(length * Float.SIZE_BYTES))
+        MetalSyncFloatMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        MetalSyncIntMemoryPointer(this, array.size, usage, metal.wrapInts(array))
+        MetalSyncIntMemoryPointer(this, array.size, usage, mtlWrapInts(devicePeer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        MetalSyncIntMemoryPointer(this, length, usage, metal.createBuffer(length * Int.SIZE_BYTES))
+        MetalSyncIntMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        MetalSyncByteMemoryPointer(this, array.size, usage, metal.wrapBytes(array))
+        MetalSyncByteMemoryPointer(this, array.size, usage, mtlWrapBytes(devicePeer, array))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        MetalSyncByteMemoryPointer(this, length, usage, metal.createBuffer(length))
+        MetalSyncByteMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length))
 }
 
 class MetalAsyncContext(
     metalDevice: MetalDevice
 ): MetalContext(metalDevice), GPAsyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        MetalAsyncFloatMemoryPointer(this, array.size, usage, metal.wrapFloats(array))
+        MetalAsyncFloatMemoryPointer(this, array.size, usage, mtlWrapFloats(devicePeer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        MetalAsyncFloatMemoryPointer(this, length, usage, metal.createBuffer(length * Float.SIZE_BYTES))
+        MetalAsyncFloatMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        MetalAsyncIntMemoryPointer(this, array.size, usage, metal.wrapInts(array))
+        MetalAsyncIntMemoryPointer(this, array.size, usage, mtlWrapInts(devicePeer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        MetalAsyncIntMemoryPointer(this, length, usage, metal.createBuffer(length * Int.SIZE_BYTES))
+        MetalAsyncIntMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        MetalAsyncByteMemoryPointer(this, array.size, usage, metal.wrapBytes(array))
+        MetalAsyncByteMemoryPointer(this, array.size, usage, mtlWrapBytes(devicePeer, array))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        MetalAsyncByteMemoryPointer(this, length, usage, metal.createBuffer(length))
+        MetalAsyncByteMemoryPointer(this, length, usage, mtlCreateBuffer(devicePeer, length))
 
 }

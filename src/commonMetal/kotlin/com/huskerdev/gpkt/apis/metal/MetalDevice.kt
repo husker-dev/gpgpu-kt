@@ -6,10 +6,9 @@ import com.huskerdev.gpkt.GPSyncDevice
 
 abstract class MetalDevice(
     override val api: MetalApi,
-    val peer: MTLDevice,
-    val metal: Metal = api.metal
+    val peer: MTLDevice
 ): GPDevice {
-    override val name = metal.getDeviceName(peer)
+    override val name = mtlGetDeviceName(peer)
     override val isAccelerated = true
 }
 
