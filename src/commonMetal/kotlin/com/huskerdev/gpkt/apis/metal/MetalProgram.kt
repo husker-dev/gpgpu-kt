@@ -18,11 +18,6 @@ class MetalProgram(
 
     init {
         val buffer = StringBuilder()
-
-        buffer.append("typedef struct{")
-        buffers.joinTo(buffer, separator = ";", postfix = ";") { convertToFuncArg(it) }
-        buffer.append("}__in;")
-
         stringifyScopeStatement(buffer, ast, false)
 
         library = mtlCreateLibrary(context.device.peer, buffer.toString())
@@ -75,15 +70,13 @@ class MetalProgram(
     }
 
     override fun stringifyModifiersInStruct(field: Field) =
-        "device"
+        stringifyModifiersInArg(field)
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is Field && obj.isConstant) "constant"
-        else ""
+        if(obj is Field && obj.isConstant) "constant" else ""
 
     override fun stringifyModifiersInLocal(field: Field) = ""
 
     override fun stringifyModifiersInArg(field: Field) =
-        if(field in buffers) "device"
-        else ""
+        if(field.type.isArray) "device" else ""
 }
