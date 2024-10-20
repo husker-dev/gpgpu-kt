@@ -1,16 +1,16 @@
 package com.huskerdev.gpkt.apis.js
 
-import com.huskerdev.gpkt.FieldNotSetException
-import com.huskerdev.gpkt.SimpleCProgram
-import com.huskerdev.gpkt.TypesMismatchException
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.predefinedMathFields
 import com.huskerdev.gpkt.ast.objects.predefinedMathFunctions
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
+import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.utils.SimpleCProgram
 
-class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
+class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     private var source: String
 
@@ -22,17 +22,13 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         source = buffer.toString()
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+    override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val scope = js("{}")
         scope["__o"] = indexOffset
         scope["__c"] = instances
 
         buffers.forEach { field ->
-            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
-            if(!areEqualTypes(value, field.type))
-                throw TypesMismatchException(field.name)
-
-            scope[field.name] = when(value){
+            scope[field.name] = when(val value = map[field.name]!!){
                 is CPUMemoryPointer<*> -> value.array
                 is Float, is Double, is Long, is Int, is Byte -> value
                 else -> throw UnsupportedOperationException()
@@ -62,6 +58,17 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
             stringifyScopeStatement(buffer, function.body, true)
         }
     }
+
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+        buffer.append("for(let i=this.__o;i<this.__o+this.__c;i++)")
+    }
+
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+
+    override fun stringifyModifiersInStruct(field: Field) = ""
+    override fun stringifyModifiersInGlobal(obj: Any) = ""
+    override fun stringifyModifiersInLocal(field: Field) = ""
+    override fun stringifyModifiersInArg(field: Field) = ""
 
     override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
         val modifiers = fieldStatement.fields[0].modifiers
@@ -96,7 +103,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast) {
     }
 
     override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
-        if(expression.array in buffers)
+        if(expression.array.field.isExtern)
             buffer.append("this.")
         super.stringifyArrayAccessExpression(buffer, expression)
     }

@@ -16,7 +16,7 @@ interface Statement{
 class ScopeStatement(
     override val scope: Scope,
     val statements: MutableList<Statement> = mutableListOf(),
-    override val returns: Boolean,
+    override val returns: Boolean = false,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement

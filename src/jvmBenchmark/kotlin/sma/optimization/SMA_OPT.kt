@@ -42,7 +42,7 @@ class GP(
         }
         
         void main(int i){
-            int deltaPeriod = maxPeriod - minPeriod;
+            int deltaPeriod = (maxPeriod - minPeriod) / stepPeriod;
             int deltaShift = maxShift - minShift;
             
             int currentIndex = i % candles;
@@ -95,7 +95,7 @@ class GP(
     }
 
     fun cleanup() {
-        context.dispose()
+                context.dispose()
         data.dealloc()
         sma.dealloc()
         result.dealloc()

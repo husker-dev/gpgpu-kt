@@ -8,7 +8,7 @@ interface GPContext{
     val disposed: Boolean
     val modules: GPModules
 
-    fun compile(ast: ScopeStatement): Program
+    fun compile(ast: ScopeStatement): GPProgram
     fun compile(code: String) =
         compile(GPAst.parse(code, this))
 

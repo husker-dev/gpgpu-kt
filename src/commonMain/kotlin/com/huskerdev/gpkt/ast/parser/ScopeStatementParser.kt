@@ -60,7 +60,7 @@ fun parseScopeStatement(
                     statement.fields.forEach { field ->
                         scope.addField(field, lexeme, codeBlock)
                         if(parentScope == null && field.modifiers.isEmpty())
-                            field.modifiers += Modifiers.CONST
+                            field.modifiers += Modifiers.THREADLOCAL
                     }
                 }
                 is FunctionStatement -> {

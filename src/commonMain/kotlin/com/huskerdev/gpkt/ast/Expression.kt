@@ -14,7 +14,7 @@ abstract class Expression {
 
     fun canAssign() = when {
         this is FieldExpression && field.isConstant -> false
-        this is ArrayAccessExpression && array.isReadonly -> false
+        this is ArrayAccessExpression && array.field.isReadonly -> false
         else -> true
     }
 }
@@ -65,7 +65,7 @@ class XBExpression(
 
 // A[]
 class ArrayAccessExpression(
-    val array: Field,
+    val array: FieldExpression,
     val index: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -75,12 +75,11 @@ class ArrayAccessExpression(
 
 // A()
 class FunctionCallExpression(
-    operator: Operator,
     val function: Function,
     val arguments: List<Expression>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(operator) {
+): OperatorExpression(Operator.FUNCTION) {
     override val type = function.returnType
 }
 

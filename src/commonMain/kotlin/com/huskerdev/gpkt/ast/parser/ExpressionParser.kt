@@ -2,6 +2,7 @@ package com.huskerdev.gpkt.ast.parser
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
+import com.huskerdev.gpkt.ast.lexer.operatorTokens
 import com.huskerdev.gpkt.ast.lexer.primitives
 import com.huskerdev.gpkt.ast.objects.Scope
 import com.huskerdev.gpkt.ast.types.Type
@@ -48,7 +49,7 @@ fun parseExpression(
             Operator.Usage.AxB -> {
                 val token = operator.token
                 foreachLexemeIgnoringBrackets(from, to, lexemes) { i, lexeme ->
-                    if (i != from && i != to-1 && lexeme.text == token) {
+                    if (i != from && i != to-1 && lexeme.text == token && lexemes[i-1].text !in operatorTokens) {
                         val left = parseExpression(scope, lexemes, codeBlock, from, i)!!
                         val right = parseExpression(scope, lexemes, codeBlock, i + 1, to)!!
 
@@ -109,7 +110,7 @@ fun parseExpression(
                     val function = scope.findDefinedFunction(lexeme.text, argumentTypes)
                         ?: throw functionIsNotDefined(lexeme.text, argumentTypes, lexeme, codeBlock)
 
-                    return FunctionCallExpression(operator, function, arguments, from, to - from)
+                    return FunctionCallExpression(function, arguments, from, to - from)
                 }
             }
             Operator.Usage.ARRAY_ACCESS -> {
@@ -127,7 +128,7 @@ fun parseExpression(
                     if(indexExpression.type != Type.INT)
                         throw expectedTypeException(Type.INT, indexExpression.type, lexemes[leftBracket+1], codeBlock)
 
-                    return ArrayAccessExpression(array.field, indexExpression, from, to - from)
+                    return ArrayAccessExpression(array, indexExpression, from, to - from)
                 }
             }
             Operator.Usage.CAST -> {

@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 fun testInvocation(type: GPApiType, instances: Int){
     val arraySize = instances + 100
 
-    val api = GPSyncApi.getByType(type)
+    val api = GPSyncApi.getByType(type)!!
     val context = api.defaultDevice.createContext()
     val data1 = context.wrapFloats(FloatArray(instances) { it.toFloat() + 1 })
     val data2 = context.wrapFloats(FloatArray(instances) { it.toFloat() + 1 })

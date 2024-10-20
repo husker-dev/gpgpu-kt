@@ -1,13 +1,10 @@
 package com.huskerdev.gpkt.apis.metal
 
-import com.huskerdev.gpkt.FieldNotSetException
-import com.huskerdev.gpkt.SimpleCProgram
-import com.huskerdev.gpkt.TypesMismatchException
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
-import com.huskerdev.gpkt.utils.appendCFunctionHeader
+import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.utils.SimpleCProgram
+import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 
 
 class MetalProgram(
@@ -34,13 +31,9 @@ class MetalProgram(
         commandEncoder = mtlCreateCommandEncoder(context.commandBuffer, pipeline)
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+    override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         buffers.forEachIndexed { i, field ->
-            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
-            if(!areEqualTypes(value, field.type))
-                throw TypesMismatchException(field.name)
-
-            when(value){
+            when(val value = map[field.name]!!){
                 is Float -> mtlSetFloatAt(commandEncoder, value, i)
                 is Int -> mtlSetIntAt(commandEncoder, value, i)
                 is Byte -> mtlSetByteAt(commandEncoder, value, i)
@@ -59,55 +52,21 @@ class MetalProgram(
         mtlDeallocCommandEncoder(commandEncoder)
     }
 
-    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder) {
-        val function = statement.function
-        if(function.name == "main"){
-            appendCFunctionHeader(
-                buffer = buffer,
-                modifiers = listOf("kernel"),
-                type = "void",
-                name = "_m",
-                args = buffers.map(::transformKernelArg) +
-                        listOf("device int*__o", "uint i [[thread_position_in_grid]]")
-            )
-            buffer.append("{")
-
-            // Struct with inputs
-            buffer.append("__in __v={")
-            buffers.forEachIndexed { index, field ->
-                buffer.append("__v").append(field.name)
-                if(!field.type.isArray)
-                    buffer.append("[0]")
-                if(index != buffers.lastIndex)
-                    buffer.append(",")
-            }
-            buffer.append("};")
-
-            // Body
-            stringifyScopeStatement(buffer, function.body, false)
-            buffer.append("}")
-        } else {
-            appendCFunctionHeader(
-                buffer = buffer,
-                modifiers = function.modifiers.map { it.text },
-                type = toCType(function.returnType),
-                name = function.name,
-                args = listOf("__in __v") + function.arguments.map(::convertToFuncArg)
-            )
-            stringifyStatement(buffer, statement.function.body)
-        }
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+        buffer.append("kernel ")
+        appendCFunctionDefinition(
+            buffer = buffer,
+            type = "void",
+            name = "_m",
+            args = buffers.map {
+                if(it.type.isArray) "device ${toCType(it.type)}*__v${it.name}"
+                else "device ${toCType(it.type)}&__v${it.name}"
+            } + listOf("device int&__o", "uint i [[thread_position_in_grid]]")
+        )
     }
-
-    private fun transformKernelArg(field: Field): String{
-        return if(field.type.isArray)
-            "${toCType(field.type)}*__v${field.name}"
-        else
-            "device ${toCType(field.type)}*__v${field.name}"
-    }
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
 
     override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
-        if(expression.field in buffers)
-            buffer.append("__v.")
         when(expression.field.name){
             "PI" -> buffer.append("M_PI")
             "E" -> buffer.append("M_E")
@@ -115,49 +74,16 @@ class MetalProgram(
         }
     }
 
-    override fun stringifyArrayAccessExpression(
-        buffer: StringBuilder,
-        expression: ArrayAccessExpression
-    ) {
-        if(Modifiers.EXTERNAL in expression.array.modifiers)
-            buffer.append("__v.")
-        super.stringifyArrayAccessExpression(buffer, expression)
-    }
+    override fun stringifyModifiersInStruct(field: Field) =
+        "device"
 
-    override fun stringifyFunctionCallExpression(
-        buffer: StringBuilder,
-        expression: FunctionCallExpression
-    ) {
-        buffer.append(expression.function.name)
-        buffer.append("(")
-        buffer.append("__v")
-        if(expression.arguments.isNotEmpty())
-            buffer.append(",")
+    override fun stringifyModifiersInGlobal(obj: Any) =
+        if(obj is Field && obj.isConstant) "constant"
+        else ""
 
-        expression.arguments.forEachIndexed { i, arg ->
-            stringifyExpression(buffer, arg)
-            if(i != expression.arguments.lastIndex)
-                buffer.append(",")
-        }
-        buffer.append(")")
-    }
+    override fun stringifyModifiersInLocal(field: Field) = ""
 
-    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
-        if(Modifiers.EXTERNAL !in fieldStatement.fields[0].modifiers)
-            super.stringifyFieldStatement(fieldStatement, buffer)
-    }
-
-    override fun toCType(type: Type) = when(type){
-        Type.FLOAT_ARRAY -> "device float"
-        Type.INT_ARRAY -> "device int"
-        Type.BYTE_ARRAY -> "device char"
-        Type.BOOLEAN_ARRAY -> "device bool"
-        else -> super.toCType(type)
-    }
-
-    override fun toCModifier(modifier: Modifiers) = when(modifier){
-        Modifiers.EXTERNAL -> ""
-        Modifiers.CONST -> "constant"
-        Modifiers.READONLY -> ""
-    }
+    override fun stringifyModifiersInArg(field: Field) =
+        if(field in buffers) "device"
+        else ""
 }

@@ -1,7 +1,9 @@
 package tests
 
 import com.huskerdev.gpkt.GPAst
-import com.huskerdev.gpkt.SimpleCProgram
+import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.utils.SimpleCProgram
 import kotlin.test.Test
 
 
@@ -182,9 +184,16 @@ class ParsingTest {
                 stringifyScopeStatement(buffer, ast, false)
                 println(buffer)
             }
-            override fun executeRange(indexOffset: Int, instances: Int, vararg mapping: Pair<String, Any>) = Unit
-            override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) = Unit
+
+            override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) = Unit
+            override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+            override fun stringifyModifiersInStruct(field: Field) = ""
+            override fun stringifyModifiersInGlobal(obj: Any) = ""
+            override fun stringifyModifiersInLocal(field: Field) = ""
+            override fun stringifyModifiersInArg(field: Field) = ""
+
             override fun dealloc() = Unit
+            override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) = Unit
         }
     }
 

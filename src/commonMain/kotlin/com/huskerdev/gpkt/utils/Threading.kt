@@ -4,7 +4,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
-private const val MIN_OPERATIONS_PER_THREAD = 20
+private const val MIN_OPERATIONS_PER_THREAD = 2000
 
 expect val threads: Int
 expect fun runThread(f: () -> Unit): AbstractThread

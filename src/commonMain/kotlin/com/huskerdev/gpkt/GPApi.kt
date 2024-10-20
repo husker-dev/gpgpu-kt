@@ -14,6 +14,7 @@ interface GPApi {
     val type: GPApiType
 }
 
+@Suppress("unused")
 interface GPSyncApi: GPApi {
     companion object {
         private val supportedSyncApisMap = defaultSyncApisOrder.mapNotNull(::createSyncApiInstance).associateBy { it.type }
@@ -25,7 +26,7 @@ interface GPSyncApi: GPApi {
             defaultSyncApisOrder.firstNotNullOf { supportedSyncApisMap[it] }
 
         fun getByType(type: GPApiType) =
-            supportedSyncApisMap[type]!!
+            supportedSyncApisMap[type]
     }
 
     val devices: Array<GPSyncDevice>
@@ -34,6 +35,7 @@ interface GPSyncApi: GPApi {
         get() = devices[defaultDeviceId.coerceIn(0, devices.lastIndex)]
 }
 
+@Suppress("unused")
 interface GPAsyncApi: GPApi {
     companion object {
         private lateinit var supportedAsyncApisMap: Map<GPApiType, GPAsyncApi>
@@ -48,9 +50,9 @@ interface GPAsyncApi: GPApi {
             return defaultAsyncApisOrder.firstNotNullOf { createAsyncApiInstance(it) }
         }
 
-        suspend fun getByType(type: GPApiType): GPAsyncApi {
+        suspend fun getByType(type: GPApiType): GPAsyncApi? {
             checkAsyncInit()
-            return supportedAsyncApisMap[type]!!
+            return supportedAsyncApisMap[type]
         }
 
         private suspend fun checkAsyncInit(){

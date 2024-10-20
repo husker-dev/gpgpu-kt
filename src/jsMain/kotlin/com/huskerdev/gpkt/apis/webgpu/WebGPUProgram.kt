@@ -1,11 +1,11 @@
 package com.huskerdev.gpkt.apis.webgpu
 
-import com.huskerdev.gpkt.FieldNotSetException
-import com.huskerdev.gpkt.SimpleCProgram
-import com.huskerdev.gpkt.TypesMismatchException
 import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.utils.SimpleCProgram
 
 class WebGPUProgram(
     private val context: WebGPUAsyncContext,
@@ -27,13 +27,9 @@ class WebGPUProgram(
         pipeline = webgpu.createPipeline(context.devicePeer, shaderModule, groupLayout, "_m")
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+    override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val arrays = buffers.map { field ->
-            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
-            if(!areEqualTypes(value, field.type))
-                throw TypesMismatchException(field.name)
-
-            when(value){
+            when(val value = map[field.name]!!){
                 is WebGPUMemoryPointer<*> -> value
                 else -> throw UnsupportedOperationException()
             }
@@ -43,6 +39,19 @@ class WebGPUProgram(
             groupLayout, pipeline, arrays)
         context.flush()
     }
+
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+        buffer.append("@compute@workgroup_size(1)fn _m(@builtin(global_invocation_id)id:vec3<u32>)")
+    }
+
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) {
+        buffer.append("let i=id.x;")
+    }
+
+    override fun stringifyModifiersInStruct(field: Field) = ""
+    override fun stringifyModifiersInGlobal(obj: Any) = ""
+    override fun stringifyModifiersInLocal(field: Field) = ""
+    override fun stringifyModifiersInArg(field: Field) = ""
 
     override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
         val modifiers = fieldStatement.fields[0].modifiers
@@ -71,12 +80,7 @@ class WebGPUProgram(
         val function = statement.function
         val name = function.name
 
-        if(name == "main"){
-            buffer.append("@compute@workgroup_size(1)fn _m(@builtin(global_invocation_id)id:vec3<u32>){")
-            buffer.append("let i=id.x;")
-            stringifyScopeStatement(buffer, function.body, false)
-            buffer.append("}")
-        }else {
+        if(name != "main"){
             buffer.append("fn ").append(name).append("(")
             function.arguments.forEachIndexed { i, field ->
                 buffer.append(field.name)
@@ -89,7 +93,7 @@ class WebGPUProgram(
             if(function.returnType != Type.VOID)
                 buffer.append("->").append(toCType(function.returnType))
             stringifyScopeStatement(buffer, function.body, true)
-        }
+        }else super.stringifyFunctionStatement(statement, buffer)
     }
 
     override fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression) {

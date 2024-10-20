@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.OpenCL).defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.Interpreter)!!.defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
@@ -49,14 +49,17 @@ fun main() {
             extern int maxPeriod;
             extern int count;
             
+            int b = 12;
             
             
             void main(const int i){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
                 int localCandle = i % (maxPeriod - minPeriod);
+                
+                b = sin(23)*10;
             
                 //result[i] = sma(data, localCandle, localPeriod) + a;
-                result[i] = test(0) + sma(data, localCandle, localPeriod) + a;
+                result[i] = test(0) + sma(data, localCandle, localPeriod) + a + b;
             }
         """.trimIndent())
     }catch (e: GPCompilationException){

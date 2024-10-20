@@ -1,26 +1,24 @@
 package com.huskerdev.gpkt.apis.jdk
 
-import com.huskerdev.gpkt.FieldNotSetException
-import com.huskerdev.gpkt.SimpleCProgram
-import com.huskerdev.gpkt.TypesMismatchException
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.predefinedMathFunctions
-import com.huskerdev.gpkt.ast.types.Modifiers
+import com.huskerdev.gpkt.ast.objects.Function
 import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.Type
-import com.huskerdev.gpkt.utils.appendCFunctionHeader
+import com.huskerdev.gpkt.utils.SimpleCProgram
+import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 import com.huskerdev.gpkt.utils.splitThreadInvocation
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
+class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
     companion object {
         val counter = AtomicLong()
     }
+
     private val execMethod: Method
 
     init {
@@ -29,10 +27,10 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         buffer.append("""
             import static java.lang.Math.*;
             public class $className{ 
-                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString(transform = ::transformKernelArg)}){
-                    ${buffers.joinToString("") { "${it.name}=__v_${it.name};" }}
+                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${toCType(it.type)} __v${it.name}" }}){
+                    ${buffers.joinToString("") { "${it.name}=__v${it.name};" }}
                     for(int i = fromIndex; i < toIndex; i++)
-                        __m(i);
+                        _m(i);
                 }
                 private static int _aRead(int[] arr, int i){
                     if(i < 0 || i > arr.length-1) return 0;
@@ -78,13 +76,9 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
         )
     }
 
-    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+    override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val arrays = buffers.map { field ->
-            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
-            if(!areEqualTypes(value, field.type))
-                throw TypesMismatchException(field.name)
-
-            when(value){
+            when(val value = map[field.name]!!){
                 is CPUMemoryPointer<*> -> value.array
                 is Float, is Double, is Long, is Int, is Byte -> value
                 else -> throw UnsupportedOperationException()
@@ -106,31 +100,34 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
 
     override fun dealloc() = Unit
 
-    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder){
-        val function = statement.function
-        val name: String
-        val args: List<String>
-        if(function.name == "main"){
-            name = "__m"
-            args = listOf("int i")
-        }else {
-            name = function.name
-            args = function.arguments.map(::convertToFuncArg)
-        }
-        appendCFunctionHeader(
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+        buffer.append("private static final ")
+        appendCFunctionDefinition(
             buffer = buffer,
-            modifiers = listOf("private", "static", "final") + function.modifiers.map { it.text },
             type = function.returnType.text,
-            name = name,
-            args = args
+            name = "_m",
+            args = listOf("int ${function.arguments[0].name}")
         )
-        stringifyScopeStatement(buffer, function.body, true)
     }
+
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+
+    override fun stringifyModifiersInStruct(field: Field) = ""
+
+    override fun stringifyModifiersInGlobal(obj: Any) =
+        if(obj is Field && obj.isConstant) "private static final"
+        else "private static"
+
+    override fun stringifyModifiersInLocal(field: Field) =
+        if(field.isConstant) "final"
+        else ""
+
+    override fun stringifyModifiersInArg(field: Field) = ""
 
     override fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression) {
         if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){
             buffer.append("_aSet(")
-                .append(expression.left.array.name)
+                .append(expression.left.array.field.name)
                 .append(",")
             stringifyExpression(buffer, expression.left.index)
             buffer.append(",")
@@ -141,7 +138,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
 
     override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
         buffer.append("_aRead(")
-        buffer.append(expression.array.name)
+        buffer.append(expression.array.field.name)
         buffer.append(",")
         stringifyExpression(buffer, expression.index)
         buffer.append(")")
@@ -152,27 +149,6 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
             "E", "PI" -> buffer.append("(float)$name")
             else -> buffer.append(name)
         }
-    }
-
-    override fun stringifyFunctionCallExpression(buffer: StringBuilder, expression: FunctionCallExpression) {
-        if(expression.function.name in predefinedMathFunctions && expression.function.returnType.isFloating)
-            buffer.append("(float)")
-        super.stringifyFunctionCallExpression(buffer, expression)
-    }
-
-    private fun transformKernelArg(field: Field) =
-        "${toCType(field.type)} __v_${field.name}"
-
-    private fun Type.toJavaClass() = when(this) {
-        Type.VOID -> Unit::class.java
-        Type.FLOAT -> Float::class.java
-        Type.INT -> Int::class.java
-        Type.BYTE -> Byte::class.java
-        Type.BOOLEAN -> Boolean::class.java
-        Type.FLOAT_ARRAY -> FloatArray::class.java
-        Type.INT_ARRAY -> IntArray::class.java
-        Type.BYTE_ARRAY -> ByteArray::class.java
-        Type.BOOLEAN_ARRAY -> BooleanArray::class.java
     }
 
     override fun toCType(type: Type) = when (type) {
@@ -189,9 +165,15 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast) {
 
     override fun toCArrayName(name: String) = name
 
-    override fun toCModifier(modifier: Modifiers) = when(modifier){
-        Modifiers.CONST -> "private static final"
-        Modifiers.EXTERNAL -> "private static"
-        Modifiers.READONLY -> ""
+    private fun Type.toJavaClass() = when(this) {
+        Type.VOID -> Unit::class.java
+        Type.FLOAT -> Float::class.java
+        Type.INT -> Int::class.java
+        Type.BYTE -> Byte::class.java
+        Type.BOOLEAN -> Boolean::class.java
+        Type.FLOAT_ARRAY -> FloatArray::class.java
+        Type.INT_ARRAY -> IntArray::class.java
+        Type.BYTE_ARRAY -> ByteArray::class.java
+        Type.BOOLEAN_ARRAY -> BooleanArray::class.java
     }
 }

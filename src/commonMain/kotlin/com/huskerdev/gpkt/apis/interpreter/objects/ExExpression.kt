@@ -288,7 +288,7 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
         }
     }
     is ArrayAccessExpression -> {
-        val array = scope.findField(expression.array.name)!!.value!!.get()!!
+        val array = scope.findField(expression.array.field.name)!!.value!!.get()!!
         val index = executeExpression(scope, expression.index).get() as Int
         ExArrayAccessValue(array, index)
     }

@@ -1,8 +1,6 @@
 package com.huskerdev.gpkt.apis.interpreter
 
-import com.huskerdev.gpkt.BasicProgram
-import com.huskerdev.gpkt.FieldNotSetException
-import com.huskerdev.gpkt.TypesMismatchException
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.apis.interpreter.objects.ExField
@@ -13,14 +11,11 @@ import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 class InterpreterProgram(
     val ast: ScopeStatement
-): BasicProgram(ast) {
-    override fun executeRange(indexOffset: Int, instances: Int, map: Map<String, Any>) {
-        val variables = buffers.associate { field ->
-            val value = map.getOrElse(field.name) { throw FieldNotSetException(field.name) }
-            if(!areEqualTypes(value, field.type))
-                throw TypesMismatchException(field.name)
+): GPProgram(ast) {
 
-            val desc = when (value) {
+    override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+        val variables = buffers.associate { field ->
+            val desc = when (val value = map[field.name]!!) {
                 is CPUAsyncFloatMemoryPointer -> Type.FLOAT_ARRAY to value.array!!
                 is CPUAsyncIntMemoryPointer -> Type.INT_ARRAY to value.array!!
                 is CPUAsyncByteMemoryPointer -> Type.BYTE_ARRAY to value.array!!

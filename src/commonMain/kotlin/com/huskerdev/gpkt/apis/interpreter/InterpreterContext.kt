@@ -7,7 +7,7 @@ abstract class InterpreterContext: GPContext {
     override val modules = GPModules(this)
     override var disposed = false
 
-    override fun compile(ast: ScopeStatement): Program =
+    override fun compile(ast: ScopeStatement): GPProgram =
         InterpreterProgram(ast)
 
     override fun dispose() {

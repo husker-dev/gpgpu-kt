@@ -21,8 +21,8 @@ const val longestSpecial = 7
 data class Lexeme(
     val text: String,
     val type: Type,
-    val lineIndex: Int,
-    val inlineIndex: Int
+    val lineIndex: Int = 0,
+    val inlineIndex: Int = 0
 ) {
     enum class Type {
         NAME,
@@ -31,7 +31,6 @@ data class Lexeme(
         LONG,
         BYTE,
         FLOAT,
-        DOUBLE,
         LOGICAL
     }
 }

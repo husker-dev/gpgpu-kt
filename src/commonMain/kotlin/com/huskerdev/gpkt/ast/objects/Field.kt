@@ -14,8 +14,14 @@ class Field(
     constructor(name: String, type: Type): this(name, mutableListOf(), type, null)
     constructor(name: String, type: Type, initialExpression: Expression): this(name, mutableListOf(), type, initialExpression)
 
-    val isConstant = Modifiers.CONST in modifiers
-    val isReadonly = Modifiers.READONLY in modifiers
+    val isExtern
+        get() = Modifiers.EXTERNAL in modifiers
+    val isLocal
+        get() = Modifiers.THREADLOCAL in modifiers
+    val isConstant
+        get() = Modifiers.CONST in modifiers
+    val isReadonly
+        get() = Modifiers.READONLY in modifiers
 }
 
 val predefinedMathFields = hashMapOf(
