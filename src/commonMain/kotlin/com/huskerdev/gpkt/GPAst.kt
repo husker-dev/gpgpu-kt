@@ -30,7 +30,7 @@ class GPAst {
                                 statements += it
                             }
                             is FunctionStatement -> {
-                                if(!scope.scope.functions.any { f -> f.name == it.function.name })
+                                if(it.function.body != null)
                                     scope.scope.functions += it.function
                                 statements += it
                             }
