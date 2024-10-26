@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.Interpreter)!!.defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
@@ -18,6 +18,7 @@ fun main() {
     println("=============================")
 
     context.modules.add("test", """
+        // gpkt
         int test(int index){
             if(index == 0) return 100;
             if(index == 1) return 101;
@@ -28,6 +29,7 @@ fun main() {
     """.trimIndent())
 
     context.modules.add("sma", """
+        // gpkt
         const int a = 1;
         
         float sma(float[] d, int from, int period){
@@ -40,6 +42,7 @@ fun main() {
 
     val program = try {
         context.compile("""
+            // gpkt
             import sma, test;
             
             extern float[] data;
@@ -51,18 +54,25 @@ fun main() {
             
             int b = 12;
             
+            float[3] getArray(){
+                return { 6f, 2f, 4f };
+            }
             
             void main(const int i){
                 int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
                 int localCandle = i % (maxPeriod - minPeriod);
                 
-                b = sin(23)*10;
+                b = (int)sin(23)*10;
             
                 //result[i] = sma(data, localCandle, localPeriod) + a;
-                result[i] = test(0) + sma(data, localCandle, localPeriod) + a + b;
+                float[3] c = getArray();
+                float d = c[0];
+                
+                result[i] = d + c[1] + getArray()[2] + abs(-30);
             }
         """.trimIndent())
     }catch (e: GPCompilationException){
+        e.printStackTrace()
         System.err.println(e.message)
         exitProcess(0)
     }

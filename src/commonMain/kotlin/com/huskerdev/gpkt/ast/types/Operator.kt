@@ -122,7 +122,7 @@ enum class Operator(
             }
 
             ASSIGN -> {
-                if (leftType != rightType && !Type.canAssignNumbers(leftType, rightType))
+                if (leftType != rightType || !PrimitiveType.canAssignNumbers(leftType, rightType))
                     throw expectedTypeException(leftType, rightType, rightLexeme, codeBlock)
                 if(!left.canAssign())
                     throw constAssignException(operatorLexeme, codeBlock)
@@ -177,10 +177,10 @@ enum class Operator(
          Type transitions
     \* ==================== */
 
-    fun operateTypeAxB(left: Type, right: Type) = when(this){
+    fun operateTypeAxB(left: PrimitiveType, right: PrimitiveType) = when(this){
         PLUS, MINUS, MULTIPLY, DIVIDE, MOD,
         BITWISE_AND, BITWISE_OR, BITWISE_XOR, BITWISE_NOT,
-        -> Type.mergeNumberTypes(left, right)
+        -> PrimitiveType.mergeNumberTypes(left as SinglePrimitiveType<*>, right as SinglePrimitiveType<*>)
 
         PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLY_ASSIGN, DIVIDE_ASSIGN, MOD_ASSIGN,
         BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_SHIFT_RIGHT_ASSIGN, BITWISE_SHIFT_LEFT_ASSIGN,
@@ -189,19 +189,19 @@ enum class Operator(
 
         EQUAL, NOT_EQUAL, LESS, GREATER, LESS_OR_EQUAL, GREATER_OR_EQUAL,
         LOGICAL_AND, LOGICAL_OR
-        -> Type.BOOLEAN
+        -> BOOLEAN
 
-        ASSIGN
-        -> if(left == right) left else Type.mergeNumberTypes(left, right)
+        ASSIGN -> if(left == right) left
+            else PrimitiveType.mergeNumberTypes(left as SinglePrimitiveType<*>, right as SinglePrimitiveType<*>)
         else -> throw UnsupportedOperationException()
     }
 
-    fun operateTypeAx(left: Type) = when(this){
+    fun operateTypeAx(left: PrimitiveType) = when(this){
         INCREASE, DECREASE -> left
         else -> throw UnsupportedOperationException()
     }
 
-    fun operateTypeXB(right: Type) = when(this){
+    fun operateTypeXB(right: PrimitiveType) = when(this){
         POSITIVE, NEGATIVE, BITWISE_NOT, LOGICAL_NOT -> right
         else -> throw UnsupportedOperationException()
     }

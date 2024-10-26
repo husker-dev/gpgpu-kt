@@ -2,21 +2,19 @@ package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.types.ArrayPrimitiveType
 import com.huskerdev.gpkt.ast.types.Operator
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
 
 
 abstract class Expression {
-    abstract val type: Type
+    abstract val type: PrimitiveType
     abstract val lexemeIndex: Int
     abstract val lexemeLength: Int
 
-    fun canAssign() = when {
-        this is FieldExpression && field.isConstant -> false
-        this is ArrayAccessExpression && array.field.isReadonly -> false
-        else -> true
-    }
+    open fun canAssign() = false
 }
 
 
@@ -29,6 +27,15 @@ class BracketExpression(
     override val type = wrapped.type
 }
 
+// Array definition expression
+class ArrayDefinitionExpression(
+    val elements: Array<Expression>,
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
+): Expression() {
+    override val type = (elements[0].type as SinglePrimitiveType<*>).toArray(elements.size)
+}
+
 // ======================
 //  Operator expressions
 // ======================
@@ -38,7 +45,7 @@ abstract class OperatorExpression(val operator: Operator): Expression()
 // AxB
 class AxBExpression(
     operator: Operator,
-    override val type: Type,
+    override val type: PrimitiveType,
     val left: Expression,
     val right: Expression,
     override val lexemeIndex: Int = 0,
@@ -48,7 +55,7 @@ class AxBExpression(
 // Ax
 class AxExpression(
     operator: Operator,
-    override val type: Type,
+    override val type: PrimitiveType,
     val left: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -57,7 +64,7 @@ class AxExpression(
 // Ax
 class XBExpression(
     operator: Operator,
-    override val type: Type,
+    override val type: PrimitiveType,
     val right: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -65,17 +72,18 @@ class XBExpression(
 
 // A[]
 class ArrayAccessExpression(
-    val array: FieldExpression,
+    val array: Expression,
     val index: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): OperatorExpression(Operator.ARRAY_ACCESS) {
-    override val type = Type.toSingleType(array.type)
+    override val type = (array.type as ArrayPrimitiveType<*>).single
+    override fun canAssign() = array is FieldExpression && !array.field.isReadonly
 }
 
 // A()
 class FunctionCallExpression(
-    val function: Function,
+    val function: GPFunction,
     val arguments: List<Expression>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -90,11 +98,12 @@ class FieldExpression(
     override val lexemeLength: Int = 0
 ): Expression() {
     override val type = field.type
+    override fun canAssign() = !field.isConstant
 }
 
 // (type)A
 class CastExpression(
-    override val type: Type,
+    override val type: PrimitiveType,
     val right: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -103,7 +112,7 @@ class CastExpression(
 // Const
 data class ConstExpression(
     val lexeme: Lexeme,
-    override val type: Type,
+    override val type: PrimitiveType,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Expression()

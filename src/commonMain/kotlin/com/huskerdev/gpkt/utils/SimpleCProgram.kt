@@ -2,20 +2,18 @@ package com.huskerdev.gpkt.utils
 
 import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.predefinedMathFunctions
-import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.*
+import com.huskerdev.gpkt.ast.types.*
 
 
 abstract class SimpleCProgram(
     ast: ScopeStatement,
-    private val useStruct: Boolean = true
+    private val useStruct: Boolean = true,
+    private val useCArrayDefs: Boolean = true
 ): GPProgram(ast) {
 
-    abstract fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function)
-    abstract fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function)
+    abstract fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction)
+    abstract fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction)
     abstract fun stringifyModifiersInStruct(field: Field): String
     abstract fun stringifyModifiersInGlobal(obj: Any): String
     abstract fun stringifyModifiersInLocal(field: Field): String
@@ -46,6 +44,7 @@ abstract class SimpleCProgram(
         semicolon: Boolean = false
     ){
         when(expression){
+            is ArrayDefinitionExpression -> stringifyArrayDefinitionExpression(buffer, expression)
             is AxBExpression -> stringifyAxBExpression(buffer, expression)
             is AxExpression -> stringifyAxExpression(buffer, expression)
             is XBExpression -> stringifyXBExpression(buffer, expression)
@@ -78,7 +77,7 @@ abstract class SimpleCProgram(
 
                 buffer.append(toCType(field.type))
                     .append(" ")
-                    .append(if(field.type.isArray) toCArrayName(field.name) else field.name)
+                    .append(if(field.type is ArrayPrimitiveType<*>) toCArrayName(field.name, field.type.size) else field.name)
                 buffer.append(";")
             }
             buffers.forEach(::stringify)
@@ -121,6 +120,21 @@ abstract class SimpleCProgram(
     }
 
     protected open fun stringifyReturnStatement(returnStatement: ReturnStatement, buffer: StringBuilder){
+        // If type is fixed size array
+        if(useCArrayDefs && returnStatement.expression is ArrayDefinitionExpression){
+            val type = returnStatement.expression.type
+            if(type is ArrayPrimitiveType<*> && !type.isDynamicArray){
+                buffer.append("{")
+                for(i in 0 until type.size) {
+                    buffer.append("__ret[").append(i).append("]=")
+                    stringifyExpression(buffer, returnStatement.expression.elements[i], true)
+                }
+                buffer.append("return;")
+                buffer.append("}")
+                return
+            }
+        }
+
         buffer.append("return")
         if(returnStatement.expression != null) {
             buffer.append(" ")
@@ -145,18 +159,29 @@ abstract class SimpleCProgram(
 
         buffer.append(toCType(type)).append(" ")
         fields.forEachIndexed { i, field ->
-            if(type.isArray)
-                buffer.append(toCArrayName(field.name))
+            if(type is ArrayPrimitiveType<*>)
+                buffer.append(toCArrayName(field.name, type.size))
             else
                 buffer.append(field.name)
             if(field.initialExpression != null){
-                buffer.append("=")
-                val needCast = type != field.initialExpression!!.type
-                if(needCast)
-                    buffer.append("(").append(toCType(type)).append(")(")
-                stringifyExpression(buffer, field.initialExpression!!)
-                if(needCast)
-                    buffer.append(")")
+
+                // If fixed size array and initialized via function
+                if(useCArrayDefs &&
+                    type is ArrayPrimitiveType<*> &&
+                    !type.isDynamicArray &&
+                    field.initialExpression is FunctionCallExpression
+                ){
+                    buffer.append(";")
+                    stringifyFunctionCallExpression(buffer, field.initialExpression as FunctionCallExpression, field)
+                }else {
+                    buffer.append("=")
+                    val needCast = type != field.initialExpression!!.type
+                    if (needCast)
+                        buffer.append("(").append(toCType(type)).append(")(")
+                    stringifyExpression(buffer, field.initialExpression!!)
+                    if (needCast)
+                        buffer.append(")")
+                }
             }
             if(i != fields.lastIndex)
                 buffer.append(",")
@@ -197,19 +222,74 @@ abstract class SimpleCProgram(
             if(useStruct)
                 args.add(0, "__in __v")
 
-            appendCFunctionDefinition(
-                buffer = buffer,
-                type = toCType(function.returnType),
-                name = if(function.returnType.isArray) toCArrayName(function.name) else function.name,
-                args = args
-            )
-            stringifyStatement(buffer, statement.function.body)
+            // If type is fixed size array
+            val type = function.returnType
+            if(useCArrayDefs && type is ArrayPrimitiveType<*> && !type.isDynamicArray){
+                val singleType = type.single as SinglePrimitiveType<*>
+                args.add(0, "${toCType(singleType.toDynamicArray())} ${toCArrayName("__ret", -1)}")
+
+                appendCFunctionDefinition(
+                    buffer = buffer,
+                    type = toCType(VOID),
+                    name = function.name,
+                    args = args
+                )
+                stringifyStatement(buffer, statement.function.body)
+
+                // Single-element access function
+                if(modifiers.isNotEmpty())
+                    buffer.append(modifiers).append(" ")
+
+                args[0] = "${toCType(INT)} __i"
+                appendCFunctionDefinition(
+                    buffer = buffer,
+                    type = toCType(singleType),
+                    name = "__${function.name}",
+                    args = args
+                )
+                buffer.append("{")
+                    .append(toCType(type))
+                    .append(" ")
+                    .append(toCArrayName("t", type.size))
+                    .append(";")
+                    .append(function.name)
+                    .append("(t")
+                if(args.size > 1) buffer.append(",")
+                if(useStruct)
+                    buffer.append("__v")
+                if(args.size > 2) buffer.append(",")
+                function.arguments.forEachIndexed { i, arg ->
+                    buffer.append(arg.name)
+                    if(i < function.arguments.size - 1)
+                        buffer.append(",")
+                }
+                buffer.append(");return t[__i];}")
+            }else {
+                appendCFunctionDefinition(
+                    buffer = buffer,
+                    type = toCType(function.returnType),
+                    name = if (function.returnType is ArrayPrimitiveType<*>)
+                        toCArrayName(function.name, function.returnType.size) else function.name,
+                    args = args
+                )
+                stringifyStatement(buffer, statement.function.body)
+            }
         }
     }
 
     /* ================== *\
            Expressions
     \* ================== */
+
+    protected open fun stringifyArrayDefinitionExpression(buffer: StringBuilder, expression: ArrayDefinitionExpression){
+        buffer.append("{")
+        expression.elements.forEachIndexed { i, e ->
+            stringifyExpression(buffer, e)
+            if(i < expression.elements.size - 1)
+                buffer.append(",")
+        }
+        buffer.append("}")
+    }
 
     protected open fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression){
         stringifyExpression(buffer, expression.left)
@@ -228,21 +308,46 @@ abstract class SimpleCProgram(
     }
 
     protected open fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression){
-        stringifyFieldExpression(buffer, expression.array)
-        buffer.append("[")
-        stringifyExpression(buffer, expression.index)
-        buffer.append("]")
+        // If array is a function
+        if(useCArrayDefs && expression.array is FunctionCallExpression){
+            stringifyFunctionCallExpression(buffer, expression.array, arrayIndex = expression.index)
+        }else {
+            stringifyExpression(buffer, expression.array)
+            buffer.append("[")
+            stringifyExpression(buffer, expression.index)
+            buffer.append("]")
+        }
     }
 
-    protected open fun stringifyFunctionCallExpression(buffer: StringBuilder, expression: FunctionCallExpression){
+    protected open fun stringifyFunctionCallExpression(
+        buffer: StringBuilder,
+        expression: FunctionCallExpression,
+        arrayField: Field? = null,
+        arrayIndex: Expression? = null
+    ){
         val function = expression.function
         val isPredefined = function.name in predefinedMathFunctions
 
         if(isPredefined)
             buffer.append("(").append(toCType(function.returnType)).append(")")
-        buffer.append(function.name)
+        if(arrayIndex != null)
+            buffer.append("__")
+        buffer.append(if(isPredefined) convertPredefinedFunctionName(expression) else function.name)
         buffer.append("(")
-        if(useStruct && !isPredefined) {
+
+        val passContextVars = useStruct && !isPredefined
+
+        if(arrayField != null){
+            buffer.append(arrayField.name)
+            if (expression.arguments.isNotEmpty() || passContextVars)
+                buffer.append(",")
+        }
+        if(arrayIndex != null){
+            stringifyExpression(buffer, arrayIndex)
+            if (expression.arguments.isNotEmpty() || passContextVars)
+                buffer.append(",")
+        }
+        if(passContextVars) {
             buffer.append("__v")
             if (expression.arguments.isNotEmpty())
                 buffer.append(",")
@@ -260,11 +365,14 @@ abstract class SimpleCProgram(
         buffer.append(")")
     }
 
+    open fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = functionExpression.function.name
+    open fun convertPredefinedFieldName(field: Field) = field.name
+
     protected open fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression){
         buffer.append(expression.lexeme.text)
         if(expression.type.isFloating && "." !in expression.lexeme.text)
             buffer.append(".0")
-        if(expression.type == Type.FLOAT)
+        if(expression.type == FLOAT)
             buffer.append("f")
     }
 
@@ -282,7 +390,8 @@ abstract class SimpleCProgram(
     protected open fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression){
         if(useStruct && (expression.field.isExtern || expression.field.isLocal))
             buffer.append("__v.")
-        buffer.append(expression.field.name)
+        val name = expression.field.name
+        buffer.append(if(name in allPredefinedFields) convertPredefinedFieldName(expression.field) else name)
     }
 
     protected open fun convertToFuncArg(field: Field): String{
@@ -292,22 +401,23 @@ abstract class SimpleCProgram(
             buffer.append(modifiers).append(" ")
 
         buffer.append(toCType(field.type)).append(" ")
-        if(field.type.isArray)
-            buffer.append(toCArrayName(field.name))
+        if(field.type is ArrayPrimitiveType<*>)
+            buffer.append(toCArrayName(field.name, field.type.size))
         else buffer.append(field.name)
         return buffer.toString()
     }
 
-    protected open fun toCType(type: Type) = when(type) {
-        Type.VOID -> "void"
-        Type.FLOAT, Type.FLOAT_ARRAY -> "float"
-        Type.INT, Type.INT_ARRAY -> "int"
-        Type.BYTE, Type.BYTE_ARRAY -> "char"
-        Type.BOOLEAN, Type.BOOLEAN_ARRAY -> "bool"
+    protected open fun toCType(type: PrimitiveType) = when(type) {
+        is VoidType -> "void"
+        is FloatType, is FloatArrayType -> "float"
+        is IntType, is IntArrayType -> "int"
+        is ByteType, is ByteArrayType -> "char"
+        is BooleanType -> "bool"
+        else -> throw UnsupportedOperationException()
     }
 
-    protected open fun toCArrayName(name: String) =
-        "*$name"
+    protected open fun toCArrayName(name: String, size: Int) =
+        if(size == -1) "*$name" else "$name[$size]"
 }
 
 fun appendCFunctionDefinition(

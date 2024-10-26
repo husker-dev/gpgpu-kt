@@ -3,9 +3,8 @@ package com.huskerdev.gpkt.apis.jdk
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.types.Operator
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 import com.huskerdev.gpkt.utils.splitThreadInvocation
@@ -14,7 +13,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
+class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false) {
     companion object {
         val counter = AtomicLong()
     }
@@ -100,17 +99,17 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     override fun dealloc() = Unit
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
         buffer.append("private static final ")
         appendCFunctionDefinition(
             buffer = buffer,
-            type = function.returnType.text,
+            type = function.returnType.toString(),
             name = "_m",
             args = listOf("int ${function.arguments[0].name}")
         )
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
 
     override fun stringifyModifiersInStruct(field: Field) = ""
 
@@ -127,8 +126,8 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
     override fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression) {
         if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){
             buffer.append("_aSet(")
-                .append(expression.left.array.field.name)
-                .append(",")
+            stringifyExpression(buffer, expression.left.array)
+            buffer.append(",")
             stringifyExpression(buffer, expression.left.index)
             buffer.append(",")
             stringifyExpression(buffer, expression.right)
@@ -138,7 +137,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
         buffer.append("_aRead(")
-        buffer.append(expression.array.field.name)
+        stringifyExpression(buffer, expression.array)
         buffer.append(",")
         stringifyExpression(buffer, expression.index)
         buffer.append(")")
@@ -151,29 +150,34 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
         }
     }
 
-    override fun toCType(type: Type) = when (type) {
-        Type.VOID -> "void"
-        Type.FLOAT -> "float"
-        Type.INT -> "int"
-        Type.BYTE -> "byte"
-        Type.BOOLEAN -> "boolean"
-        Type.FLOAT_ARRAY -> "float[]"
-        Type.INT_ARRAY -> "int[]"
-        Type.BYTE_ARRAY -> "byte[]"
-        Type.BOOLEAN_ARRAY -> "boolean[]"
+    override fun stringifyArrayDefinitionExpression(buffer: StringBuilder, expression: ArrayDefinitionExpression) {
+        buffer.append("new ").append(toCType(expression.type))
+        super.stringifyArrayDefinitionExpression(buffer, expression)
     }
 
-    override fun toCArrayName(name: String) = name
+    override fun toCType(type: PrimitiveType) = when (type) {
+        VOID -> "void"
+        FLOAT -> "float"
+        INT -> "int"
+        BYTE -> "byte"
+        BOOLEAN -> "boolean"
+        is FloatArrayType -> "float[]"
+        is IntArrayType -> "int[]"
+        is ByteArrayType -> "byte[]"
+        else -> throw UnsupportedOperationException()
+    }
 
-    private fun Type.toJavaClass() = when(this) {
-        Type.VOID -> Unit::class.java
-        Type.FLOAT -> Float::class.java
-        Type.INT -> Int::class.java
-        Type.BYTE -> Byte::class.java
-        Type.BOOLEAN -> Boolean::class.java
-        Type.FLOAT_ARRAY -> FloatArray::class.java
-        Type.INT_ARRAY -> IntArray::class.java
-        Type.BYTE_ARRAY -> ByteArray::class.java
-        Type.BOOLEAN_ARRAY -> BooleanArray::class.java
+    override fun toCArrayName(name: String, size: Int) = name
+
+    private fun PrimitiveType.toJavaClass() = when(this) {
+        VOID -> Unit::class.java
+        FLOAT -> Float::class.java
+        INT -> Int::class.java
+        BYTE -> Byte::class.java
+        BOOLEAN -> Boolean::class.java
+        is FloatArrayType -> FloatArray::class.java
+        is IntArrayType -> IntArray::class.java
+        is ByteArrayType -> ByteArray::class.java
+        else -> throw UnsupportedOperationException()
     }
 }

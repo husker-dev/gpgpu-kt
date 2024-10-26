@@ -1,6 +1,7 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
 import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
 
 
@@ -54,7 +55,7 @@ class ExScope(
                     addField(field.name, ExField(field.type, value))
                 }
             }
-            is FunctionStatement -> addFunction(it.function.name, ExScope(it.function.body, this))
+            is FunctionStatement -> addFunction(it.function.name, it.function.arguments, ExScope(it.function.body, this))
             is ExpressionStatement -> executeExpression(this, it.expression)
             is ReturnStatement -> return if(it.expression != null)
                 executeExpression(this, it.expression).castToType(scope!!.scope.returnType)
@@ -105,10 +106,10 @@ class ExScope(
         fields!![name] = field
     }
 
-    private fun addFunction(name: String, scope: ExScope){
+    private fun addFunction(name: String, args: List<Field>, scope: ExScope){
         functions!![name] = scope
         if(name == "main")
-            scope.execute(hashMapOf("i" to fields!!["__i__"]!!))
+            scope.execute(hashMapOf(args[0].name to fields!!["__i__"]!!))
     }
 
     fun findField(name: String): ExField? =

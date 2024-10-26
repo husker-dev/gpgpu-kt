@@ -3,9 +3,8 @@ package com.huskerdev.gpkt.apis.interpreter.objects
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.allPredefinedFields
 import com.huskerdev.gpkt.ast.objects.allPredefinedFunctions
-import com.huskerdev.gpkt.ast.types.Operator
+import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.ast.types.Operator.*
-import com.huskerdev.gpkt.ast.types.Type
 import kotlin.math.*
 
 class BadOperator(operator: Operator): Exception("Can't apply operator '${operator}'")
@@ -238,10 +237,10 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
         val text = expression.lexeme.text
         ExValue(
             when (expression.type) {
-                Type.FLOAT -> text.toFloat()
-                Type.INT -> text.toInt()
-                Type.BYTE -> text.toByte()
-                Type.BOOLEAN -> text == "true"
+                FLOAT -> text.toFloat()
+                INT -> text.toInt()
+                BYTE -> text.toByte()
+                BOOLEAN -> text == "true"
                 else -> throw UnsupportedOperationException("Can't parse value '${text}'")
             }
         )
@@ -288,9 +287,9 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue = when(ex
         }
     }
     is ArrayAccessExpression -> {
-        val array = scope.findField(expression.array.field.name)!!.value!!.get()!!
+        val arrayExpr = executeExpression(scope, expression.array).get()!!
         val index = executeExpression(scope, expression.index).get() as Int
-        ExArrayAccessValue(array, index)
+        ExArrayAccessValue(arrayExpr, index)
     }
     is CastExpression -> executeExpression(scope, expression.right).castToType(expression.type)
     is FieldExpression -> {

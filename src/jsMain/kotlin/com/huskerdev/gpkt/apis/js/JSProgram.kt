@@ -2,12 +2,11 @@ package com.huskerdev.gpkt.apis.js
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.predefinedMathFields
-import com.huskerdev.gpkt.ast.objects.predefinedMathFunctions
 import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.types.FLOAT
 import com.huskerdev.gpkt.utils.SimpleCProgram
 
 class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
@@ -59,11 +58,11 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
         }
     }
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
         buffer.append("for(let i=this.__o;i<this.__o+this.__c;i++)")
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
 
     override fun stringifyModifiersInStruct(field: Field) = ""
     override fun stringifyModifiersInGlobal(obj: Any) = ""
@@ -96,14 +95,11 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
         super.stringifyFieldExpression(buffer, expression)
     }
 
-    override fun stringifyFunctionCallExpression(buffer: StringBuilder, expression: FunctionCallExpression) {
-        if(expression.function.name in predefinedMathFunctions)
-            buffer.append("Math.")
-        super.stringifyFunctionCallExpression(buffer, expression)
-    }
+    override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) =
+        "Math.${functionExpression.function.name}"
 
     override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
-        if(expression.array.field.isExtern)
+        if(expression.array.type.isDynamicArray)
             buffer.append("this.")
         super.stringifyArrayAccessExpression(buffer, expression)
     }
@@ -112,7 +108,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
         val type = expression.type
 
         buffer.append(expression.lexeme.text)
-        if(type == Type.FLOAT && "." !in expression.lexeme.text)
+        if(type == FLOAT && "." !in expression.lexeme.text)
             buffer.append(".0")
     }
 }

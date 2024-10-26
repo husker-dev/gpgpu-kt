@@ -1,8 +1,8 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 open class ExField(
-    val type: Type,
+    val type: PrimitiveType,
     val value: ExValue?
 )

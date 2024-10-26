@@ -1,6 +1,9 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.BYTE
+import com.huskerdev.gpkt.ast.types.FLOAT
+import com.huskerdev.gpkt.ast.types.INT
+import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 
 open class ExValue(
@@ -12,10 +15,10 @@ open class ExValue(
     }
     open fun get() = value
 
-    fun castToType(type: Type?) = when{
-        type == Type.FLOAT && value !is Float -> ExValue((value as Number).toFloat())
-        type == Type.INT && value !is Double -> ExValue((value as Number).toInt())
-        type == Type.BYTE && value !is Float -> ExValue((value as Number).toByte())
+    fun castToType(type: PrimitiveType?) = when{
+        type == FLOAT && value !is Float -> ExValue((value as Number).toFloat())
+        type == INT && value !is Double -> ExValue((value as Number).toInt())
+        type == BYTE && value !is Float -> ExValue((value as Number).toByte())
         else -> this
     }
 

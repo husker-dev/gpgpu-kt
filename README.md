@@ -21,7 +21,6 @@ Cross-platform general-purpose computing Kotlin Multiplatform library
 
 ### TODO List:
   - [ ] Add `sizeof()` function
-  - [ ] Add array creation support
   - [ ] Add Vulkan support
 
 ## Documentation

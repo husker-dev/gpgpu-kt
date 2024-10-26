@@ -2,12 +2,13 @@ package com.huskerdev.gpkt.ast.parser
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.VOID
 
 
 fun parseReturnStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int
@@ -16,10 +17,10 @@ fun parseReturnStatement(
 
     val next = lexemes[i]
     val returnType = scope.findReturnType()
-    if(next.text == ";" && returnType != Type.VOID)
+    if(next.text == ";" && returnType != VOID)
         throw compilationError("Expected return value", next, codeBlock)
 
-    val expression = if(returnType != Type.VOID) {
+    val expression = if(returnType != VOID) {
         val expression = if(
             next.type == Lexeme.Type.INT ||
             next.type == Lexeme.Type.FLOAT ||
@@ -27,7 +28,7 @@ fun parseReturnStatement(
         ) createConstExpression(i, next, codeBlock)
         else parseExpression(scope, lexemes, codeBlock, i)!!
 
-        if (expression.type != returnType && !Type.canAssignNumbers(returnType, expression.type))
+        if (expression.type != returnType && !PrimitiveType.canAssignNumbers(returnType, expression.type))
             throw expectedTypeException(returnType, expression.type, next, codeBlock)
         expression
     }else null

@@ -4,26 +4,27 @@ import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.VOID
 
 
 fun parseScopeStatement(
-    parentScope: Scope?,
+    parentScope: GPScope?,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
     to: Int,
-    device: GPContext?      = parentScope?.context,
-    returnType: Type?       = null,
-    iterable: Boolean       = false,
+    device: GPContext?          = parentScope?.context,
+    returnType: PrimitiveType?  = null,
+    iterable: Boolean           = false,
     modules: LinkedHashSet<ScopeStatement> = LinkedHashSet(),
     fields: MutableList<Field> = mutableListOf(),
-    functions: MutableList<Function> = mutableListOf()
+    functions: MutableList<GPFunction> = mutableListOf()
 ): ScopeStatement {
-    val scope = Scope(
+    val scope = GPScope(
         context = device,
         parentScope = parentScope,
         returnType = returnType,
@@ -45,7 +46,7 @@ fun parseScopeStatement(
             val text = lexeme.text
 
             if(text == "}"){
-                if(returnType != null && returnType != Type.VOID && !statements.any { it.returns })
+                if(returnType != null && returnType != VOID && !statements.any { it.returns })
                     throw compilationError("Expected return statement", lexeme, codeBlock)
                 return ScopeStatement(scope, statements, returns, from, i - from + 1)
             }

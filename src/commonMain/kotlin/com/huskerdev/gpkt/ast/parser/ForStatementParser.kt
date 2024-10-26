@@ -2,12 +2,12 @@ package com.huskerdev.gpkt.ast.parser
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.types.BOOLEAN
 
 
 fun parseForStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -44,8 +44,8 @@ fun parseForStatement(
     // block 2
     val condition = headScope.statements[1]
     val conditionExpression = when {
-        condition is ExpressionStatement && condition.expression.type != Type.BOOLEAN ->
-            throw expectedTypeException(Type.BOOLEAN, condition.expression.type, lexemes[condition.lexemeIndex], codeBlock)
+        condition is ExpressionStatement && condition.expression.type != BOOLEAN ->
+            throw expectedTypeException(BOOLEAN, condition.expression.type, lexemes[condition.lexemeIndex], codeBlock)
         condition is EmptyStatement -> null
         condition is ExpressionStatement -> condition.expression
         else -> throw compilationError("Condition must be 'boolean' or empty", lexemes[condition.lexemeIndex], codeBlock)
@@ -61,7 +61,7 @@ fun parseForStatement(
     }
 
     // body
-    val iterableScope = Scope(scope.context, scope, iterable = true, fields = fields.toMutableList())
+    val iterableScope = GPScope(scope.context, scope, iterable = true, fields = fields.toMutableList())
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
     i += body.lexemeLength
 

@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 
@@ -42,11 +42,11 @@ class CudaProgram(
 
     override fun dealloc() = Unit
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
         buffer.append("__global__ ")
         appendCFunctionDefinition(
             buffer = buffer,
-            type = function.returnType.text,
+            type = function.returnType.toString(),
             name = "__m",
             args = listOf("int __c", "int __o") + buffers.map {
                 if(it.type.isArray) "${toCType(it.type)}*__v${it.name}"
@@ -55,7 +55,7 @@ class CudaProgram(
         )
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) {
         buffer.append("const int ${function.arguments[0].name}=blockIdx.x*blockDim.x+threadIdx.x+__o;")
         buffer.append("if(${function.arguments[0].name}>__c+__o)return;")
         buffers.joinTo(buffer, separator = ""){

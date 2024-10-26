@@ -2,9 +2,8 @@ package com.huskerdev.gpkt.apis.webgpu
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
-import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.SimpleCProgram
 
 class WebGPUProgram(
@@ -40,11 +39,11 @@ class WebGPUProgram(
         context.flush()
     }
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
         buffer.append("@compute@workgroup_size(1)fn _m(@builtin(global_invocation_id)id:vec3<u32>)")
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) {
         buffer.append("let i=id.x;")
     }
 
@@ -90,7 +89,7 @@ class WebGPUProgram(
                     buffer.append(",")
             }
             buffer.append(")")
-            if(function.returnType != Type.VOID)
+            if(function.returnType != VOID)
                 buffer.append("->").append(toCType(function.returnType))
             stringifyScopeStatement(buffer, function.body, true)
         }else super.stringifyFunctionStatement(statement, buffer)
@@ -98,7 +97,7 @@ class WebGPUProgram(
 
     override fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression) {
         buffer.append(expression.lexeme.text)
-        if(expression.type == Type.FLOAT && "." !in expression.lexeme.text)
+        if(expression.type == FLOAT && "." !in expression.lexeme.text)
             buffer.append(".0")
     }
 
@@ -115,16 +114,16 @@ class WebGPUProgram(
         }else super.stringifyAxBExpression(buffer, expression)
     }
 
-    override fun toCType(type: Type) = when(type){
-        Type.VOID -> throw UnsupportedOperationException()
-        Type.FLOAT -> "f32"
-        Type.INT -> "i32"
-        Type.BYTE -> TODO()
-        Type.BOOLEAN -> "bool"
-        Type.FLOAT_ARRAY -> "array<f32>"
-        Type.INT_ARRAY -> "array<i32>"
-        Type.BYTE_ARRAY -> TODO()
-        Type.BOOLEAN_ARRAY -> "array<bool>"
+    override fun toCType(type: PrimitiveType) = when(type){
+        VOID -> throw UnsupportedOperationException()
+        FLOAT -> "f32"
+        INT -> "i32"
+        BYTE -> TODO()
+        BOOLEAN -> "bool"
+        is FloatArrayType -> "array<f32>"
+        is IntArrayType -> "array<i32>"
+        is ByteArrayType -> TODO()
+        else -> throw UnsupportedOperationException()
     }
 
     override fun dealloc() {

@@ -4,13 +4,12 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.objects.*
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.Type
 
 
 fun parseFunctionStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -26,15 +25,12 @@ fun parseFunctionStatement(
     }
 
     // Getting type
-    var type = Type.map[lexemes[i].text]!!
-    if(lexemes[i+1].text == "[" && lexemes[i+2].text == "]"){
-        type = Type.toArrayType(type)
-        i += 2
-    }
-    i++
+    val typeDeclaration = parseTypeDeclaration(i, lexemes, codeBlock)
+    val type = typeDeclaration.first
+    i += typeDeclaration.second
 
     val nameLexeme = lexemes[i]
-    val function = Function(scope, nameLexeme.text, mods, type)
+    val function = GPFunction(scope, nameLexeme.text, mods, type)
     i += 2
 
     // Getting parameters

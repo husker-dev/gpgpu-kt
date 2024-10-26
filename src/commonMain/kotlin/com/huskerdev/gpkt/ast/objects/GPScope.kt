@@ -3,16 +3,17 @@ package com.huskerdev.gpkt.ast.objects
 import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.VOID
 
-open class Scope(
+open class GPScope(
     val context: GPContext?,
-    val parentScope: Scope?,
-    val returnType: Type? = null,
+    val parentScope: GPScope?,
+    val returnType: PrimitiveType? = null,
     val iterable: Boolean = false,
     val modules: LinkedHashSet<ScopeStatement> = linkedSetOf(),
     val fields: MutableList<Field> = mutableListOf(),
-    val functions: MutableList<Function> = mutableListOf(),
+    val functions: MutableList<GPFunction> = mutableListOf(),
 ) {
 
     fun findDefinedField(name: String): Field? =
@@ -24,7 +25,7 @@ open class Scope(
             allPredefinedFields[name]
         else parentScope.findDefinedField(name)
 
-    fun findDefinedFunction(name: String, arguments: List<Type> = emptyList()): Function? =
+    fun findDefinedFunction(name: String, arguments: List<PrimitiveType> = emptyList()): GPFunction? =
         functions.firstOrNull {
             it.name == name && it.canAcceptArguments(arguments)
         } ?: modules.firstNotNullOfOrNull {
@@ -36,8 +37,8 @@ open class Scope(
             else null
         }else parentScope.findDefinedFunction(name, arguments)
 
-    fun findReturnType(): Type =
-        returnType ?: parentScope?.findReturnType() ?: Type.VOID
+    fun findReturnType(): PrimitiveType =
+        returnType ?: parentScope?.findReturnType() ?: VOID
 
     fun isInIterableScope(): Boolean = if(iterable)
         true
@@ -55,7 +56,7 @@ open class Scope(
         fields += field
     }
 
-    fun addFunction(function: Function, lexeme: Lexeme, codeBlock: String){
+    fun addFunction(function: GPFunction, lexeme: Lexeme, codeBlock: String){
         checkAvailableName(function.name, lexeme, codeBlock)
         functions += function
     }

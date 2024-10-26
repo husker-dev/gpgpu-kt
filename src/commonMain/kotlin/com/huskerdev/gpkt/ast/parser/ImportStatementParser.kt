@@ -3,11 +3,11 @@ package com.huskerdev.gpkt.ast.parser
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.Import
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 fun parseImportStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,

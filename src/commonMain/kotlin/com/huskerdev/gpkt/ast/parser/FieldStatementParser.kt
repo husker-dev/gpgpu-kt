@@ -5,12 +5,14 @@ import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.objects.Field
 import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
+import com.huskerdev.gpkt.ast.types.primitivesMap
 
 
 fun parseFieldStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -28,7 +30,7 @@ fun parseFieldStatement(
 
 
 fun parseFieldDeclaration(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -48,13 +50,9 @@ fun parseFieldDeclaration(
     }
 
     // Getting type
-    var type = Type.map[lexemes[i].text] ?:
-        throw expectedException("type", lexemes[i].text, lexemes[i], codeBlock)
-    if(lexemes[i+1].text == "[" && lexemes[i+2].text == "]"){
-        type = Type.toArrayType(type)
-        i += 2
-    }
-    i++
+    val typeDeclaration = parseTypeDeclaration(i, lexemes, codeBlock)
+    val type = typeDeclaration.first
+    i += typeDeclaration.second
 
     // Iterate over field declarations
     while(i < to){
@@ -70,7 +68,7 @@ fun parseFieldDeclaration(
             initialExpression = parseExpression(scope, lexemes, codeBlock, i+2) ?:
                 throw compilationError("expected initial value", lexemes[i+2], codeBlock)
 
-            if(type != initialExpression.type && !Type.canAssignNumbers(type, initialExpression.type))
+            if(type != initialExpression.type && !PrimitiveType.canAssignNumbers(type, initialExpression.type))
                 throw expectedTypeException(type, initialExpression.type, lexemes[i+2], codeBlock)
 
             i += initialExpression.lexemeLength + 1
@@ -91,4 +89,22 @@ fun parseFieldDeclaration(
 
     }
     throw compilationError("Can not read field declaration", lexemes[from], codeBlock)
+}
+
+fun parseTypeDeclaration(i: Int, lexemes: List<Lexeme>, codeBlock: String): Pair<PrimitiveType, Int>{
+    val type: PrimitiveType = primitivesMap[lexemes[i].text] ?:
+        throw expectedException("type", lexemes[i].text, lexemes[i], codeBlock)
+
+    if(lexemes[i+1].text == "["){
+        if(lexemes[i+2].text == "]"){
+            return (type as SinglePrimitiveType<*>).toDynamicArray() to 3
+
+        }else if(lexemes[i+3].text == "]"){
+            if(lexemes[i+2].type != Lexeme.Type.INT)
+                throw compilationError("Array size should be constant int", lexemes[i], codeBlock)
+            return (type as SinglePrimitiveType<*>).toArray(lexemes[i+2].text.toInt()) to 4
+
+        }else throw compilationError("Failed to get array size", lexemes[i], codeBlock)
+    }
+    return type to 1
 }

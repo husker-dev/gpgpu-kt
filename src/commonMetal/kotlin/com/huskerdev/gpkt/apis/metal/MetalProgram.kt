@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.apis.metal
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 
@@ -52,7 +52,7 @@ class MetalProgram(
         mtlDeallocCommandEncoder(commandEncoder)
     }
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: Function) {
+    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
         buffer.append("kernel ")
         appendCFunctionDefinition(
             buffer = buffer,
@@ -64,7 +64,7 @@ class MetalProgram(
             } + listOf("device int&__o", "uint i [[thread_position_in_grid]]")
         )
     }
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: Function) = Unit
+    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
 
     override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
         when(expression.field.name){

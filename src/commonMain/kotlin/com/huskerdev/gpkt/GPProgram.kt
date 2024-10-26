@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.*
 
 abstract class GPProgram(ast: ScopeStatement) {
     protected val buffers = ast.scope.fields.filter {
@@ -49,14 +49,14 @@ abstract class GPProgram(ast: ScopeStatement) {
         map: Map<String, Any>
     )
 
-    private fun areEqualTypes(actual: Any, expected: Type): Boolean{
-        return expected == when(actual){
-            is AsyncFloatMemoryPointer, is SyncFloatMemoryPointer -> Type.FLOAT_ARRAY
-            is AsyncIntMemoryPointer, is SyncIntMemoryPointer -> Type.INT_ARRAY
-            is AsyncByteMemoryPointer, is SyncByteMemoryPointer -> Type.BYTE_ARRAY
-            is Float -> Type.FLOAT
-            is Int -> Type.INT
-            is Byte -> Type.BYTE
+    private fun areEqualTypes(actual: Any, expected: PrimitiveType): Boolean{
+        return when(actual){
+            is AsyncFloatMemoryPointer, is SyncFloatMemoryPointer -> expected is FloatArrayType
+            is AsyncIntMemoryPointer, is SyncIntMemoryPointer -> expected is IntArrayType
+            is AsyncByteMemoryPointer, is SyncByteMemoryPointer -> expected is ByteArrayType
+            is Float -> expected is FloatType
+            is Int -> expected is IntType
+            is Byte -> expected is ByteType
             else -> throw UnsupportedOperationException("Unsupported type: '${actual::class}'")
         }
     }

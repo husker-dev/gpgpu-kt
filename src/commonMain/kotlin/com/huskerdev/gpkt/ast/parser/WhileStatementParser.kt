@@ -2,12 +2,13 @@ package com.huskerdev.gpkt.ast.parser
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.objects.Scope
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.types.BOOLEAN
+import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
 
 
 fun parseWhileStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -18,11 +19,12 @@ fun parseWhileStatement(
         throw compilationError("Expected condition", lexemes[i], codeBlock)
 
     val condition = parseExpression(scope, lexemes, codeBlock, i+1)!!
-    if(!condition.type.isLogical)
-        throw expectedTypeException(Type.BOOLEAN, condition.type, lexemes[i+1], codeBlock)
+    val type = condition.type
+    if(type !is SinglePrimitiveType<*> || !type.isLogical)
+        throw expectedTypeException(BOOLEAN, condition.type, lexemes[i+1], codeBlock)
     i += condition.lexemeLength + 2
 
-    val iterableScope = Scope(scope.context, scope, iterable = true)
+    val iterableScope = GPScope(scope.context, scope, iterable = true)
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
     i += body.lexemeLength
 

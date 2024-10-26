@@ -7,11 +7,11 @@ import com.huskerdev.gpkt.ast.compilationError
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.lexer.primitives
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 fun parseStatement(
-    scope: Scope,
+    scope: GPScope,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,

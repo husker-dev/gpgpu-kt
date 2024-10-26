@@ -1,20 +1,20 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.objects.Field
-import com.huskerdev.gpkt.ast.objects.Function
+import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.Import
-import com.huskerdev.gpkt.ast.objects.Scope
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 interface Statement{
-    val scope: Scope
+    val scope: GPScope
     val lexemeIndex: Int
     val lexemeLength: Int
     val returns: Boolean
 }
 
 class ScopeStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val statements: MutableList<Statement> = mutableListOf(),
     override val returns: Boolean = false,
     override val lexemeIndex: Int = 0,
@@ -22,7 +22,7 @@ class ScopeStatement(
 ): Statement
 
 class ExpressionStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val expression: Expression
 ): Statement {
     override val lexemeIndex = expression.lexemeIndex
@@ -31,7 +31,7 @@ class ExpressionStatement(
 }
 
 class ImportStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val import: Import,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -40,8 +40,8 @@ class ImportStatement(
 }
 
 class FunctionStatement(
-    override val scope: Scope,
-    val function: Function,
+    override val scope: GPScope,
+    val function: GPFunction,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement {
@@ -49,7 +49,7 @@ class FunctionStatement(
 }
 
 class EmptyStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ) : Statement {
@@ -57,7 +57,7 @@ class EmptyStatement(
 }
 
 class FieldStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val fields: List<Field>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -66,7 +66,7 @@ class FieldStatement(
 }
 
 class ReturnStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val expression: Expression?,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
@@ -75,7 +75,7 @@ class ReturnStatement(
 }
 
 class BreakStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement {
@@ -83,7 +83,7 @@ class BreakStatement(
 }
 
 class ContinueStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement {
@@ -91,7 +91,7 @@ class ContinueStatement(
 }
 
 class IfStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val condition: Expression,
     val body: Statement,
     val elseBody: Statement?,
@@ -102,7 +102,7 @@ class IfStatement(
 }
 
 class WhileStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val condition: Expression,
     val body: Statement,
     override val lexemeIndex: Int = 0,
@@ -112,7 +112,7 @@ class WhileStatement(
 }
 
 class ForStatement(
-    override val scope: Scope,
+    override val scope: GPScope,
     val initialization: Statement,
     val condition: Expression?,
     val iteration: Expression?,

@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.types.Operator
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 class GPCompilationException(
     text: String,
@@ -45,8 +45,8 @@ fun functionAlreadyDefinedException(name: String, lexeme: Lexeme, originalCode: 
     lexeme = lexeme
 )
 
-fun expectedTypeException(expected: Type, actual: Type, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Expected '${expected.text}' but found '${actual.text}'",
+fun expectedTypeException(expected: PrimitiveType, actual: PrimitiveType, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Expected '${expected}' but found '${actual}'",
     originalCode = originalCode,
     lexeme = lexeme
 )
@@ -69,20 +69,20 @@ fun unexpectedSymbolException(symbol: String, lexeme: Lexeme, originalCode: Stri
     lexeme = lexeme
 )
 
-fun cannotCastException(what: Type, to: Type, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Cannot cast '${what.text}' to '${to.text}'",
+fun cannotCastException(what: PrimitiveType, to: PrimitiveType, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Cannot cast '${what}' to '${to}'",
     originalCode = originalCode,
     lexeme = lexeme
 )
 
-fun cannotCastException(what: Type, to: String, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Cannot cast '${what.text}' to '${to}'",
+fun cannotCastException(what: PrimitiveType, to: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Cannot cast '${what}' to '${to}'",
     originalCode = originalCode,
     lexeme = lexeme
 )
 
-fun functionIsNotDefined(name: String, argumentTypes: List<Type>, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Function '$name(${if(argumentTypes.isEmpty()) "void" else argumentTypes.joinToString(", ") { it.text }})' is not defined in this scope",
+fun functionIsNotDefined(name: String, argumentTypes: List<PrimitiveType>, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function '$name(${if(argumentTypes.isEmpty()) "void" else argumentTypes.joinToString(", ") { it.toString() }})' is not defined in this scope",
     originalCode = originalCode,
     lexeme = lexeme
 )

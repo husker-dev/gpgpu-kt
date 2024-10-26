@@ -2,10 +2,10 @@ package com.huskerdev.gpkt.ast.lexer
 
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.Operator
-import com.huskerdev.gpkt.ast.types.Type
+import com.huskerdev.gpkt.ast.types.primitivesMap
 
 
-val primitives = Type.entries.map { it.text }.toSet()
+val primitives = primitivesMap.map { it.key }.toSet()
 val modifiers = Modifiers.entries.map { it.text }.toSet()
 val operatorTokens = Operator.entries.filter { it.token.isNotEmpty() } .map { it.token }.toSet()
 
