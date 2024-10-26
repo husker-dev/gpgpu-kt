@@ -44,17 +44,17 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
         if(name == "main") {
             buffer.append("for(let i=this.__o;i<this.__o+this.__c;i++){")
-            stringifyScopeStatement(buffer, function.body, false)
+            stringifyScopeStatement(buffer, function.body!!, false)
             buffer.append("}")
-        }else {
+        }else if(function.body != null) {
             buffer.append("function ").append(name).append("(")
             function.arguments.forEachIndexed { i, field ->
                 buffer.append(field.name)
-                if(i < function.arguments.lastIndex)
+                if (i < function.arguments.lastIndex)
                     buffer.append(",")
             }
             buffer.append(")")
-            stringifyScopeStatement(buffer, function.body, true)
+            stringifyScopeStatement(buffer, function.body!!, true)
         }
     }
 

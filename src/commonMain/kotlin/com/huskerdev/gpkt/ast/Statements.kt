@@ -39,7 +39,7 @@ class ImportStatement(
     override val returns = false
 }
 
-class FunctionStatement(
+open class FunctionStatement(
     override val scope: GPScope,
     val function: GPFunction,
     override val lexemeIndex: Int = 0,
@@ -47,6 +47,13 @@ class FunctionStatement(
 ): Statement {
     override val returns = false
 }
+
+class FunctionDefinitionStatement(
+    scope: GPScope,
+    function: GPFunction,
+    lexemeIndex: Int = 0,
+    lexemeLength: Int = 0
+): FunctionStatement(scope, function, lexemeIndex, lexemeLength)
 
 class EmptyStatement(
     override val scope: GPScope,

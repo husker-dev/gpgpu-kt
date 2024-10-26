@@ -54,8 +54,11 @@ fun parseFunctionStatement(
         if(lexemes[i].text == ",")
             i++
     }
-    if(lexemes[i+1].text != "{")
-        throw compilationError("Expected function block", lexemes[i+1], codeBlock)
+    if(lexemes[i+1].text != "{" && lexemes[i+1].text != ";")
+        throw compilationError("Expected function block or ';'", lexemes[i+1], codeBlock)
+
+    if(lexemes[i+1].text == ";")
+        return FunctionDefinitionStatement(scope, function, from, i - from + 1)
 
     val functionScope = parseScopeStatement(
         parentScope = scope,

@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.OpenCL)!!.defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
@@ -19,6 +19,8 @@ fun main() {
 
     context.modules.add("test", """
         // gpkt
+        int toImpl();
+        
         int test(int index){
             if(index == 0) return 100;
             if(index == 1) return 101;
@@ -56,6 +58,10 @@ fun main() {
             
             float[3] getArray(){
                 return { 6f, 2f, 4f };
+            }
+            
+            int toImpl(){
+                return 0;
             }
             
             void main(const int i){

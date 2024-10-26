@@ -45,7 +45,7 @@ open class GPScope(
     else parentScope?.isInIterableScope() ?: false
 
     private fun checkAvailableName(name: String, lexeme: Lexeme, codeBlock: String){
-        if(findDefinedFunction(name) != null)
+        if(findDefinedFunction(name)?.body != null)
             throw functionAlreadyDefinedException(name, lexeme, codeBlock)
         if(findDefinedField(name) != null)
             throw variableAlreadyDefinedException(name, lexeme, codeBlock)
@@ -58,6 +58,14 @@ open class GPScope(
 
     fun addFunction(function: GPFunction, lexeme: Lexeme, codeBlock: String){
         checkAvailableName(function.name, lexeme, codeBlock)
-        functions += function
+        val definedFunction = functions.find { it.name == function.name && it.body == null }
+        if(definedFunction != null){
+            if(definedFunction.returnType != function.returnType)
+                throw compilationError("Function type does not match with previously defined", lexeme, codeBlock)
+            if(definedFunction.argumentsTypes != function.argumentsTypes)
+                throw compilationError("Function arguments do not match with previously defined", lexeme, codeBlock)
+            functions[functions.indexOf(definedFunction)] = function
+        }else
+            functions += function
     }
 }

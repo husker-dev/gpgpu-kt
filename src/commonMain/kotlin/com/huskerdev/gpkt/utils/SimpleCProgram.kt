@@ -9,7 +9,8 @@ import com.huskerdev.gpkt.ast.types.*
 abstract class SimpleCProgram(
     ast: ScopeStatement,
     private val useStruct: Boolean = true,
-    private val useCArrayDefs: Boolean = true
+    private val useCArrayDefs: Boolean = true,
+    private val useFunctionDefs: Boolean = true
 ): GPProgram(ast) {
 
     abstract fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction)
@@ -211,9 +212,12 @@ abstract class SimpleCProgram(
                 buffer.append("};")
             }
             stringifyMainFunctionBody(buffer, function)
-            stringifyScopeStatement(buffer, statement.function.body, false)
+            stringifyScopeStatement(buffer, statement.function.body!!, false)
             buffer.append("}")
         }else {
+            if(statement.function.body == null && !useFunctionDefs)
+                return
+
             val modifiers = stringifyModifiersInGlobal(function)
             if(modifiers.isNotEmpty())
                 buffer.append(modifiers).append(" ")
@@ -234,7 +238,7 @@ abstract class SimpleCProgram(
                     name = function.name,
                     args = args
                 )
-                stringifyStatement(buffer, statement.function.body)
+                stringifyStatement(buffer, statement.function.body!!)
 
                 // Single-element access function
                 if(modifiers.isNotEmpty())
@@ -272,7 +276,10 @@ abstract class SimpleCProgram(
                         toCArrayName(function.name, function.returnType.size) else function.name,
                     args = args
                 )
-                stringifyStatement(buffer, statement.function.body)
+                if(statement.function.body != null)
+                    stringifyStatement(buffer, statement.function.body!!)
+                else
+                    buffer.append(";")
             }
         }
     }

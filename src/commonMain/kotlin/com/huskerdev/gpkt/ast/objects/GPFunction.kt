@@ -15,7 +15,7 @@ class GPFunction(
 ){
     val arguments = mutableListOf<Field>()
     val argumentsTypes = mutableListOf<PrimitiveType>()
-    lateinit var body: ScopeStatement
+    var body: ScopeStatement? = null
 
     constructor(
         returnType: PrimitiveType,

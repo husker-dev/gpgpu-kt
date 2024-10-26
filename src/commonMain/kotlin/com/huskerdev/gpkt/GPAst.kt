@@ -1,16 +1,13 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.ast.FieldStatement
-import com.huskerdev.gpkt.ast.FunctionStatement
-import com.huskerdev.gpkt.ast.ScopeStatement
-import com.huskerdev.gpkt.ast.Statement
+import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.processLexemes
 import com.huskerdev.gpkt.ast.parser.parseScopeStatement
 
 
 class GPAst {
     companion object {
-        fun parse(text: String, device: GPContext? = null, expandImports: Boolean = true): ScopeStatement {
+        fun parse(text: String, device: GPContext? = null, executableProgram: Boolean = true): ScopeStatement {
             val lexemes = processLexemes(text)
 
             val scope =  parseScopeStatement(
@@ -21,7 +18,9 @@ class GPAst {
                 to = lexemes.size,
                 device = device,
             )
-            if(expandImports){
+            if(executableProgram){
+
+                // Expand modules
                 val statements = arrayListOf<Statement>()
                 scope.scope.modules.forEach { importScope ->
                     importScope.statements.forEach {
@@ -31,13 +30,23 @@ class GPAst {
                                 statements += it
                             }
                             is FunctionStatement -> {
-                                scope.scope.functions += it.function
+                                if(!scope.scope.functions.any { f -> f.name == it.function.name })
+                                    scope.scope.functions += it.function
                                 statements += it
                             }
                         }
                     }
                 }
                 scope.statements.addAll(0, statements)
+
+                // Check if all functions have body
+                scope.scope.functions.forEach { func ->
+                    if(func.body == null) {
+                        // Getting statement
+                        val statement = scope.statements.find { it is FunctionStatement && it.function == func }!!
+                        throw compilationError("Function doesn't have implementation", lexemes[statement.lexemeIndex], text)
+                    }
+                }
             }
             return scope
         }

@@ -13,7 +13,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false) {
+class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false) {
     companion object {
         val counter = AtomicLong()
     }

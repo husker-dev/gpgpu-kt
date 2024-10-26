@@ -91,7 +91,9 @@ class WebGPUProgram(
             buffer.append(")")
             if(function.returnType != VOID)
                 buffer.append("->").append(toCType(function.returnType))
-            stringifyScopeStatement(buffer, function.body, true)
+            if(function.body != null)
+                stringifyScopeStatement(buffer, function.body!!, true)
+            else buffer.append(";")
         }else super.stringifyFunctionStatement(statement, buffer)
     }
 
