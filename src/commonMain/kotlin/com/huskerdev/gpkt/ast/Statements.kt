@@ -1,6 +1,6 @@
 package com.huskerdev.gpkt.ast
 
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.Import
 import com.huskerdev.gpkt.ast.objects.GPScope
@@ -65,7 +65,7 @@ class EmptyStatement(
 
 class FieldStatement(
     override val scope: GPScope,
-    val fields: List<Field>,
+    val fields: List<GPField>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement {

@@ -26,12 +26,15 @@ class GPAst {
                     importScope.statements.forEach {
                         when(it){
                             is FieldStatement -> {
-                                scope.scope.fields += it.fields
+                                it.fields.forEach { field ->
+                                    if(field.name !in scope.scope.fields)
+                                        scope.scope.fields[field.name] = field
+                                }
                                 statements += it
                             }
                             is FunctionStatement -> {
-                                if(it.function.body != null)
-                                    scope.scope.functions += it.function
+                                if(it.function.name !in scope.scope.functions)
+                                    scope.scope.functions[it.function.name] = it.function
                                 statements += it
                             }
                         }
@@ -40,12 +43,10 @@ class GPAst {
                 scope.statements.addAll(0, statements)
 
                 // Check if all functions have body
-                scope.scope.functions.forEach { func ->
-                    if(func.body == null) {
-                        // Getting statement
-                        val statement = scope.statements.find { it is FunctionStatement && it.function == func }!!
-                        throw compilationError("Function doesn't have implementation", lexemes[statement.lexemeIndex], text)
-                    }
+                scope.scope.functions.forEach { entry ->
+                    val func = entry.value
+                    if(func.body == null)
+                        throw functionNotImplemented(func, lexemes[0], text)
                 }
             }
             return scope

@@ -13,7 +13,7 @@ class GPFunction(
     val modifiers: List<Modifiers>,
     val returnType: PrimitiveType
 ){
-    val arguments = mutableListOf<Field>()
+    val arguments = mutableListOf<GPField>()
     val argumentsTypes = mutableListOf<PrimitiveType>()
     var body: ScopeStatement? = null
 
@@ -23,7 +23,7 @@ class GPFunction(
         vararg argumentTypes: Pair<String, PrimitiveType>
     ): this(null, name, emptyList(), returnType){
         argumentTypes.forEach { pair ->
-            addArgument(Field(pair.first, mutableListOf(), pair.second))
+            addArgument(GPField(pair.first, mutableListOf(), pair.second))
         }
     }
 
@@ -38,7 +38,7 @@ class GPFunction(
         return true
     }
 
-    fun addArgument(argument: Field){
+    fun addArgument(argument: GPField){
         arguments += argument
         argumentsTypes += argument.type
     }

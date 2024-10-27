@@ -1,6 +1,7 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
+import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.Operator
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 
@@ -33,14 +34,8 @@ fun unexpectedEofException(lexeme: Lexeme, originalCode: String) = compilationEr
     lexeme = Lexeme(lexeme.text, lexeme.type, lexeme.lineIndex, lexeme.inlineIndex + lexeme.text.length)
 )
 
-fun variableAlreadyDefinedException(name: String, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Variable '$name' is already defined in the scope",
-    originalCode = originalCode,
-    lexeme = lexeme
-)
-
-fun functionAlreadyDefinedException(name: String, lexeme: Lexeme, originalCode: String) = compilationError(
-    text = "Function '$name' is already defined",
+fun nameAlreadyDefinedException(name: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Name '$name' is already defined in current scope",
     originalCode = originalCode,
     lexeme = lexeme
 )
@@ -107,6 +102,32 @@ fun operatorUsageException(operator: Operator, with: String, lexeme: Lexeme, ori
 
 fun constAssignException(lexeme: Lexeme, originalCode: String) = compilationError(
     text = "Cannot assign new value to constant",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun wrongFunctionDefinitionParameters(definition: GPFunction, actualArgs: List<PrimitiveType>, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function definition '${definition.name}' has arguments (${definition.argumentsTypes.joinToString()}) " +
+            "but implemented with (${actualArgs.joinToString()})",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun wrongFunctionDefinitionType(definition: GPFunction, actualType: PrimitiveType, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function definition '${definition.name}' has type '${definition.returnType}' but implemented with '${actualType}'",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun wrongFunctionParameters(function: GPFunction, actualArgs: List<PrimitiveType>, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function '${function.name}' has arguments (${function.argumentsTypes.joinToString()}) " +
+            "but called with (${actualArgs.joinToString()})",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
+fun functionNotImplemented(function: GPFunction, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function '${function.name}' is not implemented",
     originalCode = originalCode,
     lexeme = lexeme
 )

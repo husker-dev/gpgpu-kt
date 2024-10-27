@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.ArrayPrimitiveType
 import com.huskerdev.gpkt.ast.types.Operator
@@ -93,7 +93,7 @@ class FunctionCallExpression(
 
 // A
 class FieldExpression(
-    val field: Field,
+    val field: GPField,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Expression() {

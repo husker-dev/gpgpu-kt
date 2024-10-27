@@ -5,12 +5,12 @@ import com.huskerdev.gpkt.ast.types.*
 
 abstract class GPProgram(ast: ScopeStatement) {
     protected val buffers = ast.scope.fields.filter {
-        it.isExtern
-    }.toList()
+        it.value.isExtern
+    }.map { it.value }.toList()
 
     protected val locals = ast.scope.fields.filter {
-        it.isLocal
-    }.toList()
+        it.value.isLocal
+    }.map { it.value }.toList()
 
     abstract fun dealloc()
 

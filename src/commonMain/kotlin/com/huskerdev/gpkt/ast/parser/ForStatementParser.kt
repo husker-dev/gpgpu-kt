@@ -38,8 +38,8 @@ fun parseForStatement(
     // block 1
     val initialization = headScope.statements[0]
     val fields = if(initialization is FieldStatement)
-        initialization.fields
-    else mutableListOf()
+        linkedMapOf(*initialization.fields.map { it.name to it }.toTypedArray())
+    else linkedMapOf()
 
     // block 2
     val condition = headScope.statements[1]
@@ -61,7 +61,7 @@ fun parseForStatement(
     }
 
     // body
-    val iterableScope = GPScope(scope.context, scope, iterable = true, fields = fields.toMutableList())
+    val iterableScope = GPScope(scope.context, scope, iterable = true, fields = fields)
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
     i += body.lexemeLength
 

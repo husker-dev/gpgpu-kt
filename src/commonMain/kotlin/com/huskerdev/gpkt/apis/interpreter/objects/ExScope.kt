@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.types.Modifiers
 
 
@@ -106,7 +106,7 @@ class ExScope(
         fields!![name] = field
     }
 
-    private fun addFunction(name: String, args: List<Field>, scope: ExScope){
+    private fun addFunction(name: String, args: List<GPField>, scope: ExScope){
         functions!![name] = scope
         if(name == "main")
             scope.execute(hashMapOf(args[0].name to fields!!["__i__"]!!))

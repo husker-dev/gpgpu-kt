@@ -3,7 +3,7 @@ package com.huskerdev.gpkt.ast.parser
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.PrimitiveType
@@ -39,7 +39,7 @@ fun parseFieldDeclaration(
     allowDefaultValue: Boolean,
     endsWithSemicolon: Boolean
 ): FieldStatement{
-    val fields = arrayListOf<Field>()
+    val fields = arrayListOf<GPField>()
     var i = from
 
     // Getting modifiers
@@ -73,7 +73,7 @@ fun parseFieldDeclaration(
 
             i += initialExpression.lexemeLength + 1
         }
-        fields += Field(nameLexeme.text, mods, type, initialExpression)
+        fields += GPField(nameLexeme.text, mods, type, initialExpression)
 
         if(i >= to)
             return FieldStatement(scope, fields, from, i - from)

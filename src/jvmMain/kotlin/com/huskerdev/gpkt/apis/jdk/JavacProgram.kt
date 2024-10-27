@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.apis.jdk
 
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.SimpleCProgram
@@ -111,17 +111,17 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
 
     override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
 
-    override fun stringifyModifiersInStruct(field: Field) = ""
+    override fun stringifyModifiersInStruct(field: GPField) = ""
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is Field && obj.isConstant) "private static final"
+        if(obj is GPField && obj.isConstant) "private static final"
         else "private static"
 
-    override fun stringifyModifiersInLocal(field: Field) =
+    override fun stringifyModifiersInLocal(field: GPField) =
         if(field.isConstant) "final"
         else ""
 
-    override fun stringifyModifiersInArg(field: Field) = ""
+    override fun stringifyModifiersInArg(field: GPField) = ""
 
     override fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression) {
         if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){

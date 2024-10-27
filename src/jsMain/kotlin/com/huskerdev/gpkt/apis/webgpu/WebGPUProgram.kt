@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.webgpu
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.SimpleCProgram
@@ -47,12 +47,12 @@ class WebGPUProgram(
         buffer.append("let i=id.x;")
     }
 
-    override fun stringifyModifiersInStruct(field: Field) = ""
+    override fun stringifyModifiersInStruct(field: GPField) = ""
     override fun stringifyModifiersInGlobal(obj: Any) = ""
-    override fun stringifyModifiersInLocal(field: Field) = ""
-    override fun stringifyModifiersInArg(field: Field) = ""
+    override fun stringifyModifiersInLocal(field: GPField) = ""
+    override fun stringifyModifiersInArg(field: GPField) = ""
 
-    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
+    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, force: Boolean) {
         val modifiers = fieldStatement.fields[0].modifiers
         val type = fieldStatement.fields[0].type
 

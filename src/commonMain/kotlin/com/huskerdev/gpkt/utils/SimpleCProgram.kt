@@ -15,10 +15,10 @@ abstract class SimpleCProgram(
 
     abstract fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction)
     abstract fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction)
-    abstract fun stringifyModifiersInStruct(field: Field): String
+    abstract fun stringifyModifiersInStruct(field: GPField): String
     abstract fun stringifyModifiersInGlobal(obj: Any): String
-    abstract fun stringifyModifiersInLocal(field: Field): String
-    abstract fun stringifyModifiersInArg(field: Field): String
+    abstract fun stringifyModifiersInLocal(field: GPField): String
+    abstract fun stringifyModifiersInArg(field: GPField): String
 
     protected open fun stringifyStatement(
         buffer: StringBuilder,
@@ -69,22 +69,38 @@ abstract class SimpleCProgram(
         statement: ScopeStatement,
         brackets: Boolean
     ){
-        if(useStruct && statement.scope.parentScope == null){
-            buffer.append("typedef struct{")
-            fun stringify(field: Field){
-                val modifiers = stringifyModifiersInStruct(field)
-                if(modifiers.isNotEmpty())
-                    buffer.append(modifiers).append(" ")
+        if(statement.scope.parentScope == null) {
+            if (useStruct) {
+                buffer.append("typedef struct{")
+                fun stringify(field: GPField) {
+                    val modifiers = stringifyModifiersInStruct(field)
+                    if (modifiers.isNotEmpty())
+                        buffer.append(modifiers).append(" ")
 
-                buffer.append(toCType(field.type))
-                    .append(" ")
-                    .append(if(field.type is ArrayPrimitiveType<*>) toCArrayName(field.name, field.type.size) else field.name)
-                buffer.append(";")
+                    buffer.append(toCType(field.type))
+                        .append(" ")
+                        .append(
+                            if (field.type is ArrayPrimitiveType<*>) toCArrayName(
+                                field.name,
+                                field.type.size
+                            ) else field.name
+                        )
+                    buffer.append(";")
+                }
+                buffers.forEach(::stringify)
+                locals.forEach(::stringify)
+                buffer.append("}__in;")
+            } else {
+                statement.statements.filter {
+                    it is FieldStatement && (
+                            Modifiers.EXTERNAL in it.fields[0].modifiers ||
+                            Modifiers.THREADLOCAL in it.fields[0].modifiers)
+                }.forEach {
+                    stringifyFieldStatement(it as FieldStatement, buffer, true)
+                }
             }
-            buffers.forEach(::stringify)
-            locals.forEach(::stringify)
-            buffer.append("}__in;")
         }
+
         if(brackets) buffer.append("{")
         statement.statements.forEach { st ->
             stringifyStatement(buffer, st)
@@ -144,10 +160,10 @@ abstract class SimpleCProgram(
         buffer.append(";")
     }
 
-    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder){
+    protected open fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, force: Boolean = false){
         val fields = fieldStatement.fields
         val modifiers = fields[0].modifiers
-        if(useStruct && (Modifiers.EXTERNAL in modifiers || Modifiers.THREADLOCAL in modifiers))
+        if(!force && (Modifiers.EXTERNAL in modifiers || Modifiers.THREADLOCAL in modifiers))
             return
 
         val type = fields[0].type
@@ -215,7 +231,7 @@ abstract class SimpleCProgram(
             stringifyScopeStatement(buffer, statement.function.body!!, false)
             buffer.append("}")
         }else {
-            if(statement.function.body == null && !useFunctionDefs)
+            if(statement is FunctionDefinitionStatement && !useFunctionDefs)
                 return
 
             val modifiers = stringifyModifiersInGlobal(function)
@@ -276,7 +292,7 @@ abstract class SimpleCProgram(
                         toCArrayName(function.name, function.returnType.size) else function.name,
                     args = args
                 )
-                if(statement.function.body != null)
+                if(statement !is FunctionDefinitionStatement)
                     stringifyStatement(buffer, statement.function.body!!)
                 else
                     buffer.append(";")
@@ -329,7 +345,7 @@ abstract class SimpleCProgram(
     protected open fun stringifyFunctionCallExpression(
         buffer: StringBuilder,
         expression: FunctionCallExpression,
-        arrayField: Field? = null,
+        arrayField: GPField? = null,
         arrayIndex: Expression? = null
     ){
         val function = expression.function
@@ -373,7 +389,7 @@ abstract class SimpleCProgram(
     }
 
     open fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = functionExpression.function.name
-    open fun convertPredefinedFieldName(field: Field) = field.name
+    open fun convertPredefinedFieldName(field: GPField) = field.name
 
     protected open fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression){
         buffer.append(expression.lexeme.text)
@@ -401,7 +417,7 @@ abstract class SimpleCProgram(
         buffer.append(if(name in allPredefinedFields) convertPredefinedFieldName(expression.field) else name)
     }
 
-    protected open fun convertToFuncArg(field: Field): String{
+    protected open fun convertToFuncArg(field: GPField): String{
         val buffer = StringBuilder()
         val modifiers = stringifyModifiersInArg(field)
         if(modifiers.isNotEmpty())

@@ -118,8 +118,11 @@ fun parseExpression(
                             else throw unexpectedSymbolException(next.text, next, codeBlock)
                         }
                     }
-                    val function = scope.findDefinedFunction(lexeme.text, argumentTypes)
+                    val function = scope.findDefinedFunction(lexeme.text)
                         ?: throw functionIsNotDefined(lexeme.text, argumentTypes, lexeme, codeBlock)
+
+                    if(!function.canAcceptArguments(argumentTypes))
+                        throw wrongFunctionParameters(function, argumentTypes, lexeme, codeBlock)
 
                     return FunctionCallExpression(function, arguments, from, to - from)
                 }

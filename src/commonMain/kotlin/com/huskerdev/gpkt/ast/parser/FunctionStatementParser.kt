@@ -30,7 +30,7 @@ fun parseFunctionStatement(
     i += typeDeclaration.second
 
     val nameLexeme = lexemes[i]
-    val function = GPFunction(scope, nameLexeme.text, mods, type)
+    var function = GPFunction(scope, nameLexeme.text, mods, type)
     i += 2
 
     // Getting parameters
@@ -59,6 +59,17 @@ fun parseFunctionStatement(
 
     if(lexemes[i+1].text == ";")
         return FunctionDefinitionStatement(scope, function, from, i - from + 1)
+    else {
+        // Check if function was previously pre-defined
+        // If yes -> get its object and continue
+        scope.findDefinedFunction(function.name)?.let { def ->
+            if(def.returnType != function.returnType)
+                throw wrongFunctionDefinitionType(def, function.returnType, lexemes[from], codeBlock)
+            if(!def.canAcceptArguments(function.argumentsTypes))
+                throw wrongFunctionDefinitionParameters(def, function.argumentsTypes, lexemes[from], codeBlock)
+            function = def
+        }
+    }
 
     val functionScope = parseScopeStatement(
         parentScope = scope,
@@ -67,7 +78,7 @@ fun parseFunctionStatement(
         from = i+1,
         to = to,
         returnType = type,
-        fields = function.arguments.toMutableList()
+        fields = linkedMapOf(*function.arguments.map { it.name to it }.toTypedArray())
     )
     i += functionScope.lexemeLength
 

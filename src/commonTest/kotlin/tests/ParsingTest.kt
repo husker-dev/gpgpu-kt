@@ -1,7 +1,7 @@
 package tests
 
 import com.huskerdev.gpkt.GPAst
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import kotlin.test.Test
@@ -187,10 +187,10 @@ class ParsingTest {
 
             override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) = Unit
             override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
-            override fun stringifyModifiersInStruct(field: Field) = ""
+            override fun stringifyModifiersInStruct(field: GPField) = ""
             override fun stringifyModifiersInGlobal(obj: Any) = ""
-            override fun stringifyModifiersInLocal(field: Field) = ""
-            override fun stringifyModifiersInArg(field: Field) = ""
+            override fun stringifyModifiersInLocal(field: GPField) = ""
+            override fun stringifyModifiersInArg(field: GPField) = ""
 
             override fun dealloc() = Unit
             override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) = Unit

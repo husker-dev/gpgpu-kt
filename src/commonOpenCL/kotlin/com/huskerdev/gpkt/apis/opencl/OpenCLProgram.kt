@@ -2,7 +2,7 @@ package com.huskerdev.gpkt.apis.opencl
 
 import com.huskerdev.gpkt.ast.FunctionCallExpression
 import com.huskerdev.gpkt.ast.ScopeStatement
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
@@ -38,17 +38,17 @@ class OpenCLProgram(
         cl.executeKernel(context.commandQueue, kernel, context.device.peer, instances.toLong())
     }
 
-    override fun stringifyModifiersInStruct(field: Field) =
+    override fun stringifyModifiersInStruct(field: GPField) =
         stringifyModifiersInLocal(field)
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is Field && obj.isConstant) "__constant"
+        if(obj is GPField && obj.isConstant) "__constant"
         else if(obj is GPFunction && obj.returnType.isDynamicArray) "__global" else ""
 
-    override fun stringifyModifiersInLocal(field: Field) =
+    override fun stringifyModifiersInLocal(field: GPField) =
         if(field.type.isDynamicArray) "__global" else ""
 
-    override fun stringifyModifiersInArg(field: Field) =
+    override fun stringifyModifiersInArg(field: GPField) =
         stringifyModifiersInLocal(field)
 
     override fun dealloc() {
@@ -73,7 +73,7 @@ class OpenCLProgram(
         buffer.append("int ${function.arguments[0].name}=get_global_id(0)+__o;")
     }
 
-    override fun convertPredefinedFieldName(field: Field) = when(field.name){
+    override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "M_PI"
         "E" -> "M_E"
         else -> field.name

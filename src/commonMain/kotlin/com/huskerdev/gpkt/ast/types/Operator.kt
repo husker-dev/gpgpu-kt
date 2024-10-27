@@ -122,7 +122,7 @@ enum class Operator(
             }
 
             ASSIGN -> {
-                if (leftType != rightType || !PrimitiveType.canAssignNumbers(leftType, rightType))
+                if (leftType != rightType && !PrimitiveType.canAssignNumbers(leftType, rightType))
                     throw expectedTypeException(leftType, rightType, rightLexeme, codeBlock)
                 if(!left.canAssign())
                     throw constAssignException(operatorLexeme, codeBlock)

@@ -3,7 +3,7 @@ package com.huskerdev.gpkt.ast.parser
 import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.Modifiers
@@ -20,9 +20,9 @@ fun parseScopeStatement(
     device: GPContext?          = parentScope?.context,
     returnType: PrimitiveType?  = null,
     iterable: Boolean           = false,
-    modules: LinkedHashSet<ScopeStatement> = LinkedHashSet(),
-    fields: MutableList<Field> = mutableListOf(),
-    functions: MutableList<GPFunction> = mutableListOf()
+    modules: LinkedHashSet<ScopeStatement>       = linkedSetOf(),
+    fields: LinkedHashMap<String, GPField>       = linkedMapOf(),
+    functions: LinkedHashMap<String, GPFunction> = linkedMapOf()
 ): ScopeStatement {
     val scope = GPScope(
         context = device,

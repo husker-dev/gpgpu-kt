@@ -6,7 +6,7 @@ import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 
-class Field(
+class GPField(
     val name: String,
     val modifiers: MutableList<Modifiers>,
     val type: PrimitiveType,
@@ -33,4 +33,4 @@ val predefinedMathFields = hashMapOf(
 val allPredefinedFields = predefinedMathFields
 
 private fun fieldPair(name: String, type: PrimitiveType) =
-    name to Field(name, type)
+    name to GPField(name, type)

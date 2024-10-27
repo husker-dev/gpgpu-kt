@@ -4,7 +4,7 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.predefinedMathFields
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.FLOAT
 import com.huskerdev.gpkt.utils.SimpleCProgram
@@ -64,12 +64,12 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
 
-    override fun stringifyModifiersInStruct(field: Field) = ""
+    override fun stringifyModifiersInStruct(field: GPField) = ""
     override fun stringifyModifiersInGlobal(obj: Any) = ""
-    override fun stringifyModifiersInLocal(field: Field) = ""
-    override fun stringifyModifiersInArg(field: Field) = ""
+    override fun stringifyModifiersInLocal(field: GPField) = ""
+    override fun stringifyModifiersInArg(field: GPField) = ""
 
-    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder) {
+    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, force: Boolean) {
         val modifiers = fieldStatement.fields[0].modifiers
         if(Modifiers.EXTERNAL in modifiers)
             return

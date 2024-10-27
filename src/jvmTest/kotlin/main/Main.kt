@@ -61,7 +61,7 @@ fun main() {
             }
             
             int toImpl(){
-                return 0;
+                return 2;
             }
             
             void main(const int i){
@@ -74,7 +74,7 @@ fun main() {
                 float[3] c = getArray();
                 float d = c[0];
                 
-                result[i] = d + c[1] + getArray()[2] + abs(-30);
+                result[i] = toImpl() + test(0);
             }
         """.trimIndent())
     }catch (e: GPCompilationException){

@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.webgpu
 
 
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.utils.await
 import com.huskerdev.gpkt.utils.jsObject
@@ -93,7 +93,7 @@ class WebGPU{
         return device.createCommandEncoder()
     }
 
-    fun createGroupLayout(device: dynamic, bufferFields: List<Field>): dynamic{
+    fun createGroupLayout(device: dynamic, bufferFields: List<GPField>): dynamic{
         return device.createBindGroupLayout(jsObject {
             entries = js("[]")
             bufferFields.forEachIndexed { i, buffer ->

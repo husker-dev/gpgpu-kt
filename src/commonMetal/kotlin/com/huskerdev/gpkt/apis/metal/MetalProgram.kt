@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.metal
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
@@ -69,14 +69,14 @@ class MetalProgram(
         }
     }
 
-    override fun stringifyModifiersInStruct(field: Field) =
+    override fun stringifyModifiersInStruct(field: GPField) =
         stringifyModifiersInArg(field)
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is Field && obj.isConstant) "constant" else ""
+        if(obj is GPField && obj.isConstant) "constant" else ""
 
-    override fun stringifyModifiersInLocal(field: Field) = ""
+    override fun stringifyModifiersInLocal(field: GPField) = ""
 
-    override fun stringifyModifiersInArg(field: Field) =
+    override fun stringifyModifiersInArg(field: GPField) =
         if(field.type.isArray) "device" else ""
 }

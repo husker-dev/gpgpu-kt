@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.Field
+import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
@@ -64,12 +64,12 @@ class CudaProgram(
     }
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is Field && obj.isConstant) "__constant__"
+        if(obj is GPField && obj.isConstant) "__constant__"
         else "__device__"
 
-    override fun stringifyModifiersInStruct(field: Field) = ""
-    override fun stringifyModifiersInLocal(field: Field) = ""
-    override fun stringifyModifiersInArg(field: Field) = ""
+    override fun stringifyModifiersInStruct(field: GPField) = ""
+    override fun stringifyModifiersInLocal(field: GPField) = ""
+    override fun stringifyModifiersInArg(field: GPField) = ""
 
     override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
         when(expression.field.name){
