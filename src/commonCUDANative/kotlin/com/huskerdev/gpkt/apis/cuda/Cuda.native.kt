@@ -222,6 +222,7 @@ internal actual fun cuLaunchKernel(
             is Float -> alloc(it).ptr
             is Int -> alloc(it).ptr
             is Byte -> alloc(it).ptr
+            is Boolean -> alloc<Byte>(if(it == true) 1 else 0).ptr
             is CUdeviceptr -> alloc(it.ptr).ptr
             else -> throw UnsupportedOperationException(it.toString())
         }

@@ -6,6 +6,7 @@ import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.objects.*
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.Modifiers
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseFunctionStatement(
@@ -13,7 +14,8 @@ fun parseFunctionStatement(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    dictionary: Dictionary
 ): FunctionStatement {
     var i = from
 
@@ -30,7 +32,7 @@ fun parseFunctionStatement(
     i += typeDeclaration.second
 
     val nameLexeme = lexemes[i]
-    var function = GPFunction(scope, nameLexeme.text, mods, type)
+    var function = GPFunction(scope, nameLexeme.text, dictionary.nextWord(), mods, type)
     i += 2
 
     // Getting parameters
@@ -44,6 +46,7 @@ fun parseFunctionStatement(
             codeBlock,
             i,
             to,
+            dictionary,
             allowMultipleDeclaration = false,
             allowDefaultValue = false,
             endsWithSemicolon = false
@@ -77,6 +80,7 @@ fun parseFunctionStatement(
         codeBlock = codeBlock,
         from = i+1,
         to = to,
+        dictionary,
         returnType = type,
         fields = linkedMapOf(*function.arguments.map { it.name to it }.toTypedArray())
     )

@@ -9,6 +9,7 @@ import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
 import com.huskerdev.gpkt.ast.types.primitivesMap
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseFieldStatement(
@@ -16,13 +17,15 @@ fun parseFieldStatement(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    dictionary: Dictionary
 ) = parseFieldDeclaration(
     scope,
     lexemes,
     codeBlock,
     from,
     to,
+    dictionary,
     allowMultipleDeclaration = true,
     allowDefaultValue = true,
     endsWithSemicolon = true
@@ -35,6 +38,7 @@ fun parseFieldDeclaration(
     codeBlock: String,
     from: Int,
     to: Int,
+    dictionary: Dictionary,
     allowMultipleDeclaration: Boolean,
     allowDefaultValue: Boolean,
     endsWithSemicolon: Boolean
@@ -73,7 +77,7 @@ fun parseFieldDeclaration(
 
             i += initialExpression.lexemeLength + 1
         }
-        fields += GPField(nameLexeme.text, mods, type, initialExpression)
+        fields += GPField(nameLexeme.text, dictionary.nextWord(), mods, type, initialExpression)
 
         if(i >= to)
             return FieldStatement(scope, fields, from, i - from)

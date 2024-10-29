@@ -9,6 +9,7 @@ import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 import com.huskerdev.gpkt.ast.types.VOID
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseScopeStatement(
@@ -17,7 +18,8 @@ fun parseScopeStatement(
     codeBlock: String,
     from: Int,
     to: Int,
-    device: GPContext?          = parentScope?.context,
+    dictionary: Dictionary,
+    context: GPContext?         = parentScope?.context,
     returnType: PrimitiveType?  = null,
     iterable: Boolean           = false,
     modules: LinkedHashSet<ScopeStatement>       = linkedSetOf(),
@@ -25,7 +27,7 @@ fun parseScopeStatement(
     functions: LinkedHashMap<String, GPFunction> = linkedMapOf()
 ): ScopeStatement {
     val scope = GPScope(
-        context = device,
+        context = context,
         parentScope = parentScope,
         returnType = returnType,
         iterable = iterable,
@@ -50,7 +52,7 @@ fun parseScopeStatement(
                     throw compilationError("Expected return statement", lexeme, codeBlock)
                 return ScopeStatement(scope, statements, returns, from, i - from + 1)
             }
-            val statement = parseStatement(scope, lexemes, codeBlock, i, to)
+            val statement = parseStatement(scope, lexemes, codeBlock, i, to, dictionary)
             statements += statement
 
             when (statement) {
@@ -71,10 +73,10 @@ fun parseScopeStatement(
                 is ImportStatement -> {
                     val import = statement.import
                     import.paths.forEach { path ->
-                        if(device == null || !device.modules.ast.containsKey(path))
+                        if(context == null || !context.modules.ast.containsKey(path))
                             throw compilationError("Module '${path}' not found", import.lexeme, codeBlock)
 
-                        val module = device.modules.ast[path]!!
+                        val module = context.modules.ast[path]!!
                         scope.modules += module.scope.modules   // Get dependent modules,
                         scope.modules += module                 // and itself
                     }

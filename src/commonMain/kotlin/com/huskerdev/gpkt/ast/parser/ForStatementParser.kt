@@ -4,6 +4,7 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.BOOLEAN
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseForStatement(
@@ -11,7 +12,8 @@ fun parseForStatement(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    dictionary: Dictionary
 ): ForStatement{
     var i = from + 1
     if(lexemes[i].text != "(")
@@ -29,7 +31,7 @@ fun parseForStatement(
         throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
     // Head scope
-    val headScope = parseScopeStatement(scope, lexemes, codeBlock, i+1, r)
+    val headScope = parseScopeStatement(scope, lexemes, codeBlock, i+1, r, dictionary)
     i += headScope.lexemeLength + 2
 
     if(headScope.statements.size < 2)
@@ -62,7 +64,7 @@ fun parseForStatement(
 
     // body
     val iterableScope = GPScope(scope.context, scope, iterable = true, fields = fields)
-    val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
+    val body = parseStatement(iterableScope, lexemes, codeBlock, i, to, dictionary)
     i += body.lexemeLength
 
     return ForStatement(scope, initialization, conditionExpression, iterationExpression, body, from, i - from)

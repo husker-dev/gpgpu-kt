@@ -1,11 +1,13 @@
 package com.huskerdev.gpkt
 
 import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 class GPModules(
     private val contextDevice: GPContext
 ) {
+    val dictionary = Dictionary()
     val ast = hashMapOf<String, ScopeStatement>()
 
     fun add(name: String, code: String){

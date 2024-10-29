@@ -129,7 +129,7 @@ data class IntArrayType(
     override val isLogical = false
     override val isArray = true
     override val isDynamicArray = size == -1
-    override fun toString() = "int[$size]"
+    override fun toString() = if(isDynamicArray) "int[]" else "int[$size]"
 }
 
 data class FloatArrayType(
@@ -142,7 +142,7 @@ data class FloatArrayType(
     override val isLogical = false
     override val isArray = true
     override val isDynamicArray = size == -1
-    override fun toString() = "float[$size]"
+    override fun toString() = if(isDynamicArray) "float[]" else "float[$size]"
 }
 
 data class ByteArrayType(
@@ -155,5 +155,5 @@ data class ByteArrayType(
     override val isLogical = false
     override val isArray = true
     override val isDynamicArray = size == -1
-    override fun toString() = "byte[$size]"
+    override fun toString() = if(isDynamicArray) "byte[]" else "byte[$size]"
 }

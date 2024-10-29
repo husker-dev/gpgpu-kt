@@ -5,6 +5,7 @@ import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.BOOLEAN
 import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseWhileStatement(
@@ -12,7 +13,8 @@ fun parseWhileStatement(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    dictionary: Dictionary
 ): WhileStatement {
     var i = from + 1
     if(lexemes[i].text != "(")
@@ -25,7 +27,7 @@ fun parseWhileStatement(
     i += condition.lexemeLength + 2
 
     val iterableScope = GPScope(scope.context, scope, iterable = true)
-    val body = parseStatement(iterableScope, lexemes, codeBlock, i, to)
+    val body = parseStatement(iterableScope, lexemes, codeBlock, i, to, dictionary)
     i += body.lexemeLength
 
     return WhileStatement(scope, condition, body, from, i - from)

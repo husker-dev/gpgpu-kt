@@ -8,12 +8,19 @@ import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 class GPField(
     val name: String,
+    val obfName: String = name,
     val modifiers: MutableList<Modifiers>,
     val type: PrimitiveType,
     var initialExpression: Expression? = null
 ) {
-    constructor(name: String, type: PrimitiveType): this(name, mutableListOf(), type, null)
-    constructor(name: String, type: PrimitiveType, initialExpression: Expression): this(name, mutableListOf(), type, initialExpression)
+    constructor(
+        name: String,
+        modifiers: MutableList<Modifiers>,
+        type: PrimitiveType,
+        initialExpression: Expression? = null
+    ): this(name, name, modifiers, type, initialExpression)
+    constructor(name: String, type: PrimitiveType): this(name, name, mutableListOf(), type, null)
+    constructor(name: String, type: PrimitiveType, initialExpression: Expression): this(name, name, mutableListOf(), type, initialExpression)
 
     val isExtern
         get() = Modifiers.EXTERNAL in modifiers
@@ -28,6 +35,7 @@ class GPField(
 val predefinedMathFields = hashMapOf(
     fieldPair("PI", FLOAT),
     fieldPair("E", FLOAT),
+    fieldPair("NaN", FLOAT),
 )
 
 val allPredefinedFields = predefinedMathFields

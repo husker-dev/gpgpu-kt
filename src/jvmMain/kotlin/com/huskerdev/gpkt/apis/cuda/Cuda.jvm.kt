@@ -195,6 +195,7 @@ internal actual fun cuLaunchKernel(
             is Float -> Pointer.to(floatArrayOf(it))
             is Int -> Pointer.to(intArrayOf(it))
             is Byte -> Pointer.to(byteArrayOf(it))
+            is Boolean -> Pointer.to(byteArrayOf(if(it) 1 else 0))
             is CUdeviceptr -> Pointer.to(it.ptr)
             else -> throw UnsupportedOperationException(it.toString())
         }

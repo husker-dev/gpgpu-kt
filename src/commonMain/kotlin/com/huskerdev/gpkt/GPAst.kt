@@ -3,20 +3,25 @@ package com.huskerdev.gpkt
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.processLexemes
 import com.huskerdev.gpkt.ast.parser.parseScopeStatement
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 class GPAst {
     companion object {
-        fun parse(text: String, device: GPContext? = null, executableProgram: Boolean = true): ScopeStatement {
+        fun parse(text: String, context: GPContext? = null, executableProgram: Boolean = true): ScopeStatement {
             val lexemes = processLexemes(text)
 
-            val scope =  parseScopeStatement(
+            val currentDictionary = context?.modules?.dictionary ?: Dictionary()
+            val dictionary = if(executableProgram) currentDictionary.copy() else currentDictionary
+
+            val scope = parseScopeStatement(
                 parentScope = null,
                 lexemes = lexemes,
                 codeBlock = text,
                 from = 0,
                 to = lexemes.size,
-                device = device,
+                dictionary = dictionary,
+                context = context,
             )
             if(executableProgram){
 

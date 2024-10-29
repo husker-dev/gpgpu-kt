@@ -57,6 +57,7 @@ abstract class GPProgram(ast: ScopeStatement) {
             is Float -> expected is FloatType
             is Int -> expected is IntType
             is Byte -> expected is ByteType
+            is Boolean -> expected is BooleanType
             else -> throw UnsupportedOperationException("Unsupported type: '${actual::class}'")
         }
     }

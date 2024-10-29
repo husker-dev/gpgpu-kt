@@ -26,8 +26,8 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         buffer.append("""
             import static java.lang.Math.*;
             public class $className{ 
-                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${toCType(it.type)} __v${it.name}" }}){
-                    ${buffers.joinToString("") { "${it.name}=__v${it.name};" }}
+                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${toCType(it.type)} __v${it.obfName}" }}){
+                    ${buffers.joinToString("") { "${it.obfName}=__v${it.obfName};" }}
                     for(int i = fromIndex; i < toIndex; i++)
                         _m(i);
                 }
@@ -105,7 +105,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
             buffer = buffer,
             type = function.returnType.toString(),
             name = "_m",
-            args = listOf("int ${function.arguments[0].name}")
+            args = listOf("int ${function.arguments[0].obfName}")
         )
     }
 
@@ -143,11 +143,15 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         buffer.append(")")
     }
 
-    override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
-        when(val name = expression.field.name){
-            "E", "PI" -> buffer.append("(float)$name")
-            else -> buffer.append(name)
-        }
+    override fun convertPredefinedFieldName(field: GPField) = when(field.name){
+        "E", "PI" -> "(float)${field.name}"
+        "NaN" -> "Float.NaN"
+        else -> field.obfName
+    }
+
+    override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = when(functionExpression.function.name){
+        "isNaN" -> "Float.isNaN"
+        else -> functionExpression.function.obfName
     }
 
     override fun stringifyArrayDefinitionExpression(buffer: StringBuilder, expression: ArrayDefinitionExpression) {

@@ -63,24 +63,26 @@ class OpenCLProgram(
             type = function.returnType.toString(),
             name = "__m",
             args = buffers.map {
-                if(it.type.isArray) "__global ${toCType(it.type)}*__v${it.name}"
-                else "${toCType(it.type)} __v${it.name}"
+                if(it.type.isArray) "__global ${toCType(it.type)}*__v${it.obfName}"
+                else "${toCType(it.type)} __v${it.obfName}"
             } + listOf("int __o")
         )
     }
 
     override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) {
-        buffer.append("int ${function.arguments[0].name}=get_global_id(0)+__o;")
+        buffer.append("int ${function.arguments[0].obfName}=get_global_id(0)+__o;")
     }
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "M_PI"
         "E" -> "M_E"
-        else -> field.name
+        "NaN" -> "NAN"
+        else -> field.obfName
     }
 
-    override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = when{
-        functionExpression.function.name == "abs" -> "fabs"
-        else -> functionExpression.function.name
+    override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = when(functionExpression.function.name){
+        "abs" -> "fabs"
+        "isNaN" -> "isnan"
+        else -> functionExpression.function.obfName
     }
 }

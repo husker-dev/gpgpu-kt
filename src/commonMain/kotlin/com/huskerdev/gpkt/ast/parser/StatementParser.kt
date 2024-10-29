@@ -8,6 +8,7 @@ import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.lexer.primitives
 import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseStatement(
@@ -15,19 +16,20 @@ fun parseStatement(
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
-    to: Int
+    to: Int,
+    dictionary: Dictionary
 ): Statement{
     val lexeme = lexemes[from]
     val text = lexeme.text
 
     return if(lexeme.type == Lexeme.Type.SPECIAL){
         when {
-            text == "{" -> parseScopeStatement(scope, lexemes, codeBlock, from, to)
+            text == "{" -> parseScopeStatement(scope, lexemes, codeBlock, from, to, dictionary)
             text == ";" -> EmptyStatement(scope, from, 1)
             text == "return" -> parseReturnStatement(scope, lexemes, codeBlock, from)
-            text == "if" -> parseIfStatement(scope, lexemes, codeBlock, from, to)
-            text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, from, to)
-            text == "for" -> parseForStatement(scope, lexemes, codeBlock, from, to)
+            text == "if" -> parseIfStatement(scope, lexemes, codeBlock, from, to, dictionary)
+            text == "while" -> parseWhileStatement(scope, lexemes, codeBlock, from, to, dictionary)
+            text == "for" -> parseForStatement(scope, lexemes, codeBlock, from, to, dictionary)
             text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, from, to)
             text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, from, to)
             text == "import" -> parseImportStatement(scope, lexemes, codeBlock, from, to)
@@ -36,8 +38,8 @@ fun parseStatement(
                 while(lexemes[r].type != Lexeme.Type.NAME && r < to)
                     r++
 
-                if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, from, to)
-                else parseFieldStatement(scope, lexemes, codeBlock, from, to)
+                if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, from, to, dictionary)
+                else parseFieldStatement(scope, lexemes, codeBlock, from, to, dictionary)
             }
             else -> throw compilationError("Unexpected symbol: '${text}'", lexeme, codeBlock)
         }

@@ -1,15 +1,13 @@
 package com.huskerdev.gpkt.ast.objects
 
 import com.huskerdev.gpkt.ast.ScopeStatement
-import com.huskerdev.gpkt.ast.types.FLOAT
-import com.huskerdev.gpkt.ast.types.INT
-import com.huskerdev.gpkt.ast.types.Modifiers
-import com.huskerdev.gpkt.ast.types.PrimitiveType
+import com.huskerdev.gpkt.ast.types.*
 
 
 class GPFunction(
     val scope: GPScope?,
     val name: String,
+    val obfName: String,
     val modifiers: List<Modifiers>,
     val returnType: PrimitiveType
 ){
@@ -18,12 +16,19 @@ class GPFunction(
     var body: ScopeStatement? = null
 
     constructor(
+        scope: GPScope?,
+        name: String,
+        modifiers: List<Modifiers>,
+        returnType: PrimitiveType
+    ): this(scope, name, name, modifiers, returnType)
+
+    constructor(
         returnType: PrimitiveType,
         name: String,
         vararg argumentTypes: Pair<String, PrimitiveType>
-    ): this(null, name, emptyList(), returnType){
+    ): this(null, name, name, emptyList(), returnType){
         argumentTypes.forEach { pair ->
-            addArgument(GPField(pair.first, mutableListOf(), pair.second))
+            addArgument(GPField(pair.first, pair.first, mutableListOf(), pair.second))
         }
     }
 
@@ -69,6 +74,7 @@ val predefinedMathFunctions = hashMapOf(
     funPair("sqrt", FLOAT, "a" to FLOAT),
     funPair("tan", FLOAT, "a" to FLOAT),
     funPair("tanh", FLOAT, "x" to FLOAT),
+    funPair("isNaN", BOOLEAN, "a" to FLOAT),
 )
 
 val allPredefinedFunctions = predefinedMathFunctions
