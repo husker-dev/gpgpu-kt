@@ -25,6 +25,7 @@ class InterpreterProgram(
                 is Float -> FLOAT to value
                 is Int -> INT to value
                 is Byte -> BYTE to value
+                is Boolean -> BOOLEAN to value
                 else -> throw UnsupportedOperationException()
             }
             field.name to ExField(desc.first, ExValue(desc.second))

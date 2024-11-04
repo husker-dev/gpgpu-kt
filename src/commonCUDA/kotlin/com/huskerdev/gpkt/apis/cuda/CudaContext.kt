@@ -8,8 +8,7 @@ abstract class CudaContext(
     cudaDevice: CudaDevice
 ): GPContext{
     override val device = cudaDevice
-    val cuda = cudaDevice.cuda
-    val peer = cuda.createContext(cudaDevice.peer)
+    val peer = Cuda.createContext(cudaDevice.peer)
 
     override var disposed = false
     override val modules = GPModules(this)
@@ -20,7 +19,7 @@ abstract class CudaContext(
     override fun dispose() {
         if(disposed) return
         disposed = true
-        cuda.dispose(peer)
+        Cuda.dispose(peer)
     }
 }
 
@@ -28,42 +27,42 @@ class CudaSyncContext(
     cudaDevice: CudaDevice
 ): CudaContext(cudaDevice), GPSyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CudaSyncFloatMemoryPointer(this, array.size, usage, cuda.wrapFloats(peer, array))
+        CudaSyncFloatMemoryPointer(this, array.size, usage, Cuda.wrapFloats(peer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CudaSyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Float.SIZE_BYTES))
+        CudaSyncFloatMemoryPointer(this, length, usage, Cuda.alloc(peer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CudaSyncIntMemoryPointer(this, array.size, usage, cuda.wrapInts(peer, array))
+        CudaSyncIntMemoryPointer(this, array.size, usage, Cuda.wrapInts(peer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CudaSyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Int.SIZE_BYTES))
+        CudaSyncIntMemoryPointer(this, length, usage, Cuda.alloc(peer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CudaSyncByteMemoryPointer(this, array.size, usage, cuda.wrapBytes(peer, array))
+        CudaSyncByteMemoryPointer(this, array.size, usage, Cuda.wrapBytes(peer, array))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CudaSyncByteMemoryPointer(this, length, usage, cuda.alloc(peer, length))
+        CudaSyncByteMemoryPointer(this, length, usage, Cuda.alloc(peer, length))
 }
 
 class CudaAsyncContext(
     cudaDevice: CudaDevice
 ): CudaContext(cudaDevice), GPAsyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CudaAsyncFloatMemoryPointer(this, array.size, usage, cuda.wrapFloats(peer, array))
+        CudaAsyncFloatMemoryPointer(this, array.size, usage, Cuda.wrapFloats(peer, array))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CudaAsyncFloatMemoryPointer(this, length, usage, cuda.alloc(peer, length * Float.SIZE_BYTES))
+        CudaAsyncFloatMemoryPointer(this, length, usage, Cuda.alloc(peer, length * Float.SIZE_BYTES))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CudaAsyncIntMemoryPointer(this, array.size, usage, cuda.wrapInts(peer, array))
+        CudaAsyncIntMemoryPointer(this, array.size, usage, Cuda.wrapInts(peer, array))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CudaAsyncIntMemoryPointer(this, length, usage, cuda.alloc(peer, length * Int.SIZE_BYTES))
+        CudaAsyncIntMemoryPointer(this, length, usage, Cuda.alloc(peer, length * Int.SIZE_BYTES))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CudaAsyncByteMemoryPointer(this, array.size, usage, cuda.wrapBytes(peer, array))
+        CudaAsyncByteMemoryPointer(this, array.size, usage, Cuda.wrapBytes(peer, array))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CudaAsyncByteMemoryPointer(this, length, usage, cuda.alloc(peer, length))
+        CudaAsyncByteMemoryPointer(this, length, usage, Cuda.alloc(peer, length))
 }

@@ -79,7 +79,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         val arrays = buffers.map { field ->
             when(val value = map[field.name]!!){
                 is CPUMemoryPointer<*> -> value.array
-                is Float, is Double, is Long, is Int, is Byte -> value
+                is Float, is Double, is Long, is Int, is Byte, is Boolean -> value
                 else -> throw UnsupportedOperationException()
             }
         }

@@ -6,7 +6,6 @@ private typealias CUDAReader<T> = (context: CUcontext, ptr: CUdeviceptr, length:
 private typealias CUDAWriter<T> = (context: CUcontext, ptr: CUdeviceptr, src: T, length: Int, srcOffset: Int, dstOffset: Int) -> Unit
 
 abstract class CudaMemoryPointer<T>: MemoryPointer<T> {
-    abstract val cuda: Cuda
     abstract val contextPeer: CUcontext
 
     abstract val ptr: CUdeviceptr
@@ -16,7 +15,7 @@ abstract class CudaMemoryPointer<T>: MemoryPointer<T> {
     override fun dealloc() {
         if(disposed) return
         disposed = true
-        cuda.dealloc(contextPeer, ptr)
+        Cuda.dealloc(contextPeer, ptr)
     }
 
     abstract class Sync<T>(
@@ -49,10 +48,9 @@ class CudaSyncFloatMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Sync<FloatArray>(
-    cuda::readFloats, cuda::writeFloats
+    Cuda::readFloats, Cuda::writeFloats
 ), SyncFloatMemoryPointer
 
 class CudaSyncIntMemoryPointer(
@@ -60,10 +58,9 @@ class CudaSyncIntMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Sync<IntArray>(
-    cuda::readInts, cuda::writeInts
+    Cuda::readInts, Cuda::writeInts
 ), SyncIntMemoryPointer
 
 class CudaSyncByteMemoryPointer(
@@ -71,10 +68,9 @@ class CudaSyncByteMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Sync<ByteArray>(
-    cuda::readBytes, cuda::writeBytes
+    Cuda::readBytes, Cuda::writeBytes
 ), SyncByteMemoryPointer
 
 
@@ -87,10 +83,9 @@ class CudaAsyncFloatMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Async<FloatArray>(
-    cuda::readFloats, cuda::writeFloats
+    Cuda::readFloats, Cuda::writeFloats
 ), AsyncFloatMemoryPointer
 
 class CudaAsyncIntMemoryPointer(
@@ -98,10 +93,9 @@ class CudaAsyncIntMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Async<IntArray>(
-    cuda::readInts, cuda::writeInts
+    Cuda::readInts, Cuda::writeInts
 ), AsyncIntMemoryPointer
 
 class CudaAsyncByteMemoryPointer(
@@ -109,8 +103,7 @@ class CudaAsyncByteMemoryPointer(
     override val length: Int,
     override val usage: MemoryUsage,
     override val ptr: CUdeviceptr,
-    override val cuda: Cuda = context.cuda,
     override val contextPeer: CUcontext = context.peer
 ): CudaMemoryPointer.Async<ByteArray>(
-    cuda::readBytes, cuda::writeBytes
+    Cuda::readBytes, Cuda::writeBytes
 ), AsyncByteMemoryPointer

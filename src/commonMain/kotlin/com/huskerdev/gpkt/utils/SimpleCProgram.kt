@@ -465,8 +465,7 @@ abstract class SimpleCProgram(
         is VoidType -> "void"
         is FloatType, is FloatArrayType -> "float"
         is IntType, is IntArrayType -> "int"
-        is ByteType, is ByteArrayType -> "char"
-        is BooleanType -> "bool"
+        is ByteType, is ByteArrayType, is BooleanType -> "char"
         else -> throw UnsupportedOperationException()
     }
 

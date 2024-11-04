@@ -54,13 +54,13 @@ internal fun createString(bytes: ByteArray): String {
 }
 
 
-class Cuda {
-    companion object {
-        val supported = isCUDASupported()
-    }
+object Cuda {
+    val supported = isCUDASupported()
 
     init {
-        cuInit(0)
+        try {
+            cuInit(0)
+        }catch (_: Throwable) { }
     }
 
     fun getDevices() =

@@ -11,7 +11,6 @@ class CudaProgram(
     private val context: CudaContext,
     ast: ScopeStatement
 ): SimpleCProgram(ast, false) {
-    private val cuda = context.cuda
 
     private val module: CUmodule
     private val function: CUfunction
@@ -22,8 +21,8 @@ class CudaProgram(
         stringifyScopeStatement(buffer, ast, false)
         buffer.append("}")
 
-        module = cuda.compileToModule(context.peer, buffer.toString())
-        function = cuda.getFunctionPointer(context.peer, module, "__m")
+        module = Cuda.compileToModule(context.peer, buffer.toString())
+        function = Cuda.getFunctionPointer(context.peer, module, "__m")
     }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
@@ -34,7 +33,7 @@ class CudaProgram(
                 else -> throw UnsupportedOperationException()
             }
         }.toTypedArray()
-        cuda.launch(
+        Cuda.launch(
             context.device.peer, context.peer,
             function, instances,
             instances, indexOffset, *arrays)

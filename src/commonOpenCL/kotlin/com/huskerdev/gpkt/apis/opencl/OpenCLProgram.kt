@@ -30,6 +30,7 @@ class OpenCLProgram(
                 is Float -> cl.setArgument1f(kernel, i, value)
                 is Int -> cl.setArgument1i(kernel, i, value)
                 is Byte -> cl.setArgument1b(kernel, i, value)
+                is Boolean -> cl.setArgument1b(kernel, i, if(value) 1 else 0)
                 is OpenCLMemoryPointer<*> -> cl.setArgument(kernel, i, value.mem)
                 else -> throw UnsupportedOperationException()
             }

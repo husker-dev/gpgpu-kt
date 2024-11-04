@@ -24,6 +24,8 @@ internal actual fun isCUDASupported() = try {
 }catch (e: UnsatisfiedLinkError){
     println("[INFO] Failed to load CUDA. Check toolkit installation.")
     false
+}catch (t: Throwable){
+    false
 }
 
 internal actual fun cuInit(flags: Int) {

@@ -36,22 +36,17 @@ open class GPScope(
     fun isInIterableScope(): Boolean =
         iterable || parentScope?.isInIterableScope() ?: false
 
-    private fun assertAvailableName(name: String, lexeme: Lexeme, codeBlock: String){
-        if(findDefinedFunction(name) != null)
-            throw nameAlreadyDefinedException(name, lexeme, codeBlock)
-        if(findDefinedField(name) != null)
-            throw nameAlreadyDefinedException(name, lexeme, codeBlock)
-    }
-
     fun addField(field: GPField, lexeme: Lexeme, codeBlock: String){
-        assertAvailableName(field.name, lexeme, codeBlock)
+        if(findDefinedField(field.name) != null)
+            throw nameAlreadyDefinedException(field.name, lexeme, codeBlock)
         fields[field.name] = field
     }
 
     fun addFunction(function: GPFunction, lexeme: Lexeme, codeBlock: String){
-        if(findDefinedFunction(function.name) == function)
-            return
-        assertAvailableName(function.name, lexeme, codeBlock)
+        val defined = findDefinedFunction(function.name)
+        if(defined == function) return
+        if(defined != null) throw nameAlreadyDefinedException(function.name, lexeme, codeBlock)
+
         functions[function.name] = function
     }
 }

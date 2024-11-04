@@ -67,7 +67,7 @@ val predefinedMathFunctions = hashMapOf(
     funPair("log10", FLOAT, "a" to FLOAT),
     funPair("max", FLOAT, "a" to FLOAT, "b" to FLOAT),
     funPair("min", FLOAT, "a" to FLOAT, "b" to FLOAT),
-    funPair("pow", FLOAT, "a" to FLOAT, "b" to INT),
+    funPair("pow", FLOAT, "a" to FLOAT, "b" to FLOAT),
     funPair("round", FLOAT, "a" to FLOAT),
     funPair("sin", FLOAT, "a" to FLOAT),
     funPair("sinh", FLOAT, "x" to FLOAT),
