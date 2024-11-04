@@ -15,7 +15,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     init {
         val buffer = StringBuilder()
-        stringifyScopeStatement(buffer, ast, false)
+        stringify(buffer, ast)
 
         println(buffer.toString())
         source = buffer.toString()
@@ -38,13 +38,17 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     override fun dealloc() = Unit
 
-    override fun stringifyFunctionStatement(statement: FunctionStatement, buffer: StringBuilder) {
+    override fun stringifyFunctionStatement(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        statement: FunctionStatement
+    ) {
         val function = statement.function
         val name = function.name
 
         if(name == "main") {
             buffer.append("for(let i=this.__o;i<this.__o+this.__c;i++){")
-            stringifyScopeStatement(buffer, function.body!!, false)
+            stringifyScopeStatement(header, buffer, function.body!!, false)
             buffer.append("}")
         }else if(function.body != null) {
             buffer.append("function ").append(name).append("(")
@@ -54,22 +58,35 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
                     buffer.append(",")
             }
             buffer.append(")")
-            stringifyScopeStatement(buffer, function.body!!, true)
+            stringifyScopeStatement(header, buffer, function.body!!, true)
         }
     }
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionDefinition(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("for(let i=this.__o;i<this.__o+this.__c;i++)")
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
+    override fun stringifyMainFunctionBody(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) = Unit
 
     override fun stringifyModifiersInStruct(field: GPField) = ""
     override fun stringifyModifiersInGlobal(obj: Any) = ""
     override fun stringifyModifiersInLocal(field: GPField) = ""
     override fun stringifyModifiersInArg(field: GPField) = ""
 
-    override fun stringifyFieldStatement(fieldStatement: FieldStatement, buffer: StringBuilder, force: Boolean) {
+    override fun stringifyFieldStatement(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        fieldStatement: FieldStatement,
+        force: Boolean
+    ) {
         val modifiers = fieldStatement.fields[0].modifiers
         if(Modifiers.EXTERNAL in modifiers)
             return
@@ -79,7 +96,7 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
             buffer.append(field.name)
             if(field.initialExpression != null){
                 buffer.append("=")
-                stringifyExpression(buffer, field.initialExpression!!)
+                stringifyExpression(header, buffer, field.initialExpression!!)
             }
             if(i < fieldStatement.fields.lastIndex)
                 buffer.append(",")
@@ -87,24 +104,36 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
         buffer.append(";")
     }
 
-    override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
+    override fun stringifyFieldExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: FieldExpression
+    ) {
         if(expression.field in buffers)
             buffer.append("this.")
         if(expression.field.name in predefinedMathFields)
             buffer.append("Math.")
-        super.stringifyFieldExpression(buffer, expression)
+        super.stringifyFieldExpression(header, buffer, expression)
     }
 
     override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) =
         "Math.${functionExpression.function.name}"
 
-    override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
+    override fun stringifyArrayAccessExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: ArrayAccessExpression
+    ) {
         if(expression.array.type.isDynamicArray)
             buffer.append("this.")
-        super.stringifyArrayAccessExpression(buffer, expression)
+        super.stringifyArrayAccessExpression(header, buffer, expression)
     }
 
-    override fun stringifyConstExpression(buffer: StringBuilder, expression: ConstExpression) {
+    override fun stringifyConstExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: ConstExpression
+    ) {
         val type = expression.type
 
         buffer.append(expression.lexeme.text)

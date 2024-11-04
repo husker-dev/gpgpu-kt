@@ -18,7 +18,7 @@ class OpenCLProgram(
 
     init {
         val buffer = StringBuilder()
-        stringifyScopeStatement(buffer, ast, false)
+        stringify(buffer, ast)
 
         program = cl.compileProgram(context.device.peer, context.peer, buffer.toString())
         kernel = cl.createKernel(program, "__m")
@@ -57,20 +57,28 @@ class OpenCLProgram(
         cl.deallocKernel(kernel)
     }
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionDefinition(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("__kernel ")
         appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",
             args = buffers.map {
-                if(it.type.isArray) "__global ${toCType(it.type)}*__v${it.obfName}"
-                else "${toCType(it.type)} __v${it.obfName}"
+                if(it.type.isArray) "__global ${toCType(header, it.type)}*__v${it.obfName}"
+                else "${toCType(header, it.type)} __v${it.obfName}"
             } + listOf("int __o")
         )
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionBody(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("int ${function.arguments[0].obfName}=get_global_id(0)+__o;")
     }
 

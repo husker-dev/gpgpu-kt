@@ -10,15 +10,18 @@ import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 class CudaProgram(
     private val context: CudaContext,
     ast: ScopeStatement
-): SimpleCProgram(ast, false) {
+): SimpleCProgram(ast,
+    useLocalStruct = false,
+    useArrayStructCast = false
+) {
 
     private val module: CUmodule
     private val function: CUfunction
 
     init {
         val buffer = StringBuilder()
-        buffer.append("extern \"C\"{")
-        stringifyScopeStatement(buffer, ast, false)
+        stringify(buffer, ast)
+        buffer.insert(0, "extern \"C\"{")
         buffer.append("}")
 
         module = Cuda.compileToModule(context.peer, buffer.toString())
@@ -41,20 +44,28 @@ class CudaProgram(
 
     override fun dealloc() = Unit
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionDefinition(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("__global__ ")
         appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",
             args = listOf("int __c", "int __o") + buffers.map {
-                if(it.type.isArray) "${toCType(it.type)}*__v${it.obfName}"
-                else "${toCType(it.type)} __v${it.obfName}"
+                if(it.type.isArray) "${toCType(header, it.type)}*__v${it.obfName}"
+                else "${toCType(header, it.type)} __v${it.obfName}"
             }
         )
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionBody(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("const int ${function.arguments[0].obfName}=blockIdx.x*blockDim.x+threadIdx.x+__o;")
         buffer.append("if(${function.arguments[0].obfName}>=__c+__o)return;")
         buffers.joinTo(buffer, separator = ""){

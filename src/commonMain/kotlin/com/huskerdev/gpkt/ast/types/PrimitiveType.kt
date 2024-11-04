@@ -28,6 +28,7 @@ interface PrimitiveType {
     val isLogical: Boolean
     val isArray: Boolean
     val isDynamicArray: Boolean
+    val isConstArray: Boolean
 
     companion object {
         val allowedCastMap = mapOf(
@@ -66,6 +67,7 @@ object VoidType: SinglePrimitiveType<Nothing> {
     override val isLogical = false
     override val isArray = false
     override val isDynamicArray = false
+    override val isConstArray = false
     override val toArray = { _: Int -> throw UnsupportedOperationException() }
     override val toDynamicArray = { throw UnsupportedOperationException() }
     override fun toString() = "void"
@@ -78,6 +80,7 @@ object IntType: SinglePrimitiveType<IntArrayType>{
     override val isLogical = false
     override val isArray = false
     override val isDynamicArray = false
+    override val isConstArray = false
     override val toArray = ::IntArrayType
     override val toDynamicArray = ::DYNAMIC_INT_ARRAY
     override fun toString() = "int"
@@ -90,6 +93,7 @@ object FloatType: SinglePrimitiveType<FloatArrayType>{
     override val isLogical = false
     override val isArray = false
     override val isDynamicArray = false
+    override val isConstArray = false
     override val toArray = ::FloatArrayType
     override val toDynamicArray = ::DYNAMIC_FLOAT_ARRAY
     override fun toString() = "float"
@@ -102,6 +106,7 @@ object ByteType: SinglePrimitiveType<ByteArrayType>{
     override val isLogical = false
     override val isArray = false
     override val isDynamicArray = false
+    override val isConstArray = false
     override val toArray = ::ByteArrayType
     override val toDynamicArray = ::DYNAMIC_BYTE_ARRAY
     override fun toString() = "byte"
@@ -114,6 +119,7 @@ object BooleanType: SinglePrimitiveType<Nothing>{
     override val isLogical = true
     override val isArray = false
     override val isDynamicArray = false
+    override val isConstArray = false
     override val toArray = { _: Int -> throw UnsupportedOperationException() }
     override val toDynamicArray = { throw UnsupportedOperationException() }
     override fun toString() = "boolean"
@@ -128,6 +134,7 @@ data class IntArrayType(
     override val isInteger = false
     override val isLogical = false
     override val isArray = true
+    override val isConstArray = size != -1
     override val isDynamicArray = size == -1
     override fun toString() = if(isDynamicArray) "int[]" else "int[$size]"
 }
@@ -141,6 +148,7 @@ data class FloatArrayType(
     override val isInteger = false
     override val isLogical = false
     override val isArray = true
+    override val isConstArray = size != -1
     override val isDynamicArray = size == -1
     override fun toString() = if(isDynamicArray) "float[]" else "float[$size]"
 }
@@ -154,6 +162,7 @@ data class ByteArrayType(
     override val isInteger = false
     override val isLogical = false
     override val isArray = true
+    override val isConstArray = size != -1
     override val isDynamicArray = size == -1
     override fun toString() = if(isDynamicArray) "byte[]" else "byte[$size]"
 }

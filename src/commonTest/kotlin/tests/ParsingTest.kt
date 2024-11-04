@@ -181,12 +181,12 @@ class ParsingTest {
         object: SimpleCProgram(ast){
             init {
                 val buffer = StringBuilder()
-                stringifyScopeStatement(buffer, ast, false)
+                stringify(buffer, ast)
                 println(buffer)
             }
 
-            override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) = Unit
-            override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
+            override fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
+            override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
             override fun stringifyModifiersInStruct(field: GPField) = ""
             override fun stringifyModifiersInGlobal(obj: Any) = ""
             override fun stringifyModifiersInLocal(field: GPField) = ""

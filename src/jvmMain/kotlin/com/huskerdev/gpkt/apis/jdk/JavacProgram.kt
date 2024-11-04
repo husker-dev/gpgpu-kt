@@ -13,7 +13,12 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false) {
+class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
+    useLocalStruct = false,
+    useArrayStruct = false,
+    useArrayStructCast = false,
+    useFunctionDefs = false
+) {
     companion object {
         val counter = AtomicLong()
     }
@@ -21,12 +26,14 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
     private val execMethod: Method
 
     init {
-        val className = "GPJavacProgram${counter.getAndIncrement()}"
         val buffer = StringBuilder()
-        buffer.append("""
+        stringify(buffer, ast)
+
+        val className = "GPJavacProgram${counter.getAndIncrement()}"
+        buffer.insert(0, """
             import static java.lang.Math.*;
             public class $className{ 
-                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${toCType(it.type)} __v${it.obfName}" }}){
+                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${convertType(it.type)} __v${it.obfName}" }}){
                     ${buffers.joinToString("") { "${it.obfName}=__v${it.obfName};" }}
                     for(int i = fromIndex; i < toIndex; i++)
                         _m(i);
@@ -64,7 +71,6 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
                     else arr[i] = value;
                 }
         """.trimIndent())
-        stringifyScopeStatement(buffer, ast, false)
         buffer.append("}")
 
         val clazz = ClassCompiler.compileClass(buffer.toString(), className)
@@ -99,7 +105,11 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
 
     override fun dealloc() = Unit
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
+    override fun stringifyMainFunctionDefinition(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) {
         buffer.append("private static final ")
         appendCFunctionDefinition(
             buffer = buffer,
@@ -109,7 +119,11 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         )
     }
 
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
+    override fun stringifyMainFunctionBody(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        function: GPFunction
+    ) = Unit
 
     override fun stringifyModifiersInStruct(field: GPField) = ""
 
@@ -123,23 +137,31 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
 
     override fun stringifyModifiersInArg(field: GPField) = ""
 
-    override fun stringifyAxBExpression(buffer: StringBuilder, expression: AxBExpression) {
+    override fun stringifyAxBExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: AxBExpression
+    ) {
         if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){
             buffer.append("_aSet(")
-            stringifyExpression(buffer, expression.left.array)
+            stringifyExpression(header, buffer, expression.left.array)
             buffer.append(",")
-            stringifyExpression(buffer, expression.left.index)
+            stringifyExpression(header, buffer, expression.left.index)
             buffer.append(",")
-            stringifyExpression(buffer, expression.right)
+            stringifyExpression(header, buffer, expression.right)
             buffer.append(")")
-        }else super.stringifyAxBExpression(buffer, expression)
+        }else super.stringifyAxBExpression(header, buffer, expression)
     }
 
-    override fun stringifyArrayAccessExpression(buffer: StringBuilder, expression: ArrayAccessExpression) {
+    override fun stringifyArrayAccessExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: ArrayAccessExpression
+    ) {
         buffer.append("_aRead(")
-        stringifyExpression(buffer, expression.array)
+        stringifyExpression(header, buffer, expression.array)
         buffer.append(",")
-        stringifyExpression(buffer, expression.index)
+        stringifyExpression(header, buffer, expression.index)
         buffer.append(")")
     }
 
@@ -154,12 +176,16 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         else -> functionExpression.function.obfName
     }
 
-    override fun stringifyArrayDefinitionExpression(buffer: StringBuilder, expression: ArrayDefinitionExpression) {
-        buffer.append("new ").append(toCType(expression.type))
-        super.stringifyArrayDefinitionExpression(buffer, expression)
+    override fun stringifyArrayDefinitionExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: ArrayDefinitionExpression
+    ) {
+        buffer.append("new ").append(toCType(header, expression.type))
+        super.stringifyArrayDefinitionExpression(header, buffer, expression)
     }
 
-    override fun toCType(type: PrimitiveType) = when (type) {
+    override fun convertType(type: PrimitiveType) = when (type) {
         VOID -> "void"
         FLOAT -> "float"
         INT -> "int"
@@ -171,7 +197,7 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast, false, false, false
         else -> throw UnsupportedOperationException()
     }
 
-    override fun toCArrayName(name: String, size: Int) = name
+    override fun convertArrayName(name: String, size: Int) = name
 
     private fun PrimitiveType.toJavaClass() = when(this) {
         VOID -> Unit::class.java
