@@ -132,6 +132,12 @@ fun functionNotImplemented(function: GPFunction, lexeme: Lexeme, originalCode: S
     lexeme = lexeme
 )
 
+fun functionNotImplementedInClass(definition: String, lexeme: Lexeme, originalCode: String) = compilationError(
+    text = "Function '$definition' is not implemented",
+    originalCode = originalCode,
+    lexeme = lexeme
+)
+
 // For lexer
 
 fun compilationError(text: String, lineIndex: Int, inlineIndex: Int, originalCode: String) = compilationError(

@@ -41,7 +41,7 @@ class ClassCompiler {
     }
 
     class MemoryJavaFileManager(fileManager: JavaFileManager?) : ForwardingJavaFileManager<JavaFileManager>(fileManager) {
-        lateinit var classBytes: ByteArray
+        val classBytes = hashMapOf<String, ByteArray>()
 
         override fun flush() = Unit
         override fun close() = Unit
@@ -61,26 +61,28 @@ class ClassCompiler {
                 CharBuffer.wrap(code)
         }
 
-        inner class MemoryOutputJavaFileObject(name: String): SimpleJavaFileObject(
-            URI.create("string:///$name"),
+        inner class MemoryOutputJavaFileObject(
+            val className: String
+        ): SimpleJavaFileObject(
+            URI.create("string:///$className"),
             JavaFileObject.Kind.CLASS
         ) {
             override fun openOutputStream() = object : FilterOutputStream(ByteArrayOutputStream()) {
                 override fun close() {
                     out.close()
-                    classBytes = (out as ByteArrayOutputStream).toByteArray()
+                    classBytes[className] = (out as ByteArrayOutputStream).toByteArray()
                 }
             }
         }
     }
 
     class MemoryClassLoader(
-        private val classBytes: ByteArray
+        private val classBytes: HashMap<String, ByteArray>
     ) : URLClassLoader(
         arrayOfNulls<URL>(0),
         MemoryClassLoader::class.java.classLoader
     ) {
         override fun findClass(name: String): Class<*> =
-            defineClass(name, classBytes, 0, classBytes.size)
+            defineClass(name, classBytes[name], 0, classBytes[name]!!.size)
     }
 }

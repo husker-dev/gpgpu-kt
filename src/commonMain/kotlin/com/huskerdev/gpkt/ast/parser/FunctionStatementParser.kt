@@ -2,13 +2,13 @@ package com.huskerdev.gpkt.ast.parser
 
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
-import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.objects.*
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.Modifiers
+import com.huskerdev.gpkt.ast.types.PrimitiveType
 import com.huskerdev.gpkt.utils.Dictionary
 
-
+@Suppress("unused")
 fun parseFunctionStatement(
     scope: GPScope,
     lexemes: List<Lexeme>,
@@ -17,23 +17,39 @@ fun parseFunctionStatement(
     to: Int,
     dictionary: Dictionary
 ): FunctionStatement {
-    var i = from
+    // Modifiers
+    val (mods, modsEnd) = parseModifiers(from, to, lexemes)
+    var r = modsEnd
 
-    // Getting modifiers
-    val mods = mutableListOf<Modifiers>()
-    while(i < lexemes.size && lexemes[i].text in modifiers){
-        mods += Modifiers.map[lexemes[i].text]!!
-        i++
-    }
+    // Type
+    val (type, typeEnd) = parseTypeDeclaration(scope, r, lexemes, codeBlock)
+    r = typeEnd
 
-    // Getting type
-    val typeDeclaration = parseTypeDeclaration(i, lexemes, codeBlock)
-    val type = typeDeclaration.first
-    i += typeDeclaration.second
+    return parseFunctionStatement(scope, mods, type, r, lexemes, codeBlock, from, to, dictionary)
+}
 
-    val nameLexeme = lexemes[i]
-    var function = GPFunction(scope, nameLexeme.text, dictionary.nextWord(), mods, type)
-    i += 2
+fun parseFunctionStatement(
+    scope: GPScope,
+    mods: List<Modifiers>,
+    type: PrimitiveType?,
+    nameIndex: Int,
+    lexemes: List<Lexeme>,
+    codeBlock: String,
+    from: Int,
+    to: Int,
+    dictionary: Dictionary
+): FunctionStatement {
+    var i = nameIndex
+
+    if(type == null)
+        throw compilationError("Cannot use var with functions", lexemes[nameIndex-1], codeBlock)
+
+    val name = lexemes[i++].text
+    var function = GPFunction(scope, name, dictionary.nextWord(), mods, type)
+
+    if(lexemes[i].text != "(")
+        throw expectedException("arguments block", lexemes[i], codeBlock)
+    i++
 
     // Getting parameters
     while(lexemes[i].text != ")"){

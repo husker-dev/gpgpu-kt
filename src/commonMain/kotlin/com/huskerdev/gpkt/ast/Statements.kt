@@ -1,9 +1,6 @@
 package com.huskerdev.gpkt.ast
 
-import com.huskerdev.gpkt.ast.objects.GPField
-import com.huskerdev.gpkt.ast.objects.GPFunction
-import com.huskerdev.gpkt.ast.objects.Import
-import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.objects.*
 
 
 interface Statement{
@@ -124,6 +121,15 @@ class ForStatement(
     val condition: Expression?,
     val iteration: Expression?,
     val body: Statement,
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
+): Statement {
+    override val returns = false
+}
+
+class ClassStatement(
+    override val scope: GPScope,
+    val classObj: GPClass,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Statement {

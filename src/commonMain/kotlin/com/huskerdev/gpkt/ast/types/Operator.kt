@@ -61,8 +61,10 @@ enum class Operator(
     // Special cases
     ARRAY_ACCESS(1, Usage.ARRAY_ACCESS),
     FUNCTION(1, Usage.FUNCTION),
+    FIELD(0, Usage.FIELD),  // Correct priority is 1, but it is used often, so set 0 for optimization
     CONDITION(13, Usage.CONDITION),
     CAST(2, Usage.CAST),
+    NEW(-1, Usage.NEW),
     ;
 
     companion object {
@@ -74,9 +76,11 @@ enum class Operator(
         Ax,
         xB,
         FUNCTION,
+        FIELD,
         ARRAY_ACCESS,
         CAST,
-        CONDITION;
+        CONDITION,
+        NEW,
     }
 
     /* =================== *\
@@ -203,6 +207,23 @@ enum class Operator(
 
     fun operateTypeXB(right: PrimitiveType) = when(this){
         POSITIVE, NEGATIVE, BITWISE_NOT, LOGICAL_NOT -> right
+        else -> throw UnsupportedOperationException()
+    }
+
+
+    fun assignOpToSimple() = when(this){
+        MOD_ASSIGN -> MOD
+        BITWISE_AND_ASSIGN -> BITWISE_AND
+        BITWISE_OR_ASSIGN -> BITWISE_OR
+        BITWISE_XOR_ASSIGN -> BITWISE_XOR
+        BITWISE_SHIFT_RIGHT_ASSIGN -> BITWISE_SHIFT_RIGHT
+        BITWISE_SHIFT_LEFT_ASSIGN -> BITWISE_SHIFT_LEFT
+        DIVIDE_ASSIGN -> DIVIDE
+        MULTIPLY_ASSIGN -> MULTIPLY
+        MINUS_ASSIGN -> MINUS
+        PLUS_ASSIGN -> PLUS
+        INCREASE -> PLUS
+        DECREASE -> MINUS
         else -> throw UnsupportedOperationException()
     }
 }

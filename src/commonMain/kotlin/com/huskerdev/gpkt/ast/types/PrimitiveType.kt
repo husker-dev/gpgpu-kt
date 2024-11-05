@@ -60,6 +60,10 @@ interface ArrayPrimitiveType<S: PrimitiveType>: PrimitiveType {
     val single: S
 }
 
+interface ClassType: SinglePrimitiveType<Nothing> {
+    val className: String
+}
+
 object VoidType: SinglePrimitiveType<Nothing> {
     override val bytes = 0
     override val isFloating = false

@@ -4,16 +4,16 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.objects.GPField
-import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.objects.GPScope
-import com.huskerdev.gpkt.ast.types.PrimitiveType
-import com.huskerdev.gpkt.ast.types.SinglePrimitiveType
-import com.huskerdev.gpkt.ast.types.primitivesMap
+import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.Dictionary
 
 
 fun parseFieldStatement(
     scope: GPScope,
+    mods: MutableList<Modifiers>,
+    type: PrimitiveType?,
+    nameIndex: Int,
     lexemes: List<Lexeme>,
     codeBlock: String,
     from: Int,
@@ -21,16 +21,13 @@ fun parseFieldStatement(
     dictionary: Dictionary
 ) = parseFieldDeclaration(
     scope,
-    lexemes,
-    codeBlock,
-    from,
-    to,
-    dictionary,
+    mods, type, nameIndex,
+    lexemes, codeBlock,
+    from, to, dictionary,
     allowMultipleDeclaration = true,
     allowDefaultValue = true,
     endsWithSemicolon = true
 )
-
 
 fun parseFieldDeclaration(
     scope: GPScope,
@@ -43,20 +40,40 @@ fun parseFieldDeclaration(
     allowDefaultValue: Boolean,
     endsWithSemicolon: Boolean
 ): FieldStatement{
+    // Modifiers
+    val (mods, modsEnd) = parseModifiers(from, to, lexemes)
+    var r = modsEnd
+
+    // Type
+    val (type, typeEnd) = parseTypeDeclaration(scope, r, lexemes, codeBlock)
+    r = typeEnd
+
+    return parseFieldDeclaration(
+        scope,
+        mods, type, r,
+        lexemes, codeBlock,
+        from, to, dictionary,
+        allowMultipleDeclaration, allowDefaultValue, endsWithSemicolon
+    )
+}
+
+fun parseFieldDeclaration(
+    scope: GPScope,
+    mods: MutableList<Modifiers>,
+    initialType: PrimitiveType?,
+    nameIndex: Int,
+    lexemes: List<Lexeme>,
+    codeBlock: String,
+    from: Int,
+    to: Int,
+    dictionary: Dictionary,
+    allowMultipleDeclaration: Boolean,
+    allowDefaultValue: Boolean,
+    endsWithSemicolon: Boolean
+): FieldStatement{
+    var type = initialType
     val fields = arrayListOf<GPField>()
-    var i = from
-
-    // Getting modifiers
-    val mods = mutableListOf<Modifiers>()
-    while(i < to && lexemes[i].text in modifiers){
-        mods += Modifiers.map[lexemes[i].text]!!
-        i++
-    }
-
-    // Getting type
-    val typeDeclaration = parseTypeDeclaration(i, lexemes, codeBlock)
-    val type = typeDeclaration.first
-    i += typeDeclaration.second
+    var i = nameIndex
 
     // Iterate over field declarations
     while(i < to){
@@ -72,11 +89,25 @@ fun parseFieldDeclaration(
             initialExpression = parseExpression(scope, lexemes, codeBlock, i+2) ?:
                 throw compilationError("expected initial value", lexemes[i+2], codeBlock)
 
+            // If var
+            if(type == null)
+                type = initialExpression.type
+
             if(type != initialExpression.type && !PrimitiveType.canAssignNumbers(type, initialExpression.type))
                 throw expectedTypeException(type, initialExpression.type, lexemes[i+2], codeBlock)
 
+            // If class, then unpack
+            if(type != initialExpression.type && initialExpression.type is ClassType){
+                val clazz = scope.findDefinedClass((initialExpression.type as ClassType).className)!!
+                initialExpression = FunctionCallExpression(initialExpression, getPrimitiveClassGetter(clazz), emptyList(),
+                    initialExpression.lexemeIndex, initialExpression.lexemeLength)
+            }
+
             i += initialExpression.lexemeLength + 1
         }
+        if(type == null)
+            throw compilationError("Unable to determine type of '${nameLexeme.text}'", lexemes[nameIndex-1], codeBlock)
+
         fields += GPField(nameLexeme.text, dictionary.nextWord(), mods, type, initialExpression)
 
         if(i >= to)
@@ -95,20 +126,36 @@ fun parseFieldDeclaration(
     throw compilationError("Can not read field declaration", lexemes[from], codeBlock)
 }
 
-fun parseTypeDeclaration(i: Int, lexemes: List<Lexeme>, codeBlock: String): Pair<PrimitiveType, Int>{
-    val type: PrimitiveType = primitivesMap[lexemes[i].text] ?:
-        throw expectedException("type", lexemes[i].text, lexemes[i], codeBlock)
+fun parseModifiers(from: Int, to: Int, lexemes: List<Lexeme>): Pair<MutableList<Modifiers>, Int>{
+    var r = from
+    val mods = mutableListOf<Modifiers>()
+    while(r < to && lexemes[r].text in modifiers){
+        mods += Modifiers.map[lexemes[r].text]!!
+        r++
+    }
+    return mods to r
+}
+
+fun parseTypeDeclaration(scope: GPScope, i: Int, lexemes: List<Lexeme>, codeBlock: String): Pair<PrimitiveType?, Int>{
+    val lexeme = lexemes[i]
+    if(lexeme.text == "var")
+        return null to i+1
+
+    val type: SinglePrimitiveType<*> =
+        primitivesMap[lexeme.text]
+        ?: scope.findDefinedClass(lexeme.text)?.type
+        ?: throw compilationError("Type '${lexeme.text}' is not defined", lexeme, codeBlock)
 
     if(lexemes[i+1].text == "["){
         if(lexemes[i+2].text == "]"){
-            return (type as SinglePrimitiveType<*>).toDynamicArray() to 3
+            return type.toDynamicArray() to i+3
 
         }else if(lexemes[i+3].text == "]"){
             if(lexemes[i+2].type != Lexeme.Type.INT)
-                throw compilationError("Array size should be constant int", lexemes[i], codeBlock)
-            return (type as SinglePrimitiveType<*>).toArray(lexemes[i+2].text.toInt()) to 4
+                throw compilationError("Array size should be constant int", lexeme, codeBlock)
+            return type.toArray(lexemes[i+2].text.toInt()) to i+4
 
-        }else throw compilationError("Failed to get array size", lexemes[i], codeBlock)
+        }else throw compilationError("Failed to get array size", lexeme, codeBlock)
     }
-    return type to 1
+    return type to i+1
 }

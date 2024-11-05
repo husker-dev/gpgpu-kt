@@ -1,30 +1,23 @@
 package com.huskerdev.gpkt.apis.cuda
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
-import com.huskerdev.gpkt.utils.SimpleCProgram
-import com.huskerdev.gpkt.utils.appendCFunctionDefinition
+import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class CudaProgram(
     private val context: CudaContext,
     ast: ScopeStatement
-): SimpleCProgram(ast,
-    useLocalStruct = false,
-    useArrayStructCast = false
-) {
-
+): GPProgram(ast){
     private val module: CUmodule
     private val function: CUfunction
 
     init {
-        val buffer = StringBuilder()
-        stringify(buffer, ast)
-        buffer.insert(0, "extern \"C\"{")
-        buffer.append("}")
+        val prog = CudaProgramPrinter(ast, buffers, locals).stringify()
 
-        module = Cuda.compileToModule(context.peer, buffer.toString())
+        module = Cuda.compileToModule(context.peer, prog)
         function = Cuda.getFunctionPointer(context.peer, module, "__m")
     }
 
@@ -43,19 +36,29 @@ class CudaProgram(
     }
 
     override fun dealloc() = Unit
+}
 
+private class CudaProgramPrinter(
+    ast: ScopeStatement,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals,
+    useExternC = true,
+    useLocalStruct = false,
+    useArrayStructCast = false
+) {
     override fun stringifyMainFunctionDefinition(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
         function: GPFunction
     ) {
         buffer.append("__global__ ")
-        appendCFunctionDefinition(
+        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",
             args = listOf("int __c", "int __o") + buffers.map {
-                if(it.type.isArray) "${toCType(header, it.type)}*__v${it.obfName}"
+                if (it.type.isArray) "${toCType(header, it.type)}*__v${it.obfName}"
                 else "${toCType(header, it.type)} __v${it.obfName}"
             }
         )

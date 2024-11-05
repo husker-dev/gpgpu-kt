@@ -1,6 +1,7 @@
 package com.huskerdev.gpkt.ast
 
 import com.huskerdev.gpkt.ast.lexer.Lexeme
+import com.huskerdev.gpkt.ast.objects.GPClass
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.ArrayPrimitiveType
@@ -27,13 +28,23 @@ class BracketExpression(
     override val type = wrapped.type
 }
 
-// Array definition expression
+// Array definition
 class ArrayDefinitionExpression(
     val elements: Array<Expression>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
 ): Expression() {
     override val type = (elements[0].type as SinglePrimitiveType<*>).toArray(elements.size)
+}
+
+// Class creation
+class ClassCreationExpression(
+    val classObj: GPClass,
+    val arguments: List<Expression>,
+    override val lexemeIndex: Int = 0,
+    override val lexemeLength: Int = 0
+): Expression() {
+    override val type = classObj.type
 }
 
 // ======================
@@ -83,6 +94,7 @@ class ArrayAccessExpression(
 
 // A()
 class FunctionCallExpression(
+    val obj: Expression?,
     val function: GPFunction,
     val arguments: List<Expression>,
     override val lexemeIndex: Int = 0,
@@ -93,6 +105,7 @@ class FunctionCallExpression(
 
 // A
 class FieldExpression(
+    val obj: Expression?,
     val field: GPField,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0

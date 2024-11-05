@@ -1,9 +1,6 @@
 package com.huskerdev.gpkt.ast.parser
 
-import com.huskerdev.gpkt.ast.EmptyStatement
-import com.huskerdev.gpkt.ast.ExpressionStatement
-import com.huskerdev.gpkt.ast.Statement
-import com.huskerdev.gpkt.ast.compilationError
+import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.lexer.modifiers
 import com.huskerdev.gpkt.ast.lexer.primitives
@@ -33,16 +30,34 @@ fun parseStatement(
             text == "break" -> parseBreakStatement(scope, lexemes, codeBlock, from, to)
             text == "continue" -> parseContinueStatement(scope, lexemes, codeBlock, from, to)
             text == "import" -> parseImportStatement(scope, lexemes, codeBlock, from, to)
-            (text in primitives || text in modifiers) -> {
-                var r = from
-                while(lexemes[r].type != Lexeme.Type.NAME && r < to)
-                    r++
-
-                if(lexemes[r+1].text == "(") parseFunctionStatement(scope, lexemes, codeBlock, from, to, dictionary)
-                else parseFieldStatement(scope, lexemes, codeBlock, from, to, dictionary)
-            }
+            text == "class" -> parseClassStatement(scope, lexemes, codeBlock, from, to, dictionary)
+            (text == "var" || text in primitives || text in modifiers) ->
+                parseFunctionOrField(scope, lexemes, codeBlock, from, to, dictionary)
             else -> throw compilationError("Unexpected symbol: '${text}'", lexeme, codeBlock)
         }
-    } else
+    } else if(scope.findDefinedClass(text) != null || (lexeme.type == Lexeme.Type.NAME && lexemes[from+1].type == Lexeme.Type.NAME))
+        parseFunctionOrField(scope, lexemes, codeBlock, from, to, dictionary)
+    else
         ExpressionStatement(scope, parseExpression(scope, lexemes, codeBlock, from)!!)
+}
+
+private fun parseFunctionOrField(
+    scope: GPScope,
+    lexemes: List<Lexeme>,
+    codeBlock: String,
+    from: Int,
+    to: Int,
+    dictionary: Dictionary
+): Statement {
+    // Modifiers
+    val (mods, modsEnd) = parseModifiers(from, to, lexemes)
+    var r = modsEnd
+
+    // Type
+    val (type, typeEnd) = parseTypeDeclaration(scope, r, lexemes, codeBlock)
+    r = typeEnd
+
+    return if(lexemes[r+1].text == "(")
+        parseFunctionStatement(scope, mods, type, r, lexemes, codeBlock, from, to, dictionary)
+    else parseFieldStatement(scope, mods, type, r, lexemes, codeBlock, from, to, dictionary)
 }

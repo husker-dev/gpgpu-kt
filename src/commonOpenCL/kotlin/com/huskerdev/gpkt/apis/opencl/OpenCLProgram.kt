@@ -1,26 +1,25 @@
 package com.huskerdev.gpkt.apis.opencl
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.FunctionCallExpression
 import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
-import com.huskerdev.gpkt.utils.SimpleCProgram
-import com.huskerdev.gpkt.utils.appendCFunctionDefinition
+import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class OpenCLProgram(
     private val context: OpenCLContext,
     ast: ScopeStatement
-): SimpleCProgram(ast) {
+): GPProgram(ast) {
     private val cl = context.opencl
     private val program: CLProgram
     private val kernel: CLKernel
 
     init {
-        val buffer = StringBuilder()
-        stringify(buffer, ast)
+        val prog = OpenCLProgramPrinter(ast, buffers, locals).stringify()
 
-        program = cl.compileProgram(context.device.peer, context.peer, buffer.toString())
+        program = cl.compileProgram(context.device.peer, context.peer, prog)
         kernel = cl.createKernel(program, "__m")
     }
 
@@ -39,6 +38,18 @@ class OpenCLProgram(
         cl.executeKernel(context.commandQueue, kernel, context.device.peer, instances.toLong())
     }
 
+    override fun dealloc() {
+        cl.deallocProgram(program)
+        cl.deallocKernel(kernel)
+    }
+}
+
+private class OpenCLProgramPrinter(
+    ast: ScopeStatement,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals) {
+
     override fun stringifyModifiersInStruct(field: GPField) =
         stringifyModifiersInLocal(field)
 
@@ -52,23 +63,18 @@ class OpenCLProgram(
     override fun stringifyModifiersInArg(field: GPField) =
         stringifyModifiersInLocal(field)
 
-    override fun dealloc() {
-        cl.deallocProgram(program)
-        cl.deallocKernel(kernel)
-    }
-
     override fun stringifyMainFunctionDefinition(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
         function: GPFunction
     ) {
         buffer.append("__kernel ")
-        appendCFunctionDefinition(
+        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",
             args = buffers.map {
-                if(it.type.isArray) "__global ${toCType(header, it.type)}*__v${it.obfName}"
+                if (it.type.isArray) "__global ${toCType(header, it.type)}*__v${it.obfName}"
                 else "${toCType(header, it.type)} __v${it.obfName}"
             } + listOf("int __o")
         )

@@ -1,15 +1,16 @@
 package com.huskerdev.gpkt.apis.webgpu
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.*
-import com.huskerdev.gpkt.utils.SimpleCProgram
+import com.huskerdev.gpkt.utils.CProgramPrinter
 
 class WebGPUProgram(
     private val context: WebGPUAsyncContext,
     ast: ScopeStatement
-): SimpleCProgram(ast) {
+): GPProgram(ast) {
     private val webgpu = context.webgpu
 
     private val groupLayout: dynamic
@@ -17,12 +18,10 @@ class WebGPUProgram(
     private val pipeline: dynamic
 
     init {
-        val buffer = StringBuilder()
-        stringify(buffer, ast)
-        println(buffer.toString())
+        val prog = WasmProgramPrinter(ast, buffers, locals).stringify()
 
         groupLayout = webgpu.createGroupLayout(context.devicePeer, buffers)
-        shaderModule = webgpu.createShaderModule(context.devicePeer, buffer.toString())
+        shaderModule = webgpu.createShaderModule(context.devicePeer, prog)
         pipeline = webgpu.createPipeline(context.devicePeer, shaderModule, groupLayout, "_m")
     }
 
@@ -39,6 +38,16 @@ class WebGPUProgram(
         context.flush()
     }
 
+    override fun dealloc() {
+
+    }
+}
+
+class WasmProgramPrinter(
+    ast: ScopeStatement,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals){
     override fun stringifyMainFunctionDefinition(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
@@ -151,9 +160,5 @@ class WebGPUProgram(
         is IntArrayType -> "array<i32>"
         is ByteArrayType -> TODO()
         else -> throw UnsupportedOperationException()
-    }
-
-    override fun dealloc() {
-        TODO("Not yet implemented")
     }
 }

@@ -66,10 +66,10 @@ fun parseScopeStatement(
                             field.modifiers += Modifiers.THREADLOCAL
                     }
                 }
-                is FunctionStatement -> {
-                    val function = statement.function
-                    scope.addFunction(function, lexeme, codeBlock)
-                }
+                is FunctionStatement ->
+                    scope.addFunction(statement.function, lexeme, codeBlock)
+                is ClassStatement ->
+                    scope.addClass(statement.classObj, lexeme, codeBlock)
                 is ImportStatement -> {
                     val import = statement.import
                     import.paths.forEach { path ->

@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.OpenCL)!!.defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
@@ -50,10 +50,6 @@ fun main() {
             extern float[] data;
             extern float[] result;
             
-            extern int minPeriod;
-            extern int maxPeriod;
-            extern int count;
-            
             int b = 12;
             
             float[3] getArray(){
@@ -64,17 +60,25 @@ fun main() {
                 return 2;
             }
             
-            void main(const int i){
-                int localPeriod = i / (maxPeriod - minPeriod) + minPeriod;
-                int localCandle = i % (maxPeriod - minPeriod);
-                
-                b = (int)sin(23)*10;
             
-                //result[i] = sma(data, localCandle, localPeriod) + a;
-                float[3] c = getArray();
-                float d = c[0];
+            class Floats(
+                float[] arr,
+                int index
+            ): Float {
+                float getFloat(){
+                    return arr[index];
+                }
+                void setFloat(float a){
+                    arr[index] = a;
+                }
+            }
+            
+            void main(const int i){
+                float[3] asgdf = { 1f, 2f, 3f };
+            
+                var myVariable = new Floats(data, i);
                 
-                result[i] = toImpl() + test(0);
+                result[i] = myVariable;
             }
         """.trimIndent())
     }catch (e: GPCompilationException){
@@ -89,12 +93,9 @@ fun main() {
         instances = result.length,
         "data" to arr1,
         "result" to result,
-        "minPeriod" to 1,
-        "maxPeriod" to 11,
-        "count" to 10
     )
 
     val r = result.read()
-    println(r.toList().take(20))
-    println(r.toList().takeLast(20))
+    println("${r.toList().take(20)}...")
+    println("...${r.toList().takeLast(20)}")
 }

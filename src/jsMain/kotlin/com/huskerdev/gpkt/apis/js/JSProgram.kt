@@ -1,5 +1,6 @@
 package com.huskerdev.gpkt.apis.js
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.predefinedMathFields
 import com.huskerdev.gpkt.ast.types.Modifiers
@@ -7,19 +8,11 @@ import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.FLOAT
-import com.huskerdev.gpkt.utils.SimpleCProgram
+import com.huskerdev.gpkt.utils.CProgramPrinter
 
-class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
+class JSProgram(ast: ScopeStatement): GPProgram(ast) {
 
-    private var source: String
-
-    init {
-        val buffer = StringBuilder()
-        stringify(buffer, ast)
-
-        println(buffer.toString())
-        source = buffer.toString()
-    }
+    private var source = JSProgramPrinter(ast, buffers, locals).stringify()
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val scope = js("{}")
@@ -38,6 +31,16 @@ class JSProgram(ast: ScopeStatement): SimpleCProgram(ast, false) {
 
     override fun dealloc() = Unit
 
+
+}
+
+class JSProgramPrinter(
+    ast: ScopeStatement,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals,
+    useLocalStruct = false
+){
     override fun stringifyFunctionStatement(
         header: MutableMap<String, String>,
         buffer: StringBuilder,

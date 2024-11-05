@@ -1,24 +1,19 @@
 package com.huskerdev.gpkt.apis.jdk
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.types.*
-import com.huskerdev.gpkt.utils.SimpleCProgram
-import com.huskerdev.gpkt.utils.appendCFunctionDefinition
+import com.huskerdev.gpkt.utils.CProgramPrinter
 import com.huskerdev.gpkt.utils.splitThreadInvocation
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
-    useLocalStruct = false,
-    useArrayStruct = false,
-    useArrayStructCast = false,
-    useFunctionDefs = false
-) {
+class JavacProgram(ast: ScopeStatement): GPProgram(ast) {
     companion object {
         val counter = AtomicLong()
     }
@@ -26,54 +21,10 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
     private val execMethod: Method
 
     init {
-        val buffer = StringBuilder()
-        stringify(buffer, ast)
-
         val className = "GPJavacProgram${counter.getAndIncrement()}"
-        buffer.insert(0, """
-            import static java.lang.Math.*;
-            public class $className{ 
-                public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${convertType(it.type)} __v${it.obfName}" }}){
-                    ${buffers.joinToString("") { "${it.obfName}=__v${it.obfName};" }}
-                    for(int i = fromIndex; i < toIndex; i++)
-                        _m(i);
-                }
-                private static int _aRead(int[] arr, int i){
-                    if(i < 0 || i > arr.length-1) return 0;
-                    else return arr[i];
-                }
-                private static float _aRead(float[] arr, int i){
-                    if(i < 0 || i > arr.length-1) return 0f;
-                    else return arr[i];
-                }
-                private static byte _aRead(byte[] arr, int i){
-                    if(i < 0 || i > arr.length-1) return 0;
-                    else return arr[i];
-                }
-                private static boolean _aRead(boolean[] arr, int i){
-                    if(i < 0 || i > arr.length-1) return false;
-                    else return arr[i];
-                }
-                private static void _aSet(int[] arr, int i, int value){
-                    if(i < 0 || i > arr.length-1) return;
-                    else arr[i] = value;
-                }
-                private static void _aSet(float[] arr, int i, float value){
-                    if(i < 0 || i > arr.length-1) return;
-                    else arr[i] = value;
-                }
-                private static void _aSet(byte[] arr, int i, byte value){
-                    if(i < 0 || i > arr.length-1) return;
-                    else arr[i] = value;
-                }
-                private static void _aSet(boolean[] arr, int i, boolean value){
-                    if(i < 0 || i > arr.length-1) return;
-                    else arr[i] = value;
-                }
-        """.trimIndent())
-        buffer.append("}")
+        val prog = JavacProgramPrinter(className, ast, buffers, locals).stringify()
 
-        val clazz = ClassCompiler.compileClass(buffer.toString(), className)
+        val clazz = ClassCompiler.compileClass(prog, className)
         execMethod = clazz.getMethod(
             "_execute",
             Int::class.java, Int::class.java,
@@ -105,13 +56,83 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
 
     override fun dealloc() = Unit
 
+    private fun PrimitiveType.toJavaClass() = when(this) {
+        VOID -> Unit::class.java
+        FLOAT -> Float::class.java
+        INT -> Int::class.java
+        BYTE -> Byte::class.java
+        BOOLEAN -> Boolean::class.java
+        is FloatArrayType -> FloatArray::class.java
+        is IntArrayType -> IntArray::class.java
+        is ByteArrayType -> ByteArray::class.java
+        else -> throw UnsupportedOperationException()
+    }
+}
+
+private class JavacProgramPrinter(
+    val className: String,
+    ast: ScopeStatement,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals,
+    useLocalStruct = false,
+    useArrayStruct = false,
+    useArrayStructCast = false,
+    useFunctionDefs = false,
+    useStructClasses = false
+){
+    override fun stringify() = """
+        import static java.lang.Math.*;
+        public class $className{ 
+            public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${convertType(it.type)} __v${it.obfName}" }}){
+                ${buffers.joinToString("") { "${it.obfName}=__v${it.obfName};" }}
+                for(int i = fromIndex; i < toIndex; i++)
+                    _m(i);
+            }
+            private static int _aRead(int[] arr, int i){
+                if(i < 0 || i > arr.length-1) return 0;
+                else return arr[i];
+            }
+            private static float _aRead(float[] arr, int i){
+                if(i < 0 || i > arr.length-1) return 0f;
+                else return arr[i];
+            }
+            private static byte _aRead(byte[] arr, int i){
+                if(i < 0 || i > arr.length-1) return 0;
+                else return arr[i];
+            }
+            private static boolean _aRead(boolean[] arr, int i){
+                if(i < 0 || i > arr.length-1) return false;
+                else return arr[i];
+            }
+            private static void _aSet(int[] arr, int i, int value){
+                if(i < 0 || i > arr.length-1) return;
+                else arr[i] = value;
+            }
+            private static void _aSet(float[] arr, int i, float value){
+                if(i < 0 || i > arr.length-1) return;
+                else arr[i] = value;
+            }
+            private static void _aSet(byte[] arr, int i, byte value){
+                if(i < 0 || i > arr.length-1) return;
+                else arr[i] = value;
+            }
+            private static void _aSet(boolean[] arr, int i, boolean value){
+                if(i < 0 || i > arr.length-1) return;
+                else arr[i] = value;
+            }
+            ${super.stringify()}
+        }
+    """.trimIndent()
+
+
     override fun stringifyMainFunctionDefinition(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
         function: GPFunction
     ) {
         buffer.append("private static final ")
-        appendCFunctionDefinition(
+        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "_m",
@@ -128,7 +149,8 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
     override fun stringifyModifiersInStruct(field: GPField) = ""
 
     override fun stringifyModifiersInGlobal(obj: Any) =
-        if(obj is GPField && obj.isConstant) "private static final"
+        if(obj is GPFunction && obj.scope!!.parentScope != null) "public"
+        else if(obj is GPField && obj.isConstant) "private static final"
         else "private static"
 
     override fun stringifyModifiersInLocal(field: GPField) =
@@ -185,6 +207,54 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
         super.stringifyArrayDefinitionExpression(header, buffer, expression)
     }
 
+    override fun stringifyClassStatement(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        classStatement: ClassStatement
+    ) {
+        val clazz = classStatement.classObj
+
+        buffer.append("private static class ").append(clazz.obfName).append("{")
+        clazz.variables.values.joinTo(buffer, separator = ";"){
+            convertToFuncArg(header, it)
+        }
+        if(clazz.variables.isNotEmpty())
+            buffer.append(";")
+
+        // Constructor
+        buffer.append("public ").append(clazz.obfName).append("(")
+        clazz.variables.values.joinTo(buffer, separator = ","){
+            convertToFuncArg(header, it)
+        }
+        buffer.append("){")
+        clazz.variables.values.joinTo(buffer, separator = ";"){
+            "this.${it.obfName}=${it.obfName}"
+        }
+        if(clazz.variables.isNotEmpty())
+            buffer.append(";")
+        buffer.append("}")
+
+        clazz.body?.statements?.forEach {
+            if(it is FunctionStatement)
+                stringifyFunctionStatement(header, buffer, it)
+        }
+        buffer.append("}")
+    }
+
+    override fun stringifyClassCreationExpression(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        expression: ClassCreationExpression
+    ) {
+        buffer.append("new ").append(expression.classObj.obfName).append("(")
+        expression.arguments.forEachIndexed { i, e ->
+            stringifyExpression(header, buffer, e)
+            if (i < expression.arguments.size - 1)
+                buffer.append(",")
+        }
+        buffer.append(")")
+    }
+
     override fun convertType(type: PrimitiveType) = when (type) {
         VOID -> "void"
         FLOAT -> "float"
@@ -194,20 +264,8 @@ class JavacProgram(ast: ScopeStatement): SimpleCProgram(ast,
         is FloatArrayType -> "float[]"
         is IntArrayType -> "int[]"
         is ByteArrayType -> "byte[]"
-        else -> throw UnsupportedOperationException()
+        else -> type.toString()
     }
 
     override fun convertArrayName(name: String, size: Int) = name
-
-    private fun PrimitiveType.toJavaClass() = when(this) {
-        VOID -> Unit::class.java
-        FLOAT -> Float::class.java
-        INT -> Int::class.java
-        BYTE -> Byte::class.java
-        BOOLEAN -> Boolean::class.java
-        is FloatArrayType -> FloatArray::class.java
-        is IntArrayType -> IntArray::class.java
-        is ByteArrayType -> ByteArray::class.java
-        else -> throw UnsupportedOperationException()
-    }
 }

@@ -1,29 +1,41 @@
 package com.huskerdev.gpkt.utils
 
-import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.*
 import com.huskerdev.gpkt.ast.types.*
 
-@Deprecated("Will be removed", replaceWith = ReplaceWith("CProgramPrinter"))
-abstract class SimpleCProgram(
-    ast: ScopeStatement,
+
+abstract class CProgramPrinter(
+    protected val ast: ScopeStatement,
+    protected val buffers: List<GPField>,
+    protected val locals: List<GPField>,
+
+    // Printer settings
+    private val useExternC: Boolean = false,
     private val useLocalStruct: Boolean = true,
     private val useArrayStruct: Boolean = true,
     private val useArrayStructCast: Boolean = true, // C++ struct creation style (active when 'useArrayStruct' is true)
-    private val useFunctionDefs: Boolean = true
-): GPProgram(ast) {
+    private val useFunctionDefs: Boolean = true,
+    private val useStructClasses: Boolean = true,
+) {
+    private var contextClass: GPClass? = null
 
-    fun stringify(
-        buffer: StringBuilder,
-        ast: ScopeStatement
-    ){
+    open fun stringify(): String{
+        val buffer = StringBuilder()
+
         val header = hashMapOf<String, String>()
         stringifyScopeStatement(header, buffer, ast, false)
 
         val headerBuffer = StringBuilder()
         header.map { it.value }.joinTo(headerBuffer)
         buffer.insert(0, headerBuffer)
+
+        if(useExternC) {
+            buffer.insert(0, "extern \"C\"{")
+            buffer.append("}")
+        }
+        println(buffer)
+        return buffer.toString()
     }
 
     abstract fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction)
@@ -221,8 +233,7 @@ abstract class SimpleCProgram(
     protected open fun stringifyFunctionStatement(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
-        statement: FunctionStatement,
-        clazz: GPClass? = null
+        statement: FunctionStatement
     ){
         val function = statement.function
         if(function.name == "main"){
@@ -258,8 +269,8 @@ abstract class SimpleCProgram(
             val args = function.arguments.map { convertToFuncArg(header, it) }.toMutableList()
 
             // If function is class member, then add context argument
-            if(clazz != null)
-                args.add(0, "${clazz.obfName} __s")
+            if(useStructClasses && contextClass != null)
+                args.add(0, "${contextClass!!.obfName} *__s")
 
             if(useLocalStruct)
                 args.add(0, "__in __v")
@@ -267,8 +278,8 @@ abstract class SimpleCProgram(
             val type = function.returnType
             val pureName = if (type is ArrayPrimitiveType<*>)
                 convertArrayName(function.obfName, type.size) else function.obfName
-            val name = if(clazz != null)
-                "${clazz.obfName}_${pureName}" else pureName
+            val name = if(contextClass != null)
+                "${contextClass!!.obfName}_${pureName}" else pureName
 
             appendCFunctionDefinition(
                 buffer = buffer,
@@ -276,23 +287,10 @@ abstract class SimpleCProgram(
                 name = name,
                 args = args
             )
-            if(statement !is FunctionDefinitionStatement) {
-                buffer.append("{")
-
-                // Copy all class members to function scope
-                clazz?.variables?.values?.forEach { field ->
-                    buffer.append(convertToFuncArg(header, field))
-                        .append("=")
-                        .append("__s.")
-                        .append(field.obfName)
-                        .append(";")
-                }
-
-                stringifyScopeStatement(header, buffer, statement.function.body!!, false)
-                buffer.append("}")
-            }else
+            if(statement !is FunctionDefinitionStatement)
+                stringifyScopeStatement(header, buffer, statement.function.body!!, true)
+            else
                 buffer.append(";")
-
         }
     }
 
@@ -301,6 +299,8 @@ abstract class SimpleCProgram(
         buffer: StringBuilder,
         classStatement: ClassStatement
     ){
+        if(!useStructClasses)
+            return
         val clazz = classStatement.classObj
 
         buffer.append("typedef struct{")
@@ -311,10 +311,12 @@ abstract class SimpleCProgram(
             buffer.append(";")
         buffer.append("}").append(clazz.obfName).append(";")
 
+        contextClass = clazz
         clazz.body?.statements?.forEach {
             if(it is FunctionStatement)
-                stringifyFunctionStatement(header, buffer, it, clazz)
+                stringifyFunctionStatement(header, buffer, it)
         }
+        contextClass = null
     }
 
     /* ================== *\
@@ -393,9 +395,14 @@ abstract class SimpleCProgram(
         if(isPredefined)
             buffer.append("(").append(toCType(header, function.returnType)).append(")")
         if(expression.obj != null) {
-            val className = (expression.obj.type as ClassType).className
-            val clazz = expression.function.scope!!.findDefinedClass(className)!!
-            buffer.append(clazz.obfName).append("_")
+            if(useStructClasses) {
+                val className = (expression.obj.type as ClassType).className
+                val clazz = expression.function.scope!!.findDefinedClass(className)!!
+                buffer.append(clazz.obfName).append("_")
+            }else {
+                stringifyExpression(header, buffer, expression.obj)
+                buffer.append(".")
+            }
         }
         buffer.append(if(isPredefined) convertPredefinedFunctionName(expression) else function.obfName)
         buffer.append("(")
@@ -405,10 +412,10 @@ abstract class SimpleCProgram(
         if(useLocalStruct && !isPredefined)
             arguments += "__v"
 
-        if(expression.obj != null) {
+        if(useStructClasses && expression.obj != null) {
             val objBuffer = StringBuilder()
             stringifyExpression(header, objBuffer, expression.obj)
-            arguments += objBuffer.toString()
+            arguments += "&$objBuffer"
         }
 
         expression.arguments.forEachIndexed { i, arg ->
@@ -418,7 +425,7 @@ abstract class SimpleCProgram(
             if(isPredefined && needCast)
                 argBuffer.append("(").append(toCType(header, function.argumentsTypes[i])).append(")(")
             stringifyExpression(header, argBuffer, arg)
-            if(needCast)
+            if(isPredefined && needCast)
                 argBuffer.append(")")
 
             arguments += argBuffer.toString()
@@ -471,6 +478,9 @@ abstract class SimpleCProgram(
     ){
         if(useLocalStruct && (expression.field.isExtern || expression.field.isLocal))
             buffer.append("__v.")
+        if(useStructClasses && contextClass != null && contextClass!!.variables[expression.field.name] == expression.field)
+            buffer.append("__s->")
+
         val name = expression.field.obfName
         if(expression.obj != null) {
             stringifyExpression(header, buffer, expression.obj)
@@ -534,15 +544,16 @@ abstract class SimpleCProgram(
             header[name] = "typedef struct{${convertType(type.single)} v[${type.size}];}$name;"
         return name
     }
+
+    protected open fun appendCFunctionDefinition(
+        buffer: StringBuilder,
+        type: String,
+        name: String,
+        args: List<String>
+    ){
+        buffer.append(type).append(" ").append(name).append("(")
+        args.joinTo(buffer, separator = ",")
+        buffer.append(")")
+    }
 }
 
-fun appendCFunctionDefinition(
-    buffer: StringBuilder,
-    type: String,
-    name: String,
-    args: List<String>
-){
-    buffer.append(type).append(" ").append(name).append("(")
-    args.joinTo(buffer, separator = ",")
-    buffer.append(")")
-}
