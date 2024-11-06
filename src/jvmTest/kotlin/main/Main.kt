@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 fun exampleArray() = FloatArray(100) { it.toFloat() }
 
 fun main() {
-    val device = GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice
+    val device = GPSyncApi.getByType(GPApiType.CUDA)!!.defaultDevice
     val context = device.createContext()
     println("======== Device info ========")
     println("Type: ${device.api.type}")
@@ -19,6 +19,7 @@ fun main() {
 
     context.modules.add("test", """
         // gpkt
+        float a = 0.01f;
         int toImpl();
         
         int test(int index){

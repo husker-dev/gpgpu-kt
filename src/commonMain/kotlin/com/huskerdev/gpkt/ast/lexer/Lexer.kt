@@ -101,7 +101,11 @@ fun processLexemes(block: String): List<Lexeme> {
                 (char == '_' && i > 0 && i < lowerText.length)
             )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
         }
-        return Lexeme.Type.INT to text.replace("_", "")
+        val intText = text.replace("_", "")
+        val type = if(intText.toInt() < 255)
+            Lexeme.Type.BYTE else Lexeme.Type.INT
+
+        return type to intText
     }
 
     fun flush(lineIndex: Int, charIndex: Int) {
@@ -154,6 +158,23 @@ fun processLexemes(block: String): List<Lexeme> {
                 if (char in spacing) {
                     flush(lineIndex, i)
                     i++
+                    continue
+                }
+
+                // Trying to get number
+                if(buffer.isEmpty() && (char in digits || (char == '.' && line[i+1] in digits))){
+                    while(true){
+                        val lowered = line[i].lowercase()[0]
+                        if(lowered !in digitsHex &&
+                            lowered != '.' && lowered != 'l' && lowered != 'x' &&
+                            lowered != 'f' && lowered != 'b'
+                        ){
+                            flush(lineIndex, i)
+                            break
+                        }
+                        buffer.append(lowered)
+                        i++
+                    }
                     continue
                 }
 

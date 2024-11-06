@@ -34,7 +34,7 @@ abstract class CProgramPrinter(
             buffer.insert(0, "extern \"C\"{")
             buffer.append("}")
         }
-        println(buffer)
+        //println(buffer)
         return buffer.toString()
     }
 

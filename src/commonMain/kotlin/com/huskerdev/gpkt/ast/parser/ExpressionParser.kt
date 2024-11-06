@@ -97,7 +97,7 @@ fun parseExpression(
 
                     val indexExpression = parseExpression(scope, lexemes, codeBlock, leftBracket+1)
                         ?: throw expectedException("index", lexemes[leftBracket+1], codeBlock)
-                    if(indexExpression.type != INT)
+                    if(!indexExpression.type.isInteger)
                         throw expectedTypeException(INT, indexExpression.type, lexemes[leftBracket+1], codeBlock)
 
                     return unpackedArrayAccess(scope, array, indexExpression, from, to - from)
@@ -260,12 +260,12 @@ private fun unpackedAxB(
     from: Int,
     length: Int
 ): Expression {
-    val unpackedRight = if(right.type is ClassType){
+    val unpackedRight = if(left.type != right.type && right.type is ClassType){
         val clazz = scope.findDefinedClass((right.type as ClassType).className)!!
         FunctionCallExpression(right, getPrimitiveClassGetter(clazz), emptyList())
     } else right
 
-    val unpackedLeft = if(left.type is ClassType) {
+    val unpackedLeft = if(left.type != right.type && left.type is ClassType) {
         val clazz = scope.findDefinedClass((left.type as ClassType).className)!!
         when (operator) {
             // Assignment

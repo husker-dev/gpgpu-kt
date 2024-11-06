@@ -38,7 +38,9 @@ interface PrimitiveType {
         )
 
         fun canAssignNumbers(to: PrimitiveType, from: PrimitiveType) =
-            to.isNumber && from.isNumber && to.bytes >= from.bytes
+            to.isNumber && from.isNumber &&
+            (to.isFloating || to.isFloating == from.isFloating) &&
+            to.bytes >= from.bytes
 
         fun mergeNumberTypes(type1: SinglePrimitiveType<*>, type2: SinglePrimitiveType<*>) = when {
             type1 == type2 -> type1

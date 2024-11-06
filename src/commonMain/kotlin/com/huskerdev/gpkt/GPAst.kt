@@ -42,6 +42,11 @@ class GPAst {
                                     scope.scope.functions[it.function.name] = it.function
                                 statements += it
                             }
+                            is ClassStatement -> {
+                                if(it.classObj.name !in scope.scope.classes)
+                                    scope.scope.classes[it.classObj.name] = it.classObj
+                                statements += it
+                            }
                         }
                     }
                 }

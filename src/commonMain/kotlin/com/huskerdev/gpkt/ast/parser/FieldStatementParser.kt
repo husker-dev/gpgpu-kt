@@ -151,8 +151,9 @@ fun parseTypeDeclaration(scope: GPScope, i: Int, lexemes: List<Lexeme>, codeBloc
             return type.toDynamicArray() to i+3
 
         }else if(lexemes[i+3].text == "]"){
-            if(lexemes[i+2].type != Lexeme.Type.INT)
-                throw compilationError("Array size should be constant int", lexeme, codeBlock)
+            if(lexemes[i+2].type != Lexeme.Type.INT &&
+                lexemes[i+2].type != Lexeme.Type.BYTE
+            ) throw compilationError("Array size should be constant int", lexeme, codeBlock)
             return type.toArray(lexemes[i+2].text.toInt()) to i+4
 
         }else throw compilationError("Failed to get array size", lexeme, codeBlock)
