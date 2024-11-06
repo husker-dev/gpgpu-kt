@@ -38,7 +38,7 @@ class GPAst {
                                 statements += it
                             }
                             is FunctionStatement -> {
-                                if(it.function.name !in scope.scope.functions)
+                                if(it !is FunctionDefinitionStatement && it.function.name !in scope.scope.functions)
                                     scope.scope.functions[it.function.name] = it.function
                                 statements += it
                             }

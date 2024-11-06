@@ -41,7 +41,7 @@ class InterpreterProgram(
 
             for(step in from until to){
                 iteration.value!!.set(step + indexOffset)
-                scope.execute(threadLocalVariables)
+                scope.execute(threadLocalVariables, execMain = true)
             }
         }
     }

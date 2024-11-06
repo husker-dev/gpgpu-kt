@@ -8,7 +8,7 @@ class GPClass(
     val scope: GPScope,
     val name: String,
     val type: ClassType,
-    val variables: Map<String, GPField>,
+    val variables: LinkedHashMap<String, GPField>,
     val variablesTypes: List<PrimitiveType>,
     val body: ScopeStatement?,
     val obfName: String,

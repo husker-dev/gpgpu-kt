@@ -7,7 +7,7 @@ import com.huskerdev.gpkt.ast.types.*
 class GPFunction(
     val scope: GPScope?,
     val name: String,
-    val obfName: String,
+    var obfName: String,
     val modifiers: List<Modifiers>,
     val returnType: PrimitiveType
 ){

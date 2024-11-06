@@ -43,10 +43,12 @@ interface PrimitiveType {
             to.bytes >= from.bytes
 
         fun mergeNumberTypes(type1: SinglePrimitiveType<*>, type2: SinglePrimitiveType<*>) = when {
+            type1 is ClassType && type2 !is ClassType -> type2
+            type1 !is ClassType && type2 is ClassType -> type1
             type1 == type2 -> type1
             type1.isFloating && !type2.isFloating -> type1
             !type1.isFloating && type2.isFloating -> type2
-            type1.bytes > type1.bytes -> type1
+            type1.bytes > type2.bytes -> type1
             else -> type2
         }
     }

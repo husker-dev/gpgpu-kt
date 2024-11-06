@@ -51,7 +51,7 @@ open class GPScope(
     fun addFunction(function: GPFunction, lexeme: Lexeme, codeBlock: String){
         val defined = findDefinedFunction(function.name)
         if(defined == function) return
-        if(defined != null) throw nameAlreadyDefinedException(function.name, lexeme, codeBlock)
+        if(defined?.body != null) throw nameAlreadyDefinedException(function.name, lexeme, codeBlock)
 
         functions[function.name] = function
     }

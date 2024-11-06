@@ -1,21 +1,21 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
 import com.huskerdev.gpkt.ast.*
-import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.types.Modifiers
 
 
 class ExScope(
     val scope: ScopeStatement?,
-    private val parentScope: ExScope? = null
+    val parentScope: ExScope? = null
 ) {
     private var began = false
-    private var fields: MutableMap<String, ExField>? = null
+    var fields: MutableMap<String, ExField>? = null
     private var functions: MutableMap<String, ExScope>? = null
 
     fun execute(
         fields: MutableMap<String, ExField> = hashMapOf(),
         functions: MutableMap<String, ExScope> = hashMapOf(),
+        execMain: Boolean = false
     ): ExValue? {
         begin(fields, functions)
         scope?.statements?.forEach { statement ->
@@ -24,11 +24,17 @@ class ExScope(
                 return this
             }
         }
+        if(execMain){
+            val mainFunc = scope!!.scope.functions["main"]!!
+            val mainFuncEx = functions["main"]!!
+
+            mainFuncEx.execute(hashMapOf(mainFunc.arguments[0].name to fields["__i__"]!!))
+        }
         end()
         return null
     }
 
-    private fun begin(
+    fun begin(
         fields: MutableMap<String, ExField> = hashMapOf(),
         functions: MutableMap<String, ExScope> = hashMapOf(),
     ){
@@ -38,14 +44,14 @@ class ExScope(
         this.functions = functions
     }
 
-    private fun end(){
+    fun end(){
         if(!began) return
         began = false
         this.fields = null
         this.functions = null
     }
 
-    private fun evalStatement(it: Statement): ExValue? {
+    fun evalStatement(it: Statement): ExValue? {
         when(it) {
             is FieldStatement -> it.fields.forEach { field ->
                 if(Modifiers.EXTERNAL !in field.modifiers) {
@@ -55,10 +61,13 @@ class ExScope(
                     addField(field.name, ExField(field.type, value))
                 }
             }
-            is FunctionStatement -> addFunction(it.function.name, it.function.arguments, ExScope(it.function.body, this))
+            is FunctionStatement -> {
+                if(it !is FunctionDefinitionStatement)
+                addFunction(it.function.name, ExScope(it.function.body, this))
+            }
             is ExpressionStatement -> executeExpression(this, it.expression)
             is ReturnStatement -> return if(it.expression != null)
-                executeExpression(this, it.expression).castToType(scope!!.scope.returnType)
+                executeExpression(this, it.expression)
             else null
             is IfStatement -> {
                 if(executeExpression(this, it.condition).get() == true)
@@ -94,9 +103,18 @@ class ExScope(
                 }
                 forScope.end()
             }
+            is ImportStatement -> {
+                it.import.paths.forEach { moduleName ->
+                    val moduleScope = scope!!.scope.context!!.modules[moduleName]!!
+                    moduleScope.statements.forEach {
+                        evalStatement(it)
+                    }
+                }
+            }
+            is ScopeStatement -> ExScope(it, this).execute()
             is BreakStatement -> return BreakMarker
             is ContinueStatement -> return ContinueMarker
-            is ImportStatement, is EmptyStatement -> Unit
+            is ClassStatement, is EmptyStatement -> Unit
             else -> throw UnsupportedOperationException("Unsupported statement '$it'")
         }
         return null
@@ -106,10 +124,8 @@ class ExScope(
         fields!![name] = field
     }
 
-    private fun addFunction(name: String, args: List<GPField>, scope: ExScope){
+    private fun addFunction(name: String, scope: ExScope){
         functions!![name] = scope
-        if(name == "main")
-            scope.execute(hashMapOf(args[0].name to fields!!["__i__"]!!))
     }
 
     fun findField(name: String): ExField? =
