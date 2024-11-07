@@ -248,6 +248,9 @@ private class JavacProgramPrinter(
     ) {
         buffer.append("new ").append(expression.classObj.obfName).append("(")
         expression.arguments.forEachIndexed { i, e ->
+            val targetType = expression.classObj.variablesTypes[i]
+            if(e.type != targetType)
+                buffer.append("(").append(convertType(targetType)).append(")")
             stringifyExpression(header, buffer, e)
             if (i < expression.arguments.size - 1)
                 buffer.append(",")

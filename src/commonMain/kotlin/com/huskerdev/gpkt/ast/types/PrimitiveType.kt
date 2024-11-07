@@ -37,10 +37,15 @@ interface PrimitiveType {
             BYTE to setOf(FLOAT, INT, BYTE),
         )
 
-        fun canAssignNumbers(to: PrimitiveType, from: PrimitiveType) =
-            to.isNumber && from.isNumber &&
-            (to.isFloating || to.isFloating == from.isFloating) &&
-            to.bytes >= from.bytes
+        fun canAssignNumbers(to: PrimitiveType, from: PrimitiveType): Boolean {
+            return if(to == BYTE && from == INT)
+                true // add check fort value 127
+            else {
+                to.isNumber && from.isNumber &&
+                (to.isFloating || to.isFloating == from.isFloating) &&
+                to.bytes >= from.bytes
+            }
+        }
 
         fun mergeNumberTypes(type1: SinglePrimitiveType<*>, type2: SinglePrimitiveType<*>) = when {
             type1 is ClassType && type2 !is ClassType -> type2

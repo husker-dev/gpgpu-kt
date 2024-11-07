@@ -101,11 +101,7 @@ fun processLexemes(block: String): List<Lexeme> {
                 (char == '_' && i > 0 && i < lowerText.length)
             )) throw unexpectedSymbolInNumberException(text[i], lineIndex, startIndex + i, block)
         }
-        val intText = text.replace("_", "")
-        val type = if(intText.toInt() < 128)
-            Lexeme.Type.BYTE else Lexeme.Type.INT
-
-        return type to intText
+        return Lexeme.Type.INT to text.replace("_", "")
     }
 
     fun flush(lineIndex: Int, charIndex: Int) {
