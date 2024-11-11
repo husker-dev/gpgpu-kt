@@ -16,14 +16,14 @@ fun main(){
     println("Name: ${device.name}")
     println("=============================")
 
-    context.modules.add("sma", """
+    context.modules["sma"] = {"""
         float sma(float[] d, int from, int period){
             float sum = 0;
             for(int i = 0; i < period; i++)
                 if(from - i >= 0) sum += d[from - i];
             return sum / (float)period;
         }
-    """.trimIndent())
+    """.trimIndent()}
 
     val program = try {
         context.compile("""
