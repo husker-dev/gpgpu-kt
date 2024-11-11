@@ -69,7 +69,7 @@ private class OpenCLProgramPrinter(
         function: GPFunction
     ) {
         buffer.append("__kernel ")
-        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
+        appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",

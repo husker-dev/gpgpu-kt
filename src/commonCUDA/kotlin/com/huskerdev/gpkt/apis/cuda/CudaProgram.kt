@@ -54,7 +54,7 @@ private class CudaProgramPrinter(
         function: GPFunction
     ) {
         buffer.append("__global__ ")
-        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
+        appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "__m",

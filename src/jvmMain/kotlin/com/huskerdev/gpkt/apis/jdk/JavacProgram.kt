@@ -133,7 +133,7 @@ private class JavacProgramPrinter(
         function: GPFunction
     ) {
         buffer.append("private static final ")
-        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
+        appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
             name = "_m",
