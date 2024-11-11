@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.opencl
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 abstract class OpenCLContext(
@@ -14,9 +14,9 @@ abstract class OpenCLContext(
     val commandQueue = clCreateCommandQueue(peer, clDevice.peer)
 
     override var disposed = true
-    override val modules = GPModules(this)
+    override val modules = GPModules()
 
-    override fun compile(ast: ScopeStatement) =
+    override fun compile(ast: GPScope) =
         OpenCLProgram(this, ast)
 
     override fun dispose() {

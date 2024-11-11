@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.webgpu
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.utils.toArrayBuffer
 
 class WebGPUAsyncContext(
@@ -12,7 +12,7 @@ class WebGPUAsyncContext(
     val webgpu = device.webgpu
 
     override var disposed = false
-    override val modules = GPModules(this)
+    override val modules = GPModules()
 
     override fun dispose() {
         if(disposed) return
@@ -24,7 +24,7 @@ class WebGPUAsyncContext(
         commandEncoder = webgpu.flush(devicePeer, commandEncoder)
     }
 
-    override fun compile(ast: ScopeStatement) =
+    override fun compile(ast: GPScope) =
         WebGPUProgram(this, ast)
 
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =

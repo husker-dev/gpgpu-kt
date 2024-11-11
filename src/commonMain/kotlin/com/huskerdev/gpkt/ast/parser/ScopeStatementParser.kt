@@ -6,7 +6,6 @@ import com.huskerdev.gpkt.ast.lexer.Lexeme
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.GPScope
-import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 import com.huskerdev.gpkt.ast.types.VOID
 import com.huskerdev.gpkt.utils.Dictionary
@@ -22,21 +21,18 @@ fun parseScopeStatement(
     context: GPContext?         = parentScope?.context,
     returnType: PrimitiveType?  = null,
     iterable: Boolean           = false,
-    modules: LinkedHashSet<ScopeStatement>       = linkedSetOf(),
     fields: LinkedHashMap<String, GPField>       = linkedMapOf(),
     functions: LinkedHashMap<String, GPFunction> = linkedMapOf()
 ): ScopeStatement {
     val scope = GPScope(
         context = context,
         parentScope = parentScope,
+        dictionary = dictionary,
         returnType = returnType,
         iterable = iterable,
-        modules = modules,
         fields = fields,
         functions = functions
     )
-    val statements = mutableListOf<Statement>()
-    var returns = false
 
     var i = from
     if(lexemes[i].text == "{")
@@ -48,40 +44,12 @@ fun parseScopeStatement(
             val text = lexeme.text
 
             if(text == "}"){
-                if(returnType != null && returnType != VOID && !statements.any { it.returns })
+                if(returnType != null && returnType != VOID && !scope.returns)
                     throw compilationError("Expected return statement", lexeme, codeBlock)
-                return ScopeStatement(scope, statements, returns, from, i - from + 1)
+                return ScopeStatement(parentScope, scope, from, i - from + 1)
             }
             val statement = parseStatement(scope, lexemes, codeBlock, i, to, dictionary)
-            statements += statement
-
-            when (statement) {
-                is ReturnStatement -> {
-                    returns = true
-                }
-                is FieldStatement -> {
-                    statement.fields.forEach { field ->
-                        scope.addField(field, lexeme, codeBlock)
-                        if(parentScope == null && field.modifiers.isEmpty())
-                            field.modifiers += Modifiers.THREADLOCAL
-                    }
-                }
-                is FunctionStatement ->
-                    scope.addFunction(statement.function, lexeme, codeBlock)
-                is ClassStatement ->
-                    scope.addClass(statement.classObj, lexeme, codeBlock)
-                is ImportStatement -> {
-                    val import = statement.import
-                    import.paths.forEach { path ->
-                        if(context == null || !context.modules.ast.containsKey(path))
-                            throw compilationError("Module '${path}' not found", import.lexeme, codeBlock)
-
-                        val module = context.modules.ast[path]!!
-                        scope.modules += module.scope.modules   // Get dependent modules,
-                        scope.modules += module                 // and itself
-                    }
-                }
-            }
+            scope.addStatement(statement, lexeme, codeBlock)
 
             i += statement.lexemeLength
         }
@@ -89,5 +57,5 @@ fun parseScopeStatement(
         e.printStackTrace()
         throw unexpectedEofException(lexemes.last(), codeBlock)
     }
-    return ScopeStatement(scope, statements, returns, from, to - from)
+    return ScopeStatement(parentScope, scope, from, to - from)
 }

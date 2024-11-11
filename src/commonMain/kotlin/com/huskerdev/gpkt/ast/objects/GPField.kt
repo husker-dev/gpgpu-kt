@@ -30,6 +30,9 @@ class GPField(
         get() = Modifiers.CONST in modifiers
     val isReadonly
         get() = Modifiers.READONLY in modifiers
+
+    fun clone(scope: GPScope) =
+        GPField(name, obfName, modifiers.toMutableList(), type, initialExpression?.clone(scope))
 }
 
 val predefinedMathFields = hashMapOf(

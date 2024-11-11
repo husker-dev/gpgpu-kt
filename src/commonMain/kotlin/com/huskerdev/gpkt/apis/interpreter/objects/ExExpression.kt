@@ -347,14 +347,14 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
             })
         }
         is ClassCreationExpression -> {
-            val instanceScope = ExScope(expression.classObj.body, scope)
+            val instanceScope = ExScope(expression.classObj.body!!.scopeObj, scope)
             val fields = expression.arguments.mapIndexed { i, arg ->
                 val name = expression.classObj.variables.keys.toTypedArray()[i]
                 name to ExField(arg.type, executeExpression(scope, arg))
             }.toMap().toMutableMap()
 
             instanceScope.begin(fields = fields)
-            expression.classObj.body?.statements?.forEach {
+            expression.classObj.body.scopeObj.statements.forEach {
                 instanceScope.evalStatement(it)
             }
 

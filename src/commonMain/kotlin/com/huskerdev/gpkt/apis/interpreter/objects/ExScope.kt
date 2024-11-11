@@ -1,11 +1,12 @@
 package com.huskerdev.gpkt.apis.interpreter.objects
 
 import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.Modifiers
 
 
 class ExScope(
-    val scope: ScopeStatement?,
+    val scope: GPScope?,
     val parentScope: ExScope? = null
 ) {
     private var began = false
@@ -25,7 +26,7 @@ class ExScope(
             }
         }
         if(execMain){
-            val mainFunc = scope!!.scope.functions["main"]!!
+            val mainFunc = scope!!.functions["main"]!!
             val mainFuncEx = functions["main"]!!
 
             mainFuncEx.execute(hashMapOf(mainFunc.arguments[0].name to fields["__i__"]!!))
@@ -63,7 +64,7 @@ class ExScope(
             }
             is FunctionStatement -> {
                 if(it !is FunctionDefinitionStatement)
-                addFunction(it.function.name, ExScope(it.function.body, this))
+                    addFunction(it.function.name, ExScope(it.function.body!!.scopeObj, this))
             }
             is ExpressionStatement -> executeExpression(this, it.expression)
             is ReturnStatement -> return if(it.expression != null)
@@ -103,15 +104,7 @@ class ExScope(
                 }
                 forScope.end()
             }
-            is ImportStatement -> {
-                it.import.paths.forEach { moduleName ->
-                    val moduleScope = scope!!.scope.context!!.modules[moduleName]!!
-                    moduleScope.statements.forEach {
-                        evalStatement(it)
-                    }
-                }
-            }
-            is ScopeStatement -> ExScope(it, this).execute()
+            is ScopeStatement -> ExScope(it.scopeObj, this).execute()
             is BreakStatement -> return BreakMarker
             is ContinueStatement -> return ContinueMarker
             is ClassStatement, is EmptyStatement -> Unit

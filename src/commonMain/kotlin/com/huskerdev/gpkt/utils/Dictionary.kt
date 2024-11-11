@@ -29,14 +29,15 @@ private val badWords = setOf(
 class Dictionary(
     private var index: Int = 0
 ){
-    private val alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray()
+    companion object {
+        private val alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray()
+        var includeName = false
+    }
 
-    fun copy() =
-        Dictionary(index)
-
-    fun nextWord(): String {
+    fun nextWord(prefix: String): String {
         while(true){
-            val name = generate()
+            val name = if(includeName)
+                "${prefix}_${generate()}" else generate()
             if(name in badWords) continue
             return name
         }

@@ -24,7 +24,7 @@ fun parseClassStatement(
     if(nameLexeme.type != Lexeme.Type.NAME)
         throw expectedException("class name", nameLexeme, codeBlock)
     val name = nameLexeme.text
-    val obfName = dictionary.nextWord()
+    val obfName = dictionary.nextWord(name)
     i += 1
 
     // Variables
@@ -103,7 +103,7 @@ fun parseClassStatement(
     if(lexemes[i].text == "{") {
         bodyScopeStatement =
             parseScopeStatement(scope, lexemes, codeBlock, i + 1, to, dictionary, fields = variables)
-        val bodyScope = bodyScopeStatement.scope
+        val bodyScope = bodyScopeStatement.scopeObj
         i++
 
         // Check get/set if inherited from primitive

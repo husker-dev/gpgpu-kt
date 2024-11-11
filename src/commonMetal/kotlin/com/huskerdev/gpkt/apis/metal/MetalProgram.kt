@@ -1,26 +1,28 @@
 package com.huskerdev.gpkt.apis.metal
 
+import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.utils.CProgramPrinter
 import com.huskerdev.gpkt.utils.SimpleCProgram
 import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 
 
 class MetalProgram(
     private val context: MetalContext,
-    ast: ScopeStatement
-): SimpleCProgram(ast) {
+    ast: GPScope
+): GPProgram(ast) {
     private val library: MTLLibrary
     private val function: MTLFunction
     private val pipeline: MTLComputePipelineState
     private val commandEncoder: MTLComputeCommandEncoder
 
     init {
-        val buffer = StringBuilder()
-        stringifyScopeStatement(buffer, ast, false)
+        val prog = MetalProgramPrinter(ast, buffers, locals).stringify()
 
-        library = mtlCreateLibrary(context.device.peer, buffer.toString())
+        library = mtlCreateLibrary(context.device.peer, prog)
         function = mtlGetFunction(library, "_m")
         pipeline = mtlCreatePipeline(context.device.peer, function)
         commandEncoder = mtlCreateCommandEncoder(context.commandBuffer, pipeline)
@@ -46,26 +48,32 @@ class MetalProgram(
         mtlDeallocPipeline(pipeline)
         mtlDeallocCommandEncoder(commandEncoder)
     }
+}
 
-    override fun stringifyMainFunctionDefinition(buffer: StringBuilder, function: GPFunction) {
+class MetalProgramPrinter(
+    ast: GPScope,
+    buffers: List<GPField>,
+    locals: List<GPField>
+): CProgramPrinter(ast, buffers, locals){
+    override fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) {
         buffer.append("kernel ")
-        appendCFunctionDefinition(
+        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
             buffer = buffer,
             type = "void",
             name = "_m",
             args = buffers.map {
-                if(it.type.isArray) "device ${toCType(it.type)}*__v${it.name}"
-                else "device ${toCType(it.type)}&__v${it.name}"
+                if (it.type.isArray) "device ${toCType(header, it.type)}*__v${it.name}"
+                else "device ${toCType(header, it.type)}&__v${it.name}"
             } + listOf("device int&__o", "uint i [[thread_position_in_grid]]")
         )
     }
-    override fun stringifyMainFunctionBody(buffer: StringBuilder, function: GPFunction) = Unit
+    override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
 
-    override fun stringifyFieldExpression(buffer: StringBuilder, expression: FieldExpression) {
+    override fun stringifyFieldExpression(header: MutableMap<String, String>, buffer: StringBuilder, expression: FieldExpression) {
         when(expression.field.name){
             "PI" -> buffer.append("M_PI")
             "E" -> buffer.append("M_E")
-            else -> super.stringifyFieldExpression(buffer, expression)
+            else -> super.stringifyFieldExpression(header, buffer, expression)
         }
     }
 

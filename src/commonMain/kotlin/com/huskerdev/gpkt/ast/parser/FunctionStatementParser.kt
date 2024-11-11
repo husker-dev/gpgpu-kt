@@ -45,7 +45,7 @@ fun parseFunctionStatement(
         throw compilationError("Cannot use var with functions", lexemes[nameIndex-1], codeBlock)
 
     val name = lexemes[i++].text
-    val function = GPFunction(scope, name, dictionary.nextWord(), mods, type)
+    var function = GPFunction(scope, name, dictionary.nextWord(name), mods, type)
 
     if(lexemes[i].text != "(")
         throw expectedException("arguments block", lexemes[i], codeBlock)
@@ -57,11 +57,7 @@ fun parseFunctionStatement(
             throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
         val fieldDeclaration = parseFieldDeclaration(
-            scope,
-            lexemes,
-            codeBlock,
-            i,
-            to,
+            scope, lexemes, codeBlock, i, to,
             dictionary,
             allowMultipleDeclaration = false,
             allowDefaultValue = false,
@@ -80,12 +76,12 @@ fun parseFunctionStatement(
         return FunctionDefinitionStatement(scope, function, from, i - from + 1)
     else {
         // If function was previously pre-defined
-        scope.findDefinedFunction(function.name)?.let { def ->
+        scope.findFunction(function.name)?.let { def ->
             if(def.returnType != function.returnType)
                 throw wrongFunctionDefinitionType(def, function.returnType, lexemes[from], codeBlock)
             if(!def.canAcceptArguments(function.argumentsTypes))
                 throw wrongFunctionDefinitionParameters(def, function.argumentsTypes, lexemes[from], codeBlock)
-            function.obfName = def.obfName
+            function = def
         }
     }
 

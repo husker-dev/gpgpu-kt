@@ -35,7 +35,7 @@ fun parseStatement(
                 parseFunctionOrField(scope, lexemes, codeBlock, from, to, dictionary)
             else -> throw compilationError("Unexpected symbol: '${text}'", lexeme, codeBlock)
         }
-    } else if(scope.findDefinedClass(text) != null || (lexeme.type == Lexeme.Type.NAME && lexemes[from+1].type == Lexeme.Type.NAME))
+    } else if(scope.findClass(text) != null || (lexeme.type == Lexeme.Type.NAME && lexemes[from+1].type == Lexeme.Type.NAME))
         parseFunctionOrField(scope, lexemes, codeBlock, from, to, dictionary)
     else
         ExpressionStatement(scope, parseExpression(scope, lexemes, codeBlock, from)!!)

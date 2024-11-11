@@ -31,8 +31,9 @@ fun parseForStatement(
         throw compilationError("Expected ')'", lexemes.last(), codeBlock)
 
     // Head scope
-    val headScope = parseScopeStatement(scope, lexemes, codeBlock, i+1, r, dictionary)
-    i += headScope.lexemeLength + 2
+    val headScopeStatement = parseScopeStatement(scope, lexemes, codeBlock, i+1, r, dictionary)
+    val headScope = headScopeStatement.scopeObj
+    i += headScopeStatement.lexemeLength + 2
 
     if(headScope.statements.size < 2)
         throw compilationError("Expected at least two statements", lexemes[i], codeBlock)
@@ -63,7 +64,7 @@ fun parseForStatement(
     }
 
     // body
-    val iterableScope = GPScope(scope.context, scope, iterable = true, fields = fields)
+    val iterableScope = GPScope(scope.context, scope, dictionary = scope.dictionary, iterable = true, fields = fields)
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to, dictionary)
     i += body.lexemeLength
 

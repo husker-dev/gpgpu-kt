@@ -1,16 +1,16 @@
 package com.huskerdev.gpkt.apis.interpreter
 
 import com.huskerdev.gpkt.GPProgram
-import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.apis.interpreter.objects.ExField
 import com.huskerdev.gpkt.apis.interpreter.objects.ExScope
 import com.huskerdev.gpkt.apis.interpreter.objects.ExValue
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 
 class InterpreterProgram(
-    val ast: ScopeStatement
+    val ast: GPScope
 ): GPProgram(ast) {
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {

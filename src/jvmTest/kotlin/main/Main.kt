@@ -21,7 +21,7 @@ fun print(type: GPApiType): ByteArray {
     println("Name: ${device.name}")
     println("=============================")
 
-    context.modules.add("test", """
+    context.modules["test"] = { """
         // gpkt
         const int a = 2, a1 = 3;
         int toImpl();
@@ -33,9 +33,9 @@ fun print(type: GPApiType): ByteArray {
                 return 2;
             return 99;
         }
-    """.trimIndent())
+    """.trimIndent()}
 
-    context.modules.add("sma", """
+    context.modules["sma"] = { """
         // gpkt
         import test;
         float sma(float[] d, int from, int period){
@@ -52,7 +52,7 @@ fun print(type: GPApiType): ByteArray {
                 return 1;
             return 0;
         }
-    """.trimIndent())
+    """.trimIndent()}
 
     val program = try {
         context.compile("""
@@ -62,7 +62,9 @@ fun print(type: GPApiType): ByteArray {
             extern float[] data;
             extern byte[] result;
             
-            
+            int toImpl(){
+                return 0;
+            }
             
             void main(const int i){
                 float[3] asgdf = { 1f, 2f, 3f };

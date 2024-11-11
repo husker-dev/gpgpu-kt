@@ -5,6 +5,7 @@ import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.CProgramPrinter
 import com.huskerdev.gpkt.utils.splitThreadInvocation
@@ -13,7 +14,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: ScopeStatement): GPProgram(ast) {
+class JavacProgram(ast: GPScope): GPProgram(ast) {
     companion object {
         val counter = AtomicLong()
     }
@@ -71,7 +72,7 @@ class JavacProgram(ast: ScopeStatement): GPProgram(ast) {
 
 private class JavacProgramPrinter(
     val className: String,
-    ast: ScopeStatement,
+    ast: GPScope,
     buffers: List<GPField>,
     locals: List<GPField>
 ): CProgramPrinter(ast, buffers, locals,
@@ -234,7 +235,7 @@ private class JavacProgramPrinter(
             buffer.append(";")
         buffer.append("}")
 
-        clazz.body?.statements?.forEach {
+        clazz.body?.scopeObj?.statements?.forEach {
             if(it is FunctionStatement)
                 stringifyFunctionStatement(header, buffer, it)
         }

@@ -80,6 +80,7 @@ fun parseFieldDeclaration(
         if(lexemes[i].type != Lexeme.Type.NAME)
             throw expectedException("variable name", lexemes[i], codeBlock)
         val nameLexeme = lexemes[i]
+        val name = nameLexeme.text
 
         var initialExpression: Expression? = null
         if(lexemes[i+1].text == "="){
@@ -98,7 +99,7 @@ fun parseFieldDeclaration(
 
             // If class, then unpack
             if(type != initialExpression.type && initialExpression.type is ClassType){
-                val clazz = scope.findDefinedClass((initialExpression.type as ClassType).className)!!
+                val clazz = scope.findClass((initialExpression.type as ClassType).className)!!
                 initialExpression = FunctionCallExpression(initialExpression, getPrimitiveClassGetter(clazz), emptyList(),
                     initialExpression.lexemeIndex, initialExpression.lexemeLength)
             }
@@ -106,9 +107,9 @@ fun parseFieldDeclaration(
             i += initialExpression.lexemeLength + 1
         }
         if(type == null)
-            throw compilationError("Unable to determine type of '${nameLexeme.text}'", lexemes[nameIndex-1], codeBlock)
+            throw compilationError("Unable to determine type of '$name'", lexemes[nameIndex-1], codeBlock)
 
-        fields += GPField(nameLexeme.text, dictionary.nextWord(), mods, type, initialExpression)
+        fields += GPField(name, dictionary.nextWord(name), mods, type, initialExpression)
 
         if(i >= to)
             return FieldStatement(scope, fields, from, i - from)
@@ -143,7 +144,7 @@ fun parseTypeDeclaration(scope: GPScope, i: Int, lexemes: List<Lexeme>, codeBloc
 
     val type: SinglePrimitiveType<*> =
         primitivesMap[lexeme.text]
-        ?: scope.findDefinedClass(lexeme.text)?.type
+        ?: scope.findClass(lexeme.text)?.type
         ?: throw compilationError("Type '${lexeme.text}' is not defined", lexeme, codeBlock)
 
     if(lexemes[i+1].text == "["){

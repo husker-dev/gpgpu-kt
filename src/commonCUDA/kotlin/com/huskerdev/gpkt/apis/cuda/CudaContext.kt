@@ -1,7 +1,7 @@
 package com.huskerdev.gpkt.apis.cuda
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 abstract class CudaContext(
@@ -11,9 +11,9 @@ abstract class CudaContext(
     val peer = Cuda.createContext(cudaDevice.peer)
 
     override var disposed = false
-    override val modules = GPModules(this)
+    override val modules = GPModules()
 
-    override fun compile(ast: ScopeStatement) =
+    override fun compile(ast: GPScope) =
         CudaProgram(this, ast)
 
     override fun dispose() {

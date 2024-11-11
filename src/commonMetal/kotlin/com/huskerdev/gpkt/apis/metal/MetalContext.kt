@@ -2,6 +2,7 @@ package com.huskerdev.gpkt.apis.metal
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 abstract class MetalContext(
     metalDevice: MetalDevice
@@ -13,9 +14,9 @@ abstract class MetalContext(
     val commandBuffer = mtlNewCommandBuffer(commandQueue)
 
     override var disposed = false
-    override val modules = GPModules(this)
+    override val modules = GPModules()
 
-    override fun compile(ast: ScopeStatement) =
+    override fun compile(ast: GPScope) =
         MetalProgram(this, ast)
 
     override fun dispose() {

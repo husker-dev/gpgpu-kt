@@ -6,7 +6,7 @@ import com.huskerdev.gpkt.ast.types.*
 
 
 abstract class CProgramPrinter(
-    protected val ast: ScopeStatement,
+    protected val ast: GPScope,
     protected val buffers: List<GPField>,
     protected val locals: List<GPField>,
 
@@ -24,7 +24,7 @@ abstract class CProgramPrinter(
         val buffer = StringBuilder()
 
         val header = hashMapOf<String, String>()
-        stringifyScopeStatement(header, buffer, ast, false)
+        stringifyScope(header, buffer, ast, false)
 
         val headerBuffer = StringBuilder()
         header.map { it.value }.joinTo(headerBuffer)
@@ -98,8 +98,16 @@ abstract class CProgramPrinter(
         buffer: StringBuilder,
         statement: ScopeStatement,
         brackets: Boolean
+    ) = stringifyScope(header, buffer, statement.scopeObj, brackets)
+
+
+    protected fun stringifyScope(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        scope: GPScope,
+        brackets: Boolean
     ){
-        if(statement.scope.parentScope == null) {
+        if(scope.parentScope == null) {
             if (useLocalStruct) {
                 buffer.append("typedef struct{")
                 fun stringify(field: GPField) {
@@ -120,10 +128,10 @@ abstract class CProgramPrinter(
                 locals.forEach(::stringify)
                 buffer.append("}__in;")
             } else {
-                statement.statements.filter {
+                scope.statements.filter {
                     it is FieldStatement && (
                             Modifiers.EXTERNAL in it.fields[0].modifiers ||
-                            Modifiers.THREADLOCAL in it.fields[0].modifiers)
+                                    Modifiers.THREADLOCAL in it.fields[0].modifiers)
                 }.forEach {
                     stringifyFieldStatement(header, buffer, it as FieldStatement, true)
                 }
@@ -131,7 +139,7 @@ abstract class CProgramPrinter(
         }
 
         if(brackets) buffer.append("{")
-        statement.statements.forEach { st ->
+        scope.statements.forEach { st ->
             stringifyStatement(header, buffer, st)
         }
         if(brackets) buffer.append("}")
@@ -312,7 +320,7 @@ abstract class CProgramPrinter(
         buffer.append("}").append(clazz.obfName).append(";")
 
         contextClass = clazz
-        clazz.body?.statements?.forEach {
+        clazz.body?.scopeObj?.statements?.forEach {
             if(it is FunctionStatement)
                 stringifyFunctionStatement(header, buffer, it)
         }
@@ -397,7 +405,7 @@ abstract class CProgramPrinter(
         if(expression.obj != null) {
             if(useStructClasses) {
                 val className = (expression.obj.type as ClassType).className
-                val clazz = expression.function.scope!!.findDefinedClass(className)!!
+                val clazz = expression.function.scope!!.findClass(className)!!
                 buffer.append(clazz.obfName).append("_")
             }else {
                 stringifyExpression(header, buffer, expression.obj)

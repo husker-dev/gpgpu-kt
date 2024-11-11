@@ -1,6 +1,6 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 
 interface GPContext{
@@ -8,7 +8,7 @@ interface GPContext{
     val disposed: Boolean
     val modules: GPModules
 
-    fun compile(ast: ScopeStatement): GPProgram
+    fun compile(ast: GPScope): GPProgram
     fun compile(code: String) =
         compile(GPAst.parse(code, this))
 

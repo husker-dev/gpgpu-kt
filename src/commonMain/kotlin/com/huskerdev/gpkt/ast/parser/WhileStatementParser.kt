@@ -26,7 +26,7 @@ fun parseWhileStatement(
         throw expectedTypeException(BOOLEAN, condition.type, lexemes[i+1], codeBlock)
     i += condition.lexemeLength + 2
 
-    val iterableScope = GPScope(scope.context, scope, iterable = true)
+    val iterableScope = GPScope(scope.context, scope, dictionary = scope.dictionary, iterable = true)
     val body = parseStatement(iterableScope, lexemes, codeBlock, i, to, dictionary)
     i += body.lexemeLength
 

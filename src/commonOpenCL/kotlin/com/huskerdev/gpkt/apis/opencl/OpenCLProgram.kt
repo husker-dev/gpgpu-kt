@@ -2,15 +2,15 @@ package com.huskerdev.gpkt.apis.opencl
 
 import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.FunctionCallExpression
-import com.huskerdev.gpkt.ast.ScopeStatement
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class OpenCLProgram(
     private val context: OpenCLContext,
-    ast: ScopeStatement
+    ast: GPScope
 ): GPProgram(ast) {
     private val cl = context.opencl
     private val program: CLProgram
@@ -45,7 +45,7 @@ class OpenCLProgram(
 }
 
 private class OpenCLProgramPrinter(
-    ast: ScopeStatement,
+    ast: GPScope,
     buffers: List<GPField>,
     locals: List<GPField>
 ): CProgramPrinter(ast, buffers, locals) {

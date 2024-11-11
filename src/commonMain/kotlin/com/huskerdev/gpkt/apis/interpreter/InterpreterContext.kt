@@ -1,13 +1,13 @@
 package com.huskerdev.gpkt.apis.interpreter
 
 import com.huskerdev.gpkt.*
-import com.huskerdev.gpkt.ast.ScopeStatement
+import com.huskerdev.gpkt.ast.objects.GPScope
 
 abstract class InterpreterContext: GPContext {
-    override val modules = GPModules(this)
+    override val modules = GPModules()
     override var disposed = false
 
-    override fun compile(ast: ScopeStatement): GPProgram =
+    override fun compile(ast: GPScope): GPProgram =
         InterpreterProgram(ast)
 
     override fun dispose() {

@@ -3,7 +3,7 @@ package tests
 import com.huskerdev.gpkt.GPAst
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
-import com.huskerdev.gpkt.utils.SimpleCProgram
+import com.huskerdev.gpkt.utils.CProgramPrinter
 import kotlin.test.Test
 
 
@@ -178,12 +178,14 @@ class ParsingTest {
             }
         """.trimIndent())
 
-        object: SimpleCProgram(ast){
-            init {
-                val buffer = StringBuilder()
-                stringify(buffer, ast)
-                println(buffer)
-            }
+        object: CProgramPrinter(
+            ast,
+                ast.fields.filter {
+                it.value.isExtern
+            }.map { it.value }.toList(),
+            ast.fields.filter {
+                it.value.isLocal
+            }.map { it.value }.toList()){
 
             override fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
             override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
@@ -191,9 +193,8 @@ class ParsingTest {
             override fun stringifyModifiersInGlobal(obj: Any) = ""
             override fun stringifyModifiersInLocal(field: GPField) = ""
             override fun stringifyModifiersInArg(field: GPField) = ""
-
-            override fun dealloc() = Unit
-            override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) = Unit
+        }.apply {
+            println(stringify())
         }
     }
 

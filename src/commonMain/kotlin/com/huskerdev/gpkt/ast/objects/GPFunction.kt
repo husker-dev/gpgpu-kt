@@ -47,6 +47,14 @@ class GPFunction(
         arguments += argument
         argumentsTypes += argument.type
     }
+
+    fun clone(scope: GPScope) =
+        GPFunction(scope, name, obfName, modifiers, returnType).let { new ->
+            arguments.forEach { new.arguments.add(it.clone(scope)) }
+            new.argumentsTypes.addAll(argumentsTypes)
+            new.body = body?.clone(scope)
+            new
+        }
 }
 
 val predefinedMathFunctions = hashMapOf(

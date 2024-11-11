@@ -127,7 +127,7 @@ fun parseExpression(
                     val (arguments, types, _) =
                         readArguments(scope, lexemes, codeBlock, from + 2, to)
 
-                    val function = scope.findDefinedFunction(lexeme.text)
+                    val function = scope.findFunction(lexeme.text)
                         ?: throw functionIsNotDefined(lexeme.text, types, lexeme, codeBlock)
 
                     if(!function.canAcceptArguments(types))
@@ -147,11 +147,11 @@ fun parseExpression(
                         if(functionLexeme.type != Lexeme.Type.NAME)
                             throw expectedException("function name", functionLexeme.text, lexemes[from], codeBlock)
 
-                        val clazz = scope.findDefinedClass((left.type as ClassType).className)!!
+                        val clazz = scope.findClass((left.type as ClassType).className)!!
 
-                        if(clazz.body == null || functionLexeme.text !in clazz.body.scope.functions)
+                        if(clazz.body == null || functionLexeme.text !in clazz.body.scopeObj.functions)
                             throw compilationError("Function '${functionLexeme.text}' is not defined in class '${clazz.name}'", lexemes[from], codeBlock)
-                        val function = clazz.body.scope.functions[functionLexeme.text]!!
+                        val function = clazz.body.scopeObj.functions[functionLexeme.text]!!
 
                         val (arguments, types, _) =
                             readArguments(scope, lexemes, codeBlock, i + 3, to)
@@ -171,7 +171,7 @@ fun parseExpression(
                 if(to - from == 1){
                     val lexeme = lexemes[from]
                     if(lexeme.type == Lexeme.Type.NAME){
-                        val field = scope.findDefinedField(lexeme.text)
+                        val field = scope.findField(lexeme.text)
                             ?: throw fieldIsNotDefined(lexeme.text, lexeme, codeBlock)
                         return FieldExpression(null, field, from, 1)
                     }
@@ -189,7 +189,7 @@ fun parseExpression(
                         if(right.type != Lexeme.Type.NAME)
                             throw expectedException("field name", right.text, lexemes[from], codeBlock)
 
-                        val clazz = scope.findDefinedClass((left.type as ClassType).className)!!
+                        val clazz = scope.findClass((left.type as ClassType).className)!!
 
                         if(right.text !in clazz.variables)
                             throw compilationError("Field '${right.text}' is not defined in class '${clazz.name}'", lexemes[from], codeBlock)
@@ -204,7 +204,7 @@ fun parseExpression(
                     if(classL.type != Lexeme.Type.NAME)
                         throw expectedException("class name", lexemes[from + 1], codeBlock)
 
-                    val classObj = scope.findDefinedClass(classL.text)
+                    val classObj = scope.findClass(classL.text)
                         ?: throw compilationError("Can not find class '${classL.text}'", lexemes[from + 1], codeBlock)
 
                     if(lexemes[from + 2].text != "(")
@@ -233,18 +233,18 @@ fun parseExpression(
 }
 
 fun getPrimitiveClassSetter(clazz: GPClass) = when{
-    "Float" in clazz.implements -> clazz.body!!.scope.functions["setFloat"]!!
-    "Int" in clazz.implements -> clazz.body!!.scope.functions["setInt"]!!
-    "Byte" in clazz.implements -> clazz.body!!.scope.functions["setByte"]!!
-    "Boolean" in clazz.implements -> clazz.body!!.scope.functions["setBoolean"]!!
+    "Float" in clazz.implements -> clazz.body!!.scopeObj.functions["setFloat"]!!
+    "Int" in clazz.implements -> clazz.body!!.scopeObj.functions["setInt"]!!
+    "Byte" in clazz.implements -> clazz.body!!.scopeObj.functions["setByte"]!!
+    "Boolean" in clazz.implements -> clazz.body!!.scopeObj.functions["setBoolean"]!!
     else -> throw UnsupportedOperationException()
 }
 
 fun getPrimitiveClassGetter(clazz: GPClass) = when{
-    "Float" in clazz.implements -> clazz.body!!.scope.functions["getFloat"]!!
-    "Int" in clazz.implements -> clazz.body!!.scope.functions["getInt"]!!
-    "Byte" in clazz.implements -> clazz.body!!.scope.functions["getByte"]!!
-    "Boolean" in clazz.implements -> clazz.body!!.scope.functions["getBoolean"]!!
+    "Float" in clazz.implements -> clazz.body!!.scopeObj.functions["getFloat"]!!
+    "Int" in clazz.implements -> clazz.body!!.scopeObj.functions["getInt"]!!
+    "Byte" in clazz.implements -> clazz.body!!.scopeObj.functions["getByte"]!!
+    "Boolean" in clazz.implements -> clazz.body!!.scopeObj.functions["getBoolean"]!!
     else -> throw UnsupportedOperationException()
 }
 
@@ -261,12 +261,12 @@ private fun unpackedAxB(
     length: Int
 ): Expression {
     val unpackedRight = if(left.type != right.type && right.type is ClassType){
-        val clazz = scope.findDefinedClass((right.type as ClassType).className)!!
+        val clazz = scope.findClass((right.type as ClassType).className)!!
         FunctionCallExpression(right, getPrimitiveClassGetter(clazz), emptyList())
     } else right
 
     val unpackedLeft = if(left.type != right.type && left.type is ClassType) {
-        val clazz = scope.findDefinedClass((left.type as ClassType).className)!!
+        val clazz = scope.findClass((left.type as ClassType).className)!!
         when (operator) {
             // Assignment
             Operator.ASSIGN ->
@@ -303,7 +303,7 @@ private fun unpackedAx(
     length: Int
 ): Expression {
     val unpackedLeft = if(left.type is ClassType) {
-        val clazz = scope.findDefinedClass((left.type as ClassType).className)!!
+        val clazz = scope.findClass((left.type as ClassType).className)!!
         when (operator) {
             // Operator and assignment
             Operator.INCREASE, Operator.DECREASE -> {
@@ -333,7 +333,7 @@ private fun unpackedXB(
     length: Int
 ): Expression {
     val unpackedRight = if(right.type is ClassType) {
-        val clazz = scope.findDefinedClass((right.type as ClassType).className)!!
+        val clazz = scope.findClass((right.type as ClassType).className)!!
         FunctionCallExpression(right, getPrimitiveClassGetter(clazz), emptyList())
     } else right
     return XBExpression(operator, type, unpackedRight, from, length)
@@ -350,7 +350,7 @@ private fun unpackedArrayAccess(
     length: Int
 ): Expression {
     val unpackedIndex = if(index.type is ClassType) {
-        val clazz = scope.findDefinedClass((index.type as ClassType).className)!!
+        val clazz = scope.findClass((index.type as ClassType).className)!!
         FunctionCallExpression(index, getPrimitiveClassGetter(clazz), emptyList())
     } else index
     return ArrayAccessExpression(array, unpackedIndex, from, length)
@@ -367,7 +367,7 @@ private fun unpackedCast(
     length: Int
 ): Expression {
     val unpackedExpr = if(expr.type is ClassType) {
-        val clazz = scope.findDefinedClass((expr.type as ClassType).className)!!
+        val clazz = scope.findClass((expr.type as ClassType).className)!!
         FunctionCallExpression(expr, getPrimitiveClassGetter(clazz), emptyList())
     } else expr
     return CastExpression(type, unpackedExpr, from, length)
@@ -386,7 +386,7 @@ private fun unpackedFunctionCall(
 ): Expression {
     val unpackedArguments = arguments.mapIndexed { i, expr ->
         if(expr.type is ClassType && function.argumentsTypes[i] != expr.type){
-            val clazz = scope.findDefinedClass((expr.type as ClassType).className)!!
+            val clazz = scope.findClass((expr.type as ClassType).className)!!
             FunctionCallExpression(expr, getPrimitiveClassGetter(clazz), emptyList())
         }else expr
     }

@@ -1,24 +1,21 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.ast.ScopeStatement
-import com.huskerdev.gpkt.utils.Dictionary
 
 
-class GPModules(
-    private val contextDevice: GPContext
-) {
-    val dictionary = Dictionary()
-    val ast = hashMapOf<String, ScopeStatement>()
+class GPModules {
+    val ast = hashMapOf<String, () -> String>()
 
-    fun add(name: String, code: String){
-        ast[name] = GPAst.parse(code, contextDevice, false)
+    fun add(name: String, block: () -> String){
+        ast[name] = block
     }
 
-    operator fun set(name: String, code: String) =
-        add(name, code)
+    operator fun set(name: String, block: () -> String) =
+        add(name, block)
 
     operator fun get(name: String) =
         ast[name]
 
+    operator fun contains(name: String) =
+        ast.contains(name)
 }
 

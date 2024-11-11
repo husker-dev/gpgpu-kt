@@ -4,12 +4,13 @@ import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.CProgramPrinter
 
 class WebGPUProgram(
     private val context: WebGPUAsyncContext,
-    ast: ScopeStatement
+    ast: GPScope
 ): GPProgram(ast) {
     private val webgpu = context.webgpu
 
@@ -44,7 +45,7 @@ class WebGPUProgram(
 }
 
 class WasmProgramPrinter(
-    ast: ScopeStatement,
+    ast: GPScope,
     buffers: List<GPField>,
     locals: List<GPField>
 ): CProgramPrinter(ast, buffers, locals){

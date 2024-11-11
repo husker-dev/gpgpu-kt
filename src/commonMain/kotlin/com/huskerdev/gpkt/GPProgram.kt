@@ -1,14 +1,14 @@
 package com.huskerdev.gpkt
 
-import com.huskerdev.gpkt.ast.*
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.*
 
-abstract class GPProgram(ast: ScopeStatement) {
-    protected val buffers = ast.scope.fields.filter {
+abstract class GPProgram(ast: GPScope) {
+    protected val buffers = ast.fields.filter {
         it.value.isExtern
     }.map { it.value }.toList()
 
-    protected val locals = ast.scope.fields.filter {
+    protected val locals = ast.fields.filter {
         it.value.isLocal
     }.map { it.value }.toList()
 

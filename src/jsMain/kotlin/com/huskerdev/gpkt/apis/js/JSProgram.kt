@@ -7,10 +7,11 @@ import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
+import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.FLOAT
 import com.huskerdev.gpkt.utils.CProgramPrinter
 
-class JSProgram(ast: ScopeStatement): GPProgram(ast) {
+class JSProgram(ast: GPScope): GPProgram(ast) {
 
     private var source = JSProgramPrinter(ast, buffers, locals).stringify()
 
@@ -35,7 +36,7 @@ class JSProgram(ast: ScopeStatement): GPProgram(ast) {
 }
 
 class JSProgramPrinter(
-    ast: ScopeStatement,
+    ast: GPScope,
     buffers: List<GPField>,
     locals: List<GPField>
 ): CProgramPrinter(ast, buffers, locals,
