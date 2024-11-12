@@ -12,7 +12,7 @@ open class SMA_OPT_INTERPRETER {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.Interpreter).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.Interpreter)!!.defaultDevice)
     }
 
     //@Benchmark

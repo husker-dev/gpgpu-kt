@@ -12,7 +12,7 @@ open class SMA_OPT_JAVAC {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.Javac).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice)
     }
 
     @Benchmark

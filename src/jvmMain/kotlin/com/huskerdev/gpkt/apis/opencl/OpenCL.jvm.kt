@@ -79,6 +79,7 @@ internal actual fun clReleaseContext(context: CLContext) {
     clReleaseContext(context.ptr)
 }
 
+@Suppress("DEPRECATION")
 actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
     CLCommandQueue(clCreateCommandQueue(
         context.ptr, device.ptr, 0, null

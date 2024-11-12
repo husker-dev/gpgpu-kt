@@ -15,7 +15,7 @@ open class SMA_CPU {
         result = FloatArray(size * (maxPeriod - minPeriod))
     }
 
-    @Benchmark
+    //@Benchmark
     open fun exec(): FloatArray {
         for(i in 0 until size){
             for(period in minPeriod until maxPeriod)

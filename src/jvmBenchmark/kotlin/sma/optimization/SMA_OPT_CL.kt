@@ -12,7 +12,7 @@ open class SMA_OPT_CL {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.OpenCL).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.OpenCL)!!.defaultDevice)
     }
 
     @Benchmark

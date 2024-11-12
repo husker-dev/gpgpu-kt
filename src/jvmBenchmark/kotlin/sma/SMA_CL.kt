@@ -12,10 +12,10 @@ open class SMA_CL {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.OpenCL).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.OpenCL)!!.defaultDevice)
     }
 
-    @Benchmark
+    //@Benchmark
     open fun exec() =
         gp.execute()
 

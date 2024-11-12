@@ -7,10 +7,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform") version "2.0.20"
+    id("org.jetbrains.kotlin.multiplatform") version "2.0.21"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
 
-    id("com.android.library") version "8.6.1"
+    id("com.android.library") version "8.5.2"
 
     id("maven-publish")
 }

@@ -42,7 +42,7 @@ class GP(
         }
         
         void main(int i){
-            int deltaPeriod = (maxPeriod - minPeriod) / stepPeriod;
+            int deltaPeriod = maxPeriod - minPeriod;
             int deltaShift = maxShift - minShift;
             
             int currentIndex = i % candles;

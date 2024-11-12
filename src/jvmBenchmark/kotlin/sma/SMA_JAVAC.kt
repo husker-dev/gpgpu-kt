@@ -12,10 +12,10 @@ open class SMA_JAVAC {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.Javac).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.Javac)!!.defaultDevice)
     }
 
-    @Benchmark
+    //@Benchmark
     open fun exec() =
         gp.execute()
 

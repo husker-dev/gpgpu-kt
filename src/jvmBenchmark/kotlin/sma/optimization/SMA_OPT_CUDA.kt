@@ -12,7 +12,7 @@ open class SMA_OPT_CUDA {
 
     @Setup
     open fun prepare() {
-        gp = GP(GPSyncApi.getByType(GPApiType.CUDA).defaultDevice)
+        gp = GP(GPSyncApi.getByType(GPApiType.CUDA)!!.defaultDevice)
     }
 
     @Benchmark
