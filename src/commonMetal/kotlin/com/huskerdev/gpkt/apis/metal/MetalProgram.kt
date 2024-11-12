@@ -6,8 +6,6 @@ import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.utils.CProgramPrinter
-import com.huskerdev.gpkt.utils.SimpleCProgram
-import com.huskerdev.gpkt.utils.appendCFunctionDefinition
 
 
 class MetalProgram(
@@ -57,14 +55,14 @@ class MetalProgramPrinter(
 ): CProgramPrinter(ast, buffers, locals){
     override fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) {
         buffer.append("kernel ")
-        com.huskerdev.gpkt.utils.appendCFunctionDefinition(
+        appendCFunctionDefinition(
             buffer = buffer,
             type = "void",
             name = "_m",
             args = buffers.map {
-                if (it.type.isArray) "device ${toCType(header, it.type)}*__v${it.name}"
-                else "device ${toCType(header, it.type)}&__v${it.name}"
-            } + listOf("device int&__o", "uint i [[thread_position_in_grid]]")
+                if (it.type.isArray) "device ${toCType(header, it.type)}*__v${it.obfName}"
+                else "device ${toCType(header, it.type)}&__v${it.obfName}"
+            } + listOf("device int&__o", "uint ${function.arguments[0].obfName} [[thread_position_in_grid]]")
         )
     }
     override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
