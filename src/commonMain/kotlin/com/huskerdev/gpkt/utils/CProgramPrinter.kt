@@ -250,7 +250,7 @@ abstract class CProgramPrinter(
 
             // Inputs struct
             if(useLocalStruct) {
-                buffer.append("__in __v={")
+                buffer.append("__in __vv={")
                 buffers.forEachIndexed { index, field ->
                     buffer.append("__v").append(field.obfName)
                     if (index != buffers.lastIndex || locals.isNotEmpty())
@@ -262,6 +262,7 @@ abstract class CProgramPrinter(
                         buffer.append(",")
                 }
                 buffer.append("};")
+                buffer.append("__in*__v=&__vv;")
             }
             stringifyMainFunctionBody(header, buffer, function)
             stringifyScopeStatement(header, buffer, statement.function.body!!, false)
@@ -281,7 +282,7 @@ abstract class CProgramPrinter(
                 args.add(0, "${contextClass!!.obfName} *__s")
 
             if(useLocalStruct)
-                args.add(0, "__in __v")
+                args.add(0, "__in *__v")
 
             val type = function.returnType
             val pureName = if (type is ArrayPrimitiveType<*>)
@@ -485,7 +486,7 @@ abstract class CProgramPrinter(
         expression: FieldExpression
     ){
         if(useLocalStruct && (expression.field.isExtern || expression.field.isLocal))
-            buffer.append("__v.")
+            buffer.append("__v->")
         if(useStructClasses && contextClass != null && contextClass!!.variables[expression.field.name] == expression.field)
             buffer.append("__s->")
 

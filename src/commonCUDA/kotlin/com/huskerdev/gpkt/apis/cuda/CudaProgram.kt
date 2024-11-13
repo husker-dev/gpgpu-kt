@@ -45,7 +45,6 @@ private class CudaProgramPrinter(
     locals: List<GPField>
 ): CProgramPrinter(ast, buffers, locals,
     useExternC = true,
-    useLocalStruct = false,
     useArrayStructCast = false
 ) {
     override fun stringifyMainFunctionDefinition(
@@ -72,9 +71,6 @@ private class CudaProgramPrinter(
     ) {
         buffer.append("const int ${function.arguments[0].obfName}=blockIdx.x*blockDim.x+threadIdx.x+__o;")
         buffer.append("if(${function.arguments[0].obfName}>=__c+__o)return;")
-        buffers.joinTo(buffer, separator = ""){
-            "${it.obfName}=__v${it.obfName};"
-        }
     }
 
     override fun stringifyModifiersInGlobal(obj: Any) =

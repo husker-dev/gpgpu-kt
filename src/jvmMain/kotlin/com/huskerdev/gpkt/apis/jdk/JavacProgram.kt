@@ -90,37 +90,37 @@ private class JavacProgramPrinter(
                 for(int i = fromIndex; i < toIndex; i++)
                     _m(i);
             }
-            private static int _aRead(int[] arr, int i){
-                if(i < 0 || i > arr.length-1) return 0;
-                else return arr[i];
+            private static int _get(int[] arr, int i){
+                if(i < 0 || i >= arr.length) return 0;
+                return arr[i];
             }
-            private static float _aRead(float[] arr, int i){
-                if(i < 0 || i > arr.length-1) return 0f;
-                else return arr[i];
+            private static float _get(float[] arr, int i){
+                if(i < 0 || i >= arr.length) return 0f;
+                return arr[i];
             }
-            private static byte _aRead(byte[] arr, int i){
-                if(i < 0 || i > arr.length-1) return 0;
-                else return arr[i];
+            private static byte _get(byte[] arr, int i){
+                if(i < 0 || i >= arr.length) return 0;
+                return arr[i];
             }
-            private static boolean _aRead(boolean[] arr, int i){
-                if(i < 0 || i > arr.length-1) return false;
-                else return arr[i];
+            private static boolean _get(boolean[] arr, int i){
+                if(i < 0 || i >= arr.length) return false;
+                return arr[i];
             }
-            private static void _aSet(int[] arr, int i, int value){
-                if(i < 0 || i > arr.length-1) return;
-                else arr[i] = value;
+            private static void _set(int[] arr, int i, int value){
+                if(i < 0 || i >= arr.length) return;
+                arr[i] = value;
             }
-            private static void _aSet(float[] arr, int i, float value){
-                if(i < 0 || i > arr.length-1) return;
-                else arr[i] = value;
+            private static void _set(float[] arr, int i, float value){
+                if(i < 0 || i >= arr.length) return;
+                arr[i] = value;
             }
-            private static void _aSet(byte[] arr, int i, byte value){
-                if(i < 0 || i > arr.length-1) return;
-                else arr[i] = value;
+            private static void _set(byte[] arr, int i, byte value){
+                if(i < 0 || i >= arr.length) return;
+                arr[i] = value;
             }
-            private static void _aSet(boolean[] arr, int i, boolean value){
-                if(i < 0 || i > arr.length-1) return;
-                else arr[i] = value;
+            private static void _set(boolean[] arr, int i, boolean value){
+                if(i < 0 || i >= arr.length) return;
+                arr[i] = value;
             }
             ${super.stringify()}
         }
@@ -166,7 +166,7 @@ private class JavacProgramPrinter(
         expression: AxBExpression
     ) {
         if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){
-            buffer.append("_aSet(")
+            buffer.append("_set(")
             stringifyExpression(header, buffer, expression.left.array)
             buffer.append(",")
             stringifyExpression(header, buffer, expression.left.index)
@@ -181,7 +181,7 @@ private class JavacProgramPrinter(
         buffer: StringBuilder,
         expression: ArrayAccessExpression
     ) {
-        buffer.append("_aRead(")
+        buffer.append("_get(")
         stringifyExpression(header, buffer, expression.array)
         buffer.append(",")
         stringifyExpression(header, buffer, expression.index)
