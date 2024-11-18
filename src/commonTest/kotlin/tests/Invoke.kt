@@ -64,8 +64,8 @@ fun testInvocation(type: GPApiType, instances: Int){
         assertTrue(correctResult.contentEquals(result.read()))
     }
 
-    data1.dealloc()
-    data2.dealloc()
-    result.dealloc()
-    program.dealloc()
+    data1.release()
+    data2.release()
+    result.release()
+    program.release()
 }
