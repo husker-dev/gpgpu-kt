@@ -1,5 +1,6 @@
 package com.huskerdev.gpkt.apis.interpreter
 
+import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.apis.interpreter.objects.ExField
 import com.huskerdev.gpkt.apis.interpreter.objects.ExScope
@@ -10,8 +11,16 @@ import com.huskerdev.gpkt.utils.splitThreadInvocation
 
 
 class InterpreterProgram(
+    override val context: GPContext,
     val ast: GPScope
 ): GPProgram(ast) {
+    override var released = false
+
+    override fun release() {
+        if(released) return
+        released = true
+        context.releaseProgram(this)
+    }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         val variables = buffers.associate { field ->
@@ -45,7 +54,5 @@ class InterpreterProgram(
             }
         }
     }
-
-    override fun dealloc() = Unit
 }
 

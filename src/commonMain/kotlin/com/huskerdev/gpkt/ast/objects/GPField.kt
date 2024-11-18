@@ -39,6 +39,10 @@ val predefinedMathFields = hashMapOf(
     fieldPair("PI", FLOAT),
     fieldPair("E", FLOAT),
     fieldPair("NaN", FLOAT),
+    fieldPair("FLOAT_MAX", FLOAT),
+    fieldPair("FLOAT_MIN", FLOAT),
+    fieldPair("INT_MAX", FLOAT),
+    fieldPair("INT_MIN", FLOAT),
 )
 
 val allPredefinedFields = predefinedMathFields

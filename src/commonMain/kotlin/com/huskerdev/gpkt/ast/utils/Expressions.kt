@@ -33,6 +33,9 @@ private fun axbExpr(operator: Operator, left: Expression, right: Expression) = A
 operator fun Expression.div(other: Expression) =
     axbExpr(Operator.DIVIDE, this, other)
 
+infix fun Expression.divAssign(other: Expression) =
+    axbExpr(Operator.DIVIDE_ASSIGN, this, other)
+
 operator fun Expression.times(other: Expression) =
     axbExpr(Operator.MULTIPLY, this, other)
 

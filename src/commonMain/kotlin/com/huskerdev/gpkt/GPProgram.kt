@@ -3,7 +3,11 @@ package com.huskerdev.gpkt
 import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.*
 
-abstract class GPProgram(ast: GPScope) {
+abstract class GPProgram(
+    ast: GPScope
+): GPResource {
+    abstract val context: GPContext
+
     protected val buffers = ast.fields.filter {
         it.value.isExtern
     }.map { it.value }.toList()
@@ -11,8 +15,6 @@ abstract class GPProgram(ast: GPScope) {
     protected val locals = ast.fields.filter {
         it.value.isLocal
     }.map { it.value }.toList()
-
-    abstract fun dealloc()
 
     fun executeRange(
         indexOffset: Int,

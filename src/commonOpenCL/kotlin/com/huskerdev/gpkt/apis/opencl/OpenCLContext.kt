@@ -13,16 +13,36 @@ abstract class OpenCLContext(
     val peer = opencl.createContext(clDevice.platform, clDevice.peer)
     val commandQueue = clCreateCommandQueue(peer, clDevice.peer)
 
-    override var disposed = true
+    override val allocated = arrayListOf<GPResource>()
+
+    override var released = false
     override val modules = GPModules()
 
     override fun compile(ast: GPScope) =
-        OpenCLProgram(this, ast)
+        addResource(OpenCLProgram(this, ast))
 
-    override fun dispose() {
-        if(disposed) return
-        disposed = true
+    override fun release() {
+        if(released) return
+        allocated.toList().forEach(GPResource::release)
+        clReleaseCommandQueue(commandQueue)
         opencl.disposeContext(peer)
+        released = true
+    }
+
+    override fun releaseMemory(memory: MemoryPointer<*>) {
+        allocated -= memory
+        opencl.deallocMemory((memory as OpenCLMemoryPointer<*>).mem)
+    }
+
+    override fun releaseProgram(program: GPProgram) {
+        allocated -= program
+        opencl.deallocProgram((program as OpenCLProgram).program)
+        opencl.deallocKernel(program.kernel)
+    }
+
+    protected fun <T: GPResource> addResource(memory: T): T{
+        allocated += memory
+        return memory
     }
 }
 
@@ -30,43 +50,43 @@ class OpenCLSyncContext(
     clDevice: OpenCLDevice,
 ): OpenCLContext(clDevice), GPSyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CLSyncFloatMemoryPointer(this, array.size, usage, opencl.wrapFloats(peer, array, usage))
+        addResource(CLSyncFloatMemoryPointer(this, array.size, usage, opencl.wrapFloats(peer, array, usage)))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CLSyncFloatMemoryPointer(this, length, usage, opencl.allocate(peer, Float.SIZE_BYTES * length, usage))
+        addResource(CLSyncFloatMemoryPointer(this, length, usage, opencl.allocate(peer, Float.SIZE_BYTES * length, usage)))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CLSyncIntMemoryPointer(this, array.size, usage, opencl.wrapInts(peer, array, usage))
+        addResource(CLSyncIntMemoryPointer(this, array.size, usage, opencl.wrapInts(peer, array, usage)))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CLSyncIntMemoryPointer(this, length, usage, opencl.allocate(peer, Int.SIZE_BYTES * length, usage))
+        addResource(CLSyncIntMemoryPointer(this, length, usage, opencl.allocate(peer, Int.SIZE_BYTES * length, usage)))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CLSyncByteMemoryPointer(this, array.size, usage, opencl.wrapBytes(peer, array, usage))
+        addResource(CLSyncByteMemoryPointer(this, array.size, usage, opencl.wrapBytes(peer, array, usage)))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CLSyncByteMemoryPointer(this, length, usage, opencl.allocate(peer, length, usage))
+        addResource(CLSyncByteMemoryPointer(this, length, usage, opencl.allocate(peer, length, usage)))
 }
 
 class OpenCLAsyncContext(
     clDevice: OpenCLDevice,
 ): OpenCLContext(clDevice), GPAsyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CLAsyncFloatMemoryPointer(this, array.size, usage, opencl.wrapFloats(peer, array, usage))
+        addResource(CLAsyncFloatMemoryPointer(this, array.size, usage, opencl.wrapFloats(peer, array, usage)))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CLAsyncFloatMemoryPointer(this, length, usage, opencl.allocate(peer, Float.SIZE_BYTES * length, usage))
+        addResource(CLAsyncFloatMemoryPointer(this, length, usage, opencl.allocate(peer, Float.SIZE_BYTES * length, usage)))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CLAsyncIntMemoryPointer(this, array.size, usage, opencl.wrapInts(peer, array, usage))
+        addResource(CLAsyncIntMemoryPointer(this, array.size, usage, opencl.wrapInts(peer, array, usage)))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CLAsyncIntMemoryPointer(this, length, usage, opencl.allocate(peer, Int.SIZE_BYTES * length, usage))
+        addResource(CLAsyncIntMemoryPointer(this, length, usage, opencl.allocate(peer, Int.SIZE_BYTES * length, usage)))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CLAsyncByteMemoryPointer(this, array.size, usage, opencl.wrapBytes(peer, array, usage))
+        addResource(CLAsyncByteMemoryPointer(this, array.size, usage, opencl.wrapBytes(peer, array, usage)))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CLAsyncByteMemoryPointer(this, length, usage, opencl.allocate(peer, length, usage))
+        addResource(CLAsyncByteMemoryPointer(this, length, usage, opencl.allocate(peer, length, usage)))
 }
 

@@ -1,5 +1,6 @@
 package com.huskerdev.gpkt.apis.js
 
+import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.predefinedMathFields
@@ -11,8 +12,11 @@ import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.FLOAT
 import com.huskerdev.gpkt.utils.CProgramPrinter
 
-class JSProgram(ast: GPScope): GPProgram(ast) {
-
+class JSProgram(
+    override val context: GPContext,
+    ast: GPScope
+): GPProgram(ast) {
+    override var released = false
     private var source = JSProgramPrinter(ast, buffers, locals).stringify()
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
@@ -30,9 +34,11 @@ class JSProgram(ast: GPScope): GPProgram(ast) {
         js("Function")("\"use strict\";$source").bind(scope)()
     }
 
-    override fun dealloc() = Unit
-
-
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = true
+    }
 }
 
 class JSProgramPrinter(

@@ -5,13 +5,31 @@ import com.huskerdev.gpkt.ast.objects.GPScope
 
 abstract class InterpreterContext: GPContext {
     override val modules = GPModules()
-    override var disposed = false
+    override var released = false
+
+    override val allocated = arrayListOf<GPResource>()
 
     override fun compile(ast: GPScope): GPProgram =
-        InterpreterProgram(ast)
+        addResource(InterpreterProgram(this, ast))
 
-    override fun dispose() {
-        disposed = true
+    override fun release() {
+        if(released) return
+        allocated.toList().forEach(GPResource::release)
+        released = true
+    }
+
+    override fun releaseMemory(memory: MemoryPointer<*>) {
+        allocated -= memory
+        (memory as CPUMemoryPointer).array = null
+    }
+
+    override fun releaseProgram(program: GPProgram) {
+        allocated -= program
+    }
+
+    protected fun <T: GPResource> addResource(memory: T): T{
+        allocated += memory
+        return memory
     }
 }
 
@@ -19,22 +37,22 @@ open class InterpreterSyncContext(
     override val device: GPDevice
 ) : InterpreterContext(), GPSyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CPUSyncFloatMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUSyncFloatMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CPUSyncFloatMemoryPointer(this, FloatArray(length), usage)
+        addResource(CPUSyncFloatMemoryPointer(this, FloatArray(length), usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CPUSyncIntMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUSyncIntMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CPUSyncIntMemoryPointer(this, IntArray(length), usage)
+        addResource(CPUSyncIntMemoryPointer(this, IntArray(length), usage))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CPUSyncByteMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUSyncByteMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CPUSyncByteMemoryPointer(this, ByteArray(length), usage)
+        addResource(CPUSyncByteMemoryPointer(this, ByteArray(length), usage))
 }
 
 
@@ -42,20 +60,20 @@ open class InterpreterAsyncContext(
     override val device: GPDevice
 ) : InterpreterContext(), GPAsyncContext {
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        CPUAsyncFloatMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUAsyncFloatMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        CPUAsyncFloatMemoryPointer(this, FloatArray(length), usage)
+        addResource(CPUAsyncFloatMemoryPointer(this, FloatArray(length), usage))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        CPUAsyncIntMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUAsyncIntMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        CPUAsyncIntMemoryPointer(this, IntArray(length), usage)
+        addResource(CPUAsyncIntMemoryPointer(this, IntArray(length), usage))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage) =
-        CPUAsyncByteMemoryPointer(this, array.copyOf(), usage)
+        addResource(CPUAsyncByteMemoryPointer(this, array.copyOf(), usage))
 
     override fun allocBytes(length: Int, usage: MemoryUsage) =
-        CPUAsyncByteMemoryPointer(this, ByteArray(length), usage)
+        addResource(CPUAsyncByteMemoryPointer(this, ByteArray(length), usage))
 }

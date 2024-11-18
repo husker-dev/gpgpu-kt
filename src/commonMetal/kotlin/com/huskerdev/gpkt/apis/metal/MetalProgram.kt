@@ -9,13 +9,15 @@ import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class MetalProgram(
-    private val context: MetalContext,
+    override val context: MetalContext,
     ast: GPScope
 ): GPProgram(ast) {
-    private val library: MTLLibrary
-    private val function: MTLFunction
-    private val pipeline: MTLComputePipelineState
-    private val commandEncoder: MTLComputeCommandEncoder
+    override var released = false
+
+    val library: MTLLibrary
+    val function: MTLFunction
+    val pipeline: MTLComputePipelineState
+    val commandEncoder: MTLComputeCommandEncoder
 
     init {
         val prog = MetalProgramPrinter(ast, buffers, locals).stringify()
@@ -40,11 +42,10 @@ class MetalProgram(
         mtlExecute(context.commandBuffer, commandEncoder, instances)
     }
 
-    override fun dealloc() {
-        mtlDeallocLibrary(library)
-        mtlDeallocFunction(function)
-        mtlDeallocPipeline(pipeline)
-        mtlDeallocCommandEncoder(commandEncoder)
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = true
     }
 }
 

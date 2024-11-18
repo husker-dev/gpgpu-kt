@@ -3,16 +3,18 @@ package com.huskerdev.gpkt
 import com.huskerdev.gpkt.ast.objects.GPScope
 
 
-interface GPContext{
+interface GPContext: GPResource{
     val device: GPDevice
-    val disposed: Boolean
     val modules: GPModules
+
+    val allocated: List<GPResource>
 
     fun compile(ast: GPScope): GPProgram
     fun compile(code: String) =
         compile(GPAst.parse(code, this))
 
-    fun dispose()
+    fun releaseMemory(memory: MemoryPointer<*>)
+    fun releaseProgram(program: GPProgram)
 }
 
 interface GPSyncContext: GPContext {

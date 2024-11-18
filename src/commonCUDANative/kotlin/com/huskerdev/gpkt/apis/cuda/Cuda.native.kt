@@ -12,9 +12,8 @@ actual class nvrtcProgram(val ptr: nvrtc.nvrtcProgram)
 actual class CUfunction(val ptr: cuda.CUfunction)
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun cuInit(flags: Int) {
-    cuda.cuInit(flags.toUInt())
-}
+internal actual fun cuInit(flags: Int) =
+    cuda.cuInit(flags.toUInt()).toInt()
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun cuDeviceGetCount() = memScoped {
@@ -40,29 +39,26 @@ internal actual fun cuDeviceGetName(device: CUdevice) = memScoped {
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun cuCtxCreate(flags: Int, device: CUdevice) = memScoped {
     val buffer = alloc<cuda.CUcontextVar>()
-    cuda.cuCtxCreate_v2(buffer.ptr, flags.toUInt(), device.ptr)
+    cuda.cuCtxCreate!!(buffer.ptr, flags.toUInt(), device.ptr)
     CUcontext(buffer.value!!)
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun cuCtxSetCurrent(context: CUcontext) {
-    cuda.cuCtxSetCurrent(context.ptr)
-}
+internal actual fun cuCtxSetCurrent(context: CUcontext?) =
+    cuda.cuCtxSetCurrent(context?.ptr).toInt()
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun cuCtxDestroy(context: CUcontext) {
-    cuda.cuCtxDestroy_v2(context.ptr)
-}
+internal actual fun cuCtxDestroy(context: CUcontext) =
+    cuda.cuCtxDestroy!!(context.ptr).toInt()
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun cuMemFree(ptr: CUdeviceptr) {
-    cuda.cuMemFree_v2(ptr.ptr)
-}
+internal actual fun cuMemFree(ptr: CUdeviceptr) =
+    cuda.cuMemFree!!(ptr.ptr).toInt()
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun cuMemAlloc(size: Long) = memScoped {
     val buffer = alloc<cuda.CUdeviceptrVar>()
-    cuda.cuMemAlloc_v2(buffer.ptr, size.toULong())
+    cuda.cuMemAlloc!!(buffer.ptr, size.toULong())
     CUdeviceptr(buffer.value)
 }
 
@@ -72,10 +68,8 @@ internal actual fun cuMemcpyDtoHFloats(
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    dst.usePinned {
-        cuda.cuMemcpyDtoH_v2(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong())
-    }
+) = dst.usePinned {
+    cuda.cuMemcpyDtoH!!(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -84,10 +78,8 @@ internal actual fun cuMemcpyDtoHInts(
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    dst.usePinned {
-        cuda.cuMemcpyDtoH_v2(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong())
-    }
+) = dst.usePinned {
+    cuda.cuMemcpyDtoH!!(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -96,10 +88,8 @@ internal actual fun cuMemcpyDtoHBytes(
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    dst.usePinned {
-        cuda.cuMemcpyDtoH_v2(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong())
-    }
+) = dst.usePinned {
+    cuda.cuMemcpyDtoH!!(it.addressOf(0), src.ptr + srcOffset.toULong(), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -109,10 +99,8 @@ internal actual fun cuMemcpyHtoDFloats(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    src.usePinned {
-        cuda.cuMemcpyHtoD_v2(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong())
-    }
+) = src.usePinned {
+    cuda.cuMemcpyHtoD!!(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -122,10 +110,8 @@ internal actual fun cuMemcpyHtoDInts(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    src.usePinned {
-        cuda.cuMemcpyHtoD_v2(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong())
-    }
+) = src.usePinned {
+    cuda.cuMemcpyHtoD!!(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -135,10 +121,8 @@ internal actual fun cuMemcpyHtoDBytes(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    src.usePinned {
-        cuda.cuMemcpyHtoD_v2(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong())
-    }
+) = src.usePinned {
+    cuda.cuMemcpyHtoD!!(dst.ptr + dstOffset.toULong(), it.addressOf(srcOffset.toInt()), byteCount.toULong()).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -179,8 +163,7 @@ internal actual fun nvrtcGetPTX(program: nvrtcProgram) = memScoped {
 internal actual fun nvrtcDestroyProgram(program: nvrtcProgram) = memScoped {
     val a = alloc<nvrtc.nvrtcProgramVar>()
     a.value = program.ptr
-    nvrtc.nvrtcDestroyProgram(a.ptr)
-    Unit
+    nvrtc.nvrtcDestroyProgram(a.ptr).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -189,6 +172,10 @@ internal actual fun cuModuleLoadData(ptx: String) = memScoped {
     cuda.cuModuleLoadData(buffer.ptr, ptx.cstr)
     CUmodule(buffer.value!!)
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun cuModuleUnload(module: CUmodule) =
+    cuda.cuModuleUnload(module.ptr).toInt()
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun cuModuleGetFunction(module: CUmodule, name: String) = memScoped {
@@ -234,6 +221,19 @@ internal actual fun cuLaunchKernel(
         blockDimX.toUInt(), blockDimY.toUInt(), blockDimZ.toUInt(),
         sharedMemBytes.toUInt(), null,
         args, null
-    )
-    Unit
+    ).toInt()
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun cuGetErrorName(code: Int): String = memScoped {
+    val ptr = this.allocPointerTo<ByteVar>()
+    cuda.cuGetErrorName(code.toUInt(), ptr.ptr)
+    return ptr.value!!.toKString()
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun cuGetErrorString(code: Int): String = memScoped {
+    val ptr = this.allocPointerTo<ByteVar>()
+    cuda.cuGetErrorString(code.toUInt(), ptr.ptr)
+    return ptr.value!!.toKString()
 }

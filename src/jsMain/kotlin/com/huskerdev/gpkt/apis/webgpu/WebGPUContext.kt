@@ -11,13 +11,30 @@ class WebGPUAsyncContext(
 ): GPAsyncContext {
     val webgpu = device.webgpu
 
-    override var disposed = false
+    override val allocated = arrayListOf<GPResource>()
+
+    override var released = false
     override val modules = GPModules()
 
-    override fun dispose() {
-        if(disposed) return
-        disposed = true
+    override fun release() {
+        if(released) return
+        allocated.toList().forEach(GPResource::release)
         webgpu.dispose(devicePeer)
+        released = true
+    }
+
+    override fun releaseMemory(memory: MemoryPointer<*>) {
+        allocated -= memory
+        webgpu.dealloc((memory as WebGPUMemoryPointer).gpuBuffer)
+    }
+
+    override fun releaseProgram(program: GPProgram) {
+        allocated -= program
+    }
+
+    private fun <T: GPResource> addResource(memory: T): T{
+        allocated += memory
+        return memory
     }
 
     fun flush(){
@@ -25,19 +42,19 @@ class WebGPUAsyncContext(
     }
 
     override fun compile(ast: GPScope) =
-        WebGPUProgram(this, ast)
+        addResource(WebGPUProgram(this, ast))
 
     override fun wrapFloats(array: FloatArray, usage: MemoryUsage) =
-        WebGPUFloatMemoryPointer(this, array.size, usage, webgpu.alloc(devicePeer, array.toArrayBuffer()))
+        addResource(WebGPUFloatMemoryPointer(this, array.size, usage, webgpu.alloc(devicePeer, array.toArrayBuffer())))
 
     override fun allocFloats(length: Int, usage: MemoryUsage) =
-        WebGPUFloatMemoryPointer(this, length, usage, webgpu.alloc(devicePeer, length * Float.SIZE_BYTES))
+        addResource(WebGPUFloatMemoryPointer(this, length, usage, webgpu.alloc(devicePeer, length * Float.SIZE_BYTES)))
 
     override fun wrapInts(array: IntArray, usage: MemoryUsage) =
-        WebGPUIntMemoryPointer(this, array.size, usage, webgpu.alloc(devicePeer, array.toArrayBuffer()))
+        addResource(WebGPUIntMemoryPointer(this, array.size, usage, webgpu.alloc(devicePeer, array.toArrayBuffer())))
 
     override fun allocInts(length: Int, usage: MemoryUsage) =
-        WebGPUIntMemoryPointer(this, length, usage, webgpu.alloc(devicePeer, length * Int.SIZE_BYTES))
+        addResource(WebGPUIntMemoryPointer(this, length, usage, webgpu.alloc(devicePeer, length * Int.SIZE_BYTES)))
 
     override fun wrapBytes(array: ByteArray, usage: MemoryUsage): AsyncByteMemoryPointer {
         TODO("Not yet implemented")

@@ -83,6 +83,10 @@ val predefinedMathFunctions = hashMapOf(
     funPair("tan", FLOAT, "a" to FLOAT),
     funPair("tanh", FLOAT, "x" to FLOAT),
     funPair("isNaN", BOOLEAN, "a" to FLOAT),
+
+    funPair("debugf", VOID, "value" to FLOAT),
+    funPair("debugi", VOID, "value" to INT),
+    funPair("debugb", VOID, "value" to BYTE),
 )
 
 val allPredefinedFunctions = predefinedMathFunctions

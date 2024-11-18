@@ -1,12 +1,9 @@
 package com.huskerdev.gpkt
 
-interface MemoryPointer<T> {
+interface MemoryPointer<T>: GPResource {
     val context: GPContext
     val length: Int
     val usage: MemoryUsage
-    val disposed: Boolean
-
-    fun dealloc()
 }
 
 interface SyncMemoryPointer<T>: MemoryPointer<T> {

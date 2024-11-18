@@ -1,5 +1,6 @@
 package com.huskerdev.gpkt.apis.jdk
 
+import com.huskerdev.gpkt.GPContext
 import com.huskerdev.gpkt.GPProgram
 import com.huskerdev.gpkt.apis.interpreter.CPUMemoryPointer
 import com.huskerdev.gpkt.ast.*
@@ -14,11 +15,14 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicLong
 
 
-class JavacProgram(ast: GPScope): GPProgram(ast) {
+class JavacProgram(
+    override val context: GPContext,
+    ast: GPScope
+): GPProgram(ast) {
     companion object {
         val counter = AtomicLong()
     }
-
+    override var released = false
     private val execMethod: Method
 
     init {
@@ -55,7 +59,11 @@ class JavacProgram(ast: GPScope): GPProgram(ast) {
         }
     }
 
-    override fun dealloc() = Unit
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = false
+    }
 
     private fun PrimitiveType.toJavaClass() = when(this) {
         VOID -> Unit::class.java
@@ -86,41 +94,10 @@ private class JavacProgramPrinter(
         import static java.lang.Math.*;
         public class $className{ 
             public static void _execute(int fromIndex, int toIndex, ${buffers.joinToString{ "${convertType(it.type)} __v${it.obfName}" }}){
-                ${buffers.joinToString("") { "${it.obfName}=__v${it.obfName};" }}
+                $className __instance = new $className();
+                ${buffers.joinToString("") { "__instance.${it.obfName}=__v${it.obfName};" }}
                 for(int i = fromIndex; i < toIndex; i++)
-                    _m(i);
-            }
-            private static int _get(int[] arr, int i){
-                if(i < 0 || i >= arr.length) return 0;
-                return arr[i];
-            }
-            private static float _get(float[] arr, int i){
-                if(i < 0 || i >= arr.length) return 0f;
-                return arr[i];
-            }
-            private static byte _get(byte[] arr, int i){
-                if(i < 0 || i >= arr.length) return 0;
-                return arr[i];
-            }
-            private static boolean _get(boolean[] arr, int i){
-                if(i < 0 || i >= arr.length) return false;
-                return arr[i];
-            }
-            private static void _set(int[] arr, int i, int value){
-                if(i < 0 || i >= arr.length) return;
-                arr[i] = value;
-            }
-            private static void _set(float[] arr, int i, float value){
-                if(i < 0 || i >= arr.length) return;
-                arr[i] = value;
-            }
-            private static void _set(byte[] arr, int i, byte value){
-                if(i < 0 || i >= arr.length) return;
-                arr[i] = value;
-            }
-            private static void _set(boolean[] arr, int i, boolean value){
-                if(i < 0 || i >= arr.length) return;
-                arr[i] = value;
+                    __instance._m(i);
             }
             ${super.stringify()}
         }
@@ -132,7 +109,7 @@ private class JavacProgramPrinter(
         buffer: StringBuilder,
         function: GPFunction
     ) {
-        buffer.append("private static final ")
+        buffer.append("private final ")
         appendCFunctionDefinition(
             buffer = buffer,
             type = function.returnType.toString(),
@@ -151,8 +128,8 @@ private class JavacProgramPrinter(
 
     override fun stringifyModifiersInGlobal(obj: Any) =
         if(obj is GPFunction && obj.scope!!.parentScope != null) "public"
-        else if(obj is GPField && obj.isConstant) "private static final"
-        else "private static"
+        else if(obj is GPField && obj.isConstant) "private final"
+        else "private"
 
     override fun stringifyModifiersInLocal(field: GPField) =
         if(field.isConstant) "final"
@@ -160,42 +137,19 @@ private class JavacProgramPrinter(
 
     override fun stringifyModifiersInArg(field: GPField) = ""
 
-    override fun stringifyAxBExpression(
-        header: MutableMap<String, String>,
-        buffer: StringBuilder,
-        expression: AxBExpression
-    ) {
-        if(expression.operator == Operator.ASSIGN && expression.left is ArrayAccessExpression){
-            buffer.append("_set(")
-            stringifyExpression(header, buffer, expression.left.array)
-            buffer.append(",")
-            stringifyExpression(header, buffer, expression.left.index)
-            buffer.append(",")
-            stringifyExpression(header, buffer, expression.right)
-            buffer.append(")")
-        }else super.stringifyAxBExpression(header, buffer, expression)
-    }
-
-    override fun stringifyArrayAccessExpression(
-        header: MutableMap<String, String>,
-        buffer: StringBuilder,
-        expression: ArrayAccessExpression
-    ) {
-        buffer.append("_get(")
-        stringifyExpression(header, buffer, expression.array)
-        buffer.append(",")
-        stringifyExpression(header, buffer, expression.index)
-        buffer.append(")")
-    }
-
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "E", "PI" -> "(float)${field.name}"
         "NaN" -> "Float.NaN"
+        "FLOAT_MAX" -> "Float.MAX_VALUE"
+        "FLOAT_MIN" -> "Float.MIN_VALUE"
+        "INT_MAX" -> "Integer.MAX_VALUE"
+        "INT_MIN" -> "Integer.MIN_VALUE"
         else -> field.obfName
     }
 
     override fun convertPredefinedFunctionName(functionExpression: FunctionCallExpression) = when(functionExpression.function.name){
         "isNaN" -> "Float.isNaN"
+        "debugf", "debugi", "debugb" -> "System.out.println"
         else -> functionExpression.function.obfName
     }
 

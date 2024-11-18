@@ -9,12 +9,12 @@ class JavacSyncContext(
     device: GPDevice
 ): InterpreterSyncContext(device) {
     override fun compile(ast: GPScope) =
-        JavacProgram(ast)
+        JavacProgram(this, ast)
 }
 
 class JavacAsyncContext(
     device: GPDevice
 ): InterpreterAsyncContext(device) {
     override fun compile(ast: GPScope) =
-        JavacProgram(ast)
+        JavacProgram(this, ast)
 }

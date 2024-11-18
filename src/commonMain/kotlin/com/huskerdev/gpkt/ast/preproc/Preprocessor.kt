@@ -23,6 +23,7 @@ private fun expand(text: String, context: GPContext?, set: HashSet<String>, expa
                 val moduleName = moduleNamePure.trim()
                 if(moduleName in set)
                     return@forEach
+                set += moduleName
                 val moduleGetter = context?.modules?.get(moduleName)
                     ?: throw compilationError("Module '${moduleName}' not found", i, line.lastIndex, text)
 

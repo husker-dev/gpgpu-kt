@@ -9,12 +9,12 @@ class JSSyncContext(
     device: GPDevice
 ): InterpreterSyncContext(device) {
     override fun compile(ast: GPScope) =
-        JSProgram(ast)
+        JSProgram(this, ast)
 }
 
 class JSAsyncContext(
     device: GPDevice
 ): InterpreterAsyncContext(device){
     override fun compile(ast: GPScope) =
-        JSProgram(ast)
+        JSProgram(this, ast)
 }

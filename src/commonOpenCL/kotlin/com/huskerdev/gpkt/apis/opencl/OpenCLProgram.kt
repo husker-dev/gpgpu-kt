@@ -9,12 +9,14 @@ import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class OpenCLProgram(
-    private val context: OpenCLContext,
+    override val context: OpenCLContext,
     ast: GPScope
 ): GPProgram(ast) {
     private val cl = context.opencl
-    private val program: CLProgram
-    private val kernel: CLKernel
+    val program: CLProgram
+    val kernel: CLKernel
+
+    override var released = false
 
     init {
         val prog = OpenCLProgramPrinter(ast, buffers, locals).stringify()
@@ -34,13 +36,15 @@ class OpenCLProgram(
                 else -> throw UnsupportedOperationException()
             }
         }
-        cl.setArgument1i(kernel, buffers.size, indexOffset) // Set index offset variable
+        cl.setArgument1i(kernel, buffers.size, instances) // Set count variable
+        cl.setArgument1i(kernel, buffers.size+1, indexOffset) // Set offset variable
         cl.executeKernel(context.commandQueue, kernel, context.device.peer, instances.toLong())
     }
 
-    override fun dealloc() {
-        cl.deallocProgram(program)
-        cl.deallocKernel(kernel)
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = true
     }
 }
 
@@ -76,7 +80,7 @@ private class OpenCLProgramPrinter(
             args = buffers.map {
                 if (it.type.isArray) "__global ${toCType(header, it.type)}*__v${it.obfName}"
                 else "${toCType(header, it.type)} __v${it.obfName}"
-            } + listOf("int __o")
+            } + listOf("int __c", "int __o")
         )
     }
 
@@ -86,12 +90,17 @@ private class OpenCLProgramPrinter(
         function: GPFunction
     ) {
         buffer.append("int ${function.arguments[0].obfName}=get_global_id(0)+__o;")
+        buffer.append("if(${function.arguments[0].obfName}>=__c+__o)return;")
     }
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "M_PI"
         "E" -> "M_E"
         "NaN" -> "NAN"
+        "FLOAT_MAX" -> "FLT_MAX"
+        "FLOAT_MIN" -> "FLT_MIN"
+        "INT_MAX" -> "INT_MAX"
+        "INT_MIN" -> "INT_MIN"
         else -> field.obfName
     }
 

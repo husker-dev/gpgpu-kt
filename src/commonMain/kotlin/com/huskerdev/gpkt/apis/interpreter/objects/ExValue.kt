@@ -42,7 +42,11 @@ class ExArrayAccessValue(
         when (array) {
             is FloatArray -> array[index] = newValue as Float
             is IntArray -> array[index] = newValue as Int
-            is ByteArray -> array[index] = newValue as Byte
+            is ByteArray -> array[index] = when (newValue) {
+                is Byte -> newValue
+                is Int -> newValue.toByte()
+                else -> throw UnsupportedOperationException()
+            }
             is BooleanArray -> array[index] = newValue as Boolean
             else -> throw UnsupportedOperationException("Can't set element in $array")
         }

@@ -18,16 +18,18 @@ abstract class WebGPUMemoryPointer<T>(
     abstract val webgpu: WebGPU
 
     abstract val gpuBuffer: dynamic
-    override var disposed = false
-        get() = field || context.disposed
+    override var released = false
+        get() = field || context.released
 
-    override fun dealloc() {
-        if(disposed) return
-        disposed = true
-        webgpu.dealloc(gpuBuffer)
+    override fun release() {
+        if(released) return
+        released = true
+        context.releaseMemory(this)
     }
 
     override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+        assertNotReleased()
+
         val buffer = toArrayBuffer(src)
         val writeBuffer = webgpu.allocWrite(context.devicePeer, buffer)
         webgpu.copyBufferToBuffer(context.commandEncoder, writeBuffer, gpuBuffer, srcOffset, dstOffset, gpuBuffer.size as Int)
@@ -36,6 +38,8 @@ abstract class WebGPUMemoryPointer<T>(
     }
 
     override suspend fun read(length: Int, offset: Int): T {
+        assertNotReleased()
+
         val size = gpuBuffer.size as Int
         val readBuffer = webgpu.allocRead(context.devicePeer, size)
         webgpu.copyBufferToBuffer(context.commandEncoder, gpuBuffer, readBuffer, offset, 0, size)

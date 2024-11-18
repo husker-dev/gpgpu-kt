@@ -10,33 +10,41 @@ abstract class OpenCLMemoryPointer<T>: MemoryPointer<T> {
     abstract val commandQueue: CLCommandQueue
 
     abstract val mem: CLMem
-    override var disposed = false
-        get() = field || context.disposed
+    override var released = false
+        get() = field || context.released
 
-    override fun dealloc() {
-        if(disposed) return
-        disposed = true
-        opencl.deallocMemory(mem)
+    override fun release() {
+        if(released) return
+        released = true
+        context.releaseMemory(this)
     }
 
     abstract class Sync<T>(
         private val reader: CLReader<T>,
         private val writer: CLWriter<T>,
     ): OpenCLMemoryPointer<T>(), SyncMemoryPointer<T>{
-        override fun read(length: Int, offset: Int) =
-            reader(commandQueue, mem, length, offset)
-        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(commandQueue, mem, length, offset)
+        }
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(commandQueue, mem, src, length, srcOffset, dstOffset)
+        }
     }
 
     abstract class Async<T>(
         private val reader: CLReader<T>,
         private val writer: CLWriter<T>,
     ): OpenCLMemoryPointer<T>(), AsyncMemoryPointer<T>{
-        override suspend fun read(length: Int, offset: Int) =
-            reader(commandQueue, mem, length, offset)
-        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override suspend fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(commandQueue, mem, length, offset)
+        }
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(commandQueue, mem, src, length, srcOffset, dstOffset)
+        }
     }
 }
 

@@ -18,6 +18,7 @@ import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nGetPlatforms
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReadByteBuffer
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReadFloatBuffer
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReadIntBuffer
+import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReleaseCommandQueue
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReleaseContext
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReleaseKernel
 import com.huskerdev.gpkt.apis.opencl.OpenCLBindings.Companion.nReleaseMem
@@ -39,37 +40,38 @@ class OpenCLBindings {
         @JvmStatic external fun nGetDevices(platform: Long, type: Long): LongArray
         @JvmStatic external fun nGetDeviceInfo(device: Long, param: Int): ByteArray
         @JvmStatic external fun nCreateContext(properties: LongArray, device: Long): Long
-        @JvmStatic external fun nReleaseContext(context: Long)
+        @JvmStatic external fun nReleaseContext(context: Long): Int
         @JvmStatic external fun nCreateCommandQueue(context: Long, device: Long): Long
+        @JvmStatic external fun nReleaseCommandQueue(queue: Long): Int
 
-        @JvmStatic external fun nReleaseMem(buffer: Long)
-        @JvmStatic external fun nReleaseProgram(program: Long)
-        @JvmStatic external fun nReleaseKernel(kernel: Long)
+        @JvmStatic external fun nReleaseMem(buffer: Long): Int
+        @JvmStatic external fun nReleaseProgram(program: Long): Int
+        @JvmStatic external fun nReleaseKernel(kernel: Long): Int
 
         @JvmStatic external fun nCreateBuffer(context: Long, flags: Long, size: Long): Long
         @JvmStatic external fun nCreateFloatBuffer(context: Long, flags: Long, array: FloatArray): Long
         @JvmStatic external fun nCreateIntBuffer(context: Long, flags: Long, array: IntArray): Long
         @JvmStatic external fun nCreateByteBuffer(context: Long, flags: Long, array: ByteArray): Long
 
-        @JvmStatic external fun nReadFloatBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: FloatArray)
-        @JvmStatic external fun nReadIntBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: IntArray)
-        @JvmStatic external fun nReadByteBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: ByteArray)
+        @JvmStatic external fun nReadFloatBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: FloatArray): Int
+        @JvmStatic external fun nReadIntBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: IntArray): Int
+        @JvmStatic external fun nReadByteBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: ByteArray): Int
 
-        @JvmStatic external fun nWriteFloatBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: FloatArray, srcOffset: Long)
-        @JvmStatic external fun nWriteIntBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: IntArray, srcOffset: Long)
-        @JvmStatic external fun nWriteByteBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: ByteArray, srcOffset: Long)
+        @JvmStatic external fun nWriteFloatBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: FloatArray, srcOffset: Long): Int
+        @JvmStatic external fun nWriteIntBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: IntArray, srcOffset: Long): Int
+        @JvmStatic external fun nWriteByteBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, src: ByteArray, srcOffset: Long): Int
 
         @JvmStatic external fun nCreateProgram(context: Long, program: String, error: IntArray): Long
-        @JvmStatic external fun nBuildProgram(program: Long): Int
+        @JvmStatic external fun nBuildProgram(program: Long, options: String): Int
         @JvmStatic external fun nGetBuildInfo(program: Long, device: Long): String
         @JvmStatic external fun nCreateKernel(program: Long, main: String): Long
         @JvmStatic external fun nGetKernelWorkGroupInfo(program: Long, device: Long, param: Int): LongArray
-        @JvmStatic external fun nEnqueueNDRangeKernel(commandQueue: Long, kernel: Long, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray)
+        @JvmStatic external fun nEnqueueNDRangeKernel(commandQueue: Long, kernel: Long, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray): Int
 
-        @JvmStatic external fun nSetKernelArg(kernel: Long, index: Int, mem: Long)
-        @JvmStatic external fun nSetKernelArg1f(kernel: Long, index: Int, value: Float)
-        @JvmStatic external fun nSetKernelArg1i(kernel: Long, index: Int, value: Int)
-        @JvmStatic external fun nSetKernelArg1b(kernel: Long, index: Int, value: Byte)
+        @JvmStatic external fun nSetKernelArg(kernel: Long, index: Int, mem: Long): Int
+        @JvmStatic external fun nSetKernelArg1f(kernel: Long, index: Int, value: Float): Int
+        @JvmStatic external fun nSetKernelArg1i(kernel: Long, index: Int, value: Int): Int
+        @JvmStatic external fun nSetKernelArg1b(kernel: Long, index: Int, value: Byte): Int
 
         init {
             System.loadLibrary("gpgpu-kt")
@@ -115,6 +117,9 @@ internal actual fun clReleaseContext(context: CLContext) =
 
 actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
     CLCommandQueue(nCreateCommandQueue(context.ptr, device.ptr))
+
+actual fun clReleaseCommandQueue(queue: CLCommandQueue) =
+    nReleaseCommandQueue(queue.ptr)
 
 internal actual fun clReleaseMemObject(mem: CLMem) =
     nReleaseMem(mem.ptr)
@@ -197,8 +202,8 @@ internal actual fun clEnqueueWriteBuffer(
 internal actual fun clCreateProgramWithSource(context: CLContext, source: String, error: IntArray) =
     CLProgram(nCreateProgram(context.ptr, source, error))
 
-internal actual fun clBuildProgram(program: CLProgram) =
-    nBuildProgram(program.ptr)
+internal actual fun clBuildProgram(program: CLProgram, options: String) =
+    nBuildProgram(program.ptr, options)
 
 internal actual fun clGetProgramBuildInfo(program: CLProgram, device: CLDeviceId) =
     nGetBuildInfo(program.ptr, device.ptr)
@@ -228,4 +233,3 @@ internal actual fun clSetKernelArg1i(kernel: CLKernel, index: Int, value: Int) =
 
 internal actual fun clSetKernelArg1b(kernel: CLKernel, index: Int, value: Byte) =
     nSetKernelArg1b(kernel.ptr, index, value)
-

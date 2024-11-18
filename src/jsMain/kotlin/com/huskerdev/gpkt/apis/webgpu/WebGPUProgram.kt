@@ -9,7 +9,7 @@ import com.huskerdev.gpkt.ast.types.*
 import com.huskerdev.gpkt.utils.CProgramPrinter
 
 class WebGPUProgram(
-    private val context: WebGPUAsyncContext,
+    override val context: WebGPUAsyncContext,
     ast: GPScope
 ): GPProgram(ast) {
     private val webgpu = context.webgpu
@@ -17,6 +17,8 @@ class WebGPUProgram(
     private val groupLayout: dynamic
     private val shaderModule: dynamic
     private val pipeline: dynamic
+
+    override var released = false
 
     init {
         val prog = WasmProgramPrinter(ast, buffers, locals).stringify()
@@ -39,8 +41,10 @@ class WebGPUProgram(
         context.flush()
     }
 
-    override fun dealloc() {
-
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = true
     }
 }
 

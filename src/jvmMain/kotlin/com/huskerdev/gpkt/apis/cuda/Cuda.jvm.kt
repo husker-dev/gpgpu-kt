@@ -28,9 +28,8 @@ internal actual fun isCUDASupported() = try {
     false
 }
 
-internal actual fun cuInit(flags: Int) {
+internal actual fun cuInit(flags: Int) =
     JCudaDriver.cuInit(0)
-}
 
 internal actual fun cuDeviceGetCount(): Int {
     val buffer = IntArray(1)
@@ -56,17 +55,14 @@ internal actual fun cuCtxCreate(flags: Int, device: CUdevice): CUcontext {
     return CUcontext(context)
 }
 
-internal actual fun cuCtxSetCurrent(context: CUcontext) {
-    cuCtxSetCurrent(context.ptr)
-}
+internal actual fun cuCtxSetCurrent(context: CUcontext?) =
+    cuCtxSetCurrent(context?.ptr)
 
-internal actual fun cuCtxDestroy(context: CUcontext) {
+internal actual fun cuCtxDestroy(context: CUcontext) =
     cuCtxDestroy(context.ptr)
-}
 
-internal actual fun cuMemFree(ptr: CUdeviceptr) {
+internal actual fun cuMemFree(ptr: CUdeviceptr) =
     cuMemFree(ptr.ptr)
-}
 
 internal actual fun cuMemAlloc(size: Long): CUdeviceptr {
     val ptr = jcuda.driver.CUdeviceptr()
@@ -79,27 +75,21 @@ internal actual fun cuMemcpyDtoHFloats(
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
 
 internal actual fun cuMemcpyDtoHInts(
     dst: IntArray,
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
 
 internal actual fun cuMemcpyDtoHBytes(
     dst: ByteArray,
     src: CUdeviceptr,
     byteCount: Long,
     srcOffset: Long
-) {
-    cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyDtoH(Pointer.to(dst), src.ptr.withByteOffset(srcOffset), byteCount)
 
 internal actual fun cuMemcpyHtoDFloats(
     dst: CUdeviceptr,
@@ -107,9 +97,8 @@ internal actual fun cuMemcpyHtoDFloats(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
+
 
 internal actual fun cuMemcpyHtoDInts(
     dst: CUdeviceptr,
@@ -117,9 +106,7 @@ internal actual fun cuMemcpyHtoDInts(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
 
 internal actual fun cuMemcpyHtoDBytes(
     dst: CUdeviceptr,
@@ -127,9 +114,7 @@ internal actual fun cuMemcpyHtoDBytes(
     byteCount: Long,
     srcOffset: Long,
     dstOffset: Long
-) {
-    cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
-}
+) = cuMemcpyHtoD(dst.ptr.withByteOffset(dstOffset), Pointer.to(src).withByteOffset(srcOffset), byteCount)
 
 internal actual fun nvrtcCreateProgram(
     src: String
@@ -143,7 +128,6 @@ internal actual fun nvrtcCompileProgram(
     program: nvrtcProgram
 ) = nvrtcCompileProgram(program.ptr, 0, null)
 
-
 internal actual fun nvrtcGetProgramLog(program: nvrtcProgram): String {
     val logBuffer = arrayOfNulls<String>(1)
     nvrtcGetProgramLog(program.ptr, logBuffer)
@@ -156,15 +140,17 @@ internal actual fun nvrtcGetPTX(program: nvrtcProgram): String {
     return ptx[0]!!
 }
 
-internal actual fun nvrtcDestroyProgram(program: nvrtcProgram) {
+internal actual fun nvrtcDestroyProgram(program: nvrtcProgram) =
     nvrtcDestroyProgram(program.ptr)
-}
 
 internal actual fun cuModuleLoadData(ptx: String): CUmodule {
     val module = jcuda.driver.CUmodule()
     cuModuleLoadData(module, ptx)
     return CUmodule(module)
 }
+
+internal actual fun cuModuleUnload(module: CUmodule) =
+    cuModuleUnload(module.ptr)
 
 internal actual fun cuModuleGetFunction(
     module: CUmodule,
@@ -191,7 +177,7 @@ internal actual fun cuLaunchKernel(
     blockDimZ: Int,
     sharedMemBytes: Int,
     vararg kernelParams: Any
-) {
+): Int {
     val args = kernelParams.map {
         when(it){
             is Float -> Pointer.to(floatArrayOf(it))
@@ -202,11 +188,23 @@ internal actual fun cuLaunchKernel(
             else -> throw UnsupportedOperationException(it.toString())
         }
     }.toTypedArray()
-    cuLaunchKernel(
+    return cuLaunchKernel(
         function.ptr,
         gridDimX, gridDimY, gridDimZ,
         blockDimX, blockDimY, blockDimZ,
         sharedMemBytes, null,
         Pointer.to(*args), null
     )
+}
+
+internal actual fun cuGetErrorName(code: Int): String {
+    val res = Array(1) { "" }
+    cuGetErrorName(code, res)
+    return res[0]
+}
+
+internal actual fun cuGetErrorString(code: Int): String {
+    val res = Array(1) { "" }
+    cuGetErrorString(code, res)
+    return res[0]
 }

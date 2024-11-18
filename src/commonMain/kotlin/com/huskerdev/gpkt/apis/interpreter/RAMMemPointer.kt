@@ -10,15 +10,15 @@ abstract class CPUMemoryPointer<T>(
     val copyInto: MemoryCopier<T>,
     val allocator: MemoryAllocator<T>
 ): MemoryPointer<T>{
-    override var disposed = false
-        get() = field || context.disposed
+    override var released = false
+        get() = field || context.released
 
     abstract var array: T?
 
-    override fun dealloc() {
-        if(disposed) return
-        disposed = true
-        array = null
+    override fun release() {
+        if(released) return
+        released = true
+        context.releaseMemory(this)
     }
 
     protected fun writeImpl(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
@@ -33,11 +33,14 @@ abstract class CPUMemoryPointer<T>(
         copyInto: MemoryCopier<T>,
         allocator: MemoryAllocator<T>
     ): CPUMemoryPointer<T>(length, copyInto, allocator), SyncMemoryPointer<T>{
-        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writeImpl(src, length, srcOffset, dstOffset)
-
-        override fun read(length: Int, offset: Int) =
-            readImpl(length, offset)
+        }
+        override fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return readImpl(length, offset)
+        }
     }
 
     abstract class Async<T>(
@@ -45,11 +48,14 @@ abstract class CPUMemoryPointer<T>(
         copyInto: MemoryCopier<T>,
         allocator: MemoryAllocator<T>
     ): CPUMemoryPointer<T>(length, copyInto, allocator), AsyncMemoryPointer<T>{
-        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writeImpl(src, length, srcOffset, dstOffset)
-
-        override suspend fun read(length: Int, offset: Int) =
-            readImpl(length, offset)
+        }
+        override suspend fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return readImpl(length, offset)
+        }
     }
 }
 

@@ -401,7 +401,7 @@ abstract class CProgramPrinter(
         val function = expression.function
         val isPredefined = function.obfName in predefinedMathFunctions
 
-        if(isPredefined)
+        if(isPredefined && function.returnType != VOID)
             buffer.append("(").append(toCType(header, function.returnType)).append(")")
         if(expression.obj != null) {
             if(useStructClasses) {

@@ -8,35 +8,41 @@ typealias MetalWriter<T> = (buffer: MTLBuffer, src: T, length: Int, srcOffset: I
 
 abstract class MetalMemoryPointer<T>: MemoryPointer<T> {
     abstract val buffer: MTLBuffer
-    override var disposed = false
-        get() = field || context.disposed
+    override var released = false
+        get() = field || context.released
 
-    override fun dealloc() {
-        if(disposed) return
-        disposed = true
-        mtlDeallocBuffer(buffer)
+    override fun release() {
+        if(released) return
+        context.releaseMemory(this)
+        released = true
     }
 
     abstract class Sync<T>(
         val reader: MetalReader<T>,
         val writer: MetalWriter<T>
     ): MetalMemoryPointer<T>(), SyncMemoryPointer<T>{
-        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(buffer, src, length, srcOffset, dstOffset)
-
-        override fun read(length: Int, offset: Int) =
-            reader(buffer, length, offset)
+        }
+        override fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(buffer, length, offset)
+        }
     }
 
     abstract class Async<T>(
         val reader: MetalReader<T>,
         val writer: MetalWriter<T>
     ): MetalMemoryPointer<T>(), AsyncMemoryPointer<T> {
-        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(buffer, src, length, srcOffset, dstOffset)
-
-        override suspend fun read(length: Int, offset: Int) =
-            reader(buffer, length, offset)
+        }
+        override suspend fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(buffer, length, offset)
+        }
     }
 }
 

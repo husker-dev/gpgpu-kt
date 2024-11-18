@@ -9,33 +9,41 @@ abstract class CudaMemoryPointer<T>: MemoryPointer<T> {
     abstract val contextPeer: CUcontext
 
     abstract val ptr: CUdeviceptr
-    override var disposed = false
-        get() = field || context.disposed
+    override var released = false
+        get() = field || context.released
 
-    override fun dealloc() {
-        if(disposed) return
-        disposed = true
-        Cuda.dealloc(contextPeer, ptr)
+    override fun release() {
+        if(released) return
+        released = true
+        context.releaseMemory(this)
     }
 
     abstract class Sync<T>(
         val reader: CUDAReader<T>,
         val writer: CUDAWriter<T>,
     ): CudaMemoryPointer<T>(), SyncMemoryPointer<T>{
-        override fun read(length: Int, offset: Int) =
-            reader(contextPeer, ptr, length, offset)
-        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(contextPeer, ptr, length, offset)
+        }
+        override fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(contextPeer, ptr, src, length, srcOffset, dstOffset)
+        }
     }
 
     abstract class Async<T>(
         val reader: CUDAReader<T>,
         val writer: CUDAWriter<T>,
     ): CudaMemoryPointer<T>(), AsyncMemoryPointer<T>{
-        override suspend fun read(length: Int, offset: Int) =
-            reader(contextPeer, ptr, length, offset)
-        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) =
+        override suspend fun read(length: Int, offset: Int): T {
+            assertNotReleased()
+            return reader(contextPeer, ptr, length, offset)
+        }
+        override suspend fun write(src: T, length: Int, srcOffset: Int, dstOffset: Int) {
+            assertNotReleased()
             writer(contextPeer, ptr, src, length, srcOffset, dstOffset)
+        }
     }
 }
 

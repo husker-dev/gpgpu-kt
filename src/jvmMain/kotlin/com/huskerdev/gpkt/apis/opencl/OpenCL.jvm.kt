@@ -75,9 +75,8 @@ internal actual fun clCreateContext(properties: Array<Any>, device: CLDeviceId):
     ))
 }
 
-internal actual fun clReleaseContext(context: CLContext) {
+internal actual fun clReleaseContext(context: CLContext) =
     clReleaseContext(context.ptr)
-}
 
 @Suppress("DEPRECATION")
 actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
@@ -85,17 +84,18 @@ actual fun clCreateCommandQueue(context: CLContext, device: CLDeviceId) =
         context.ptr, device.ptr, 0, null
     ))
 
-internal actual fun clReleaseMemObject(mem: CLMem) {
+actual fun clReleaseCommandQueue(queue: CLCommandQueue) =
+    clReleaseCommandQueue(queue.ptr)
+
+
+internal actual fun clReleaseMemObject(mem: CLMem) =
     clReleaseMemObject(mem.ptr)
-}
 
-internal actual fun clReleaseProgram(program: CLProgram) {
+internal actual fun clReleaseProgram(program: CLProgram) =
     clReleaseProgram(program.ptr)
-}
 
-internal actual fun clReleaseKernel(kernel: CLKernel) {
+internal actual fun clReleaseKernel(kernel: CLKernel) =
     clReleaseKernel(kernel.ptr)
-}
 
 internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long) =
     CLMem(clCreateBuffer(context.ptr, usage, size, null, null))
@@ -116,13 +116,11 @@ internal actual fun clEnqueueReadBuffer(
     offset: Long,
     size: Long,
     dst: FloatArray
-) {
-    clEnqueueReadBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(dst),
-        0, null, null
-    )
-}
+) = clEnqueueReadBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(dst),
+    0, null, null
+)
 
 internal actual fun clEnqueueReadBuffer(
     commandQueue: CLCommandQueue,
@@ -131,13 +129,12 @@ internal actual fun clEnqueueReadBuffer(
     offset: Long,
     size: Long,
     dst: IntArray
-) {
-    clEnqueueReadBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(dst),
-        0, null, null
-    )
-}
+) = clEnqueueReadBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(dst),
+    0, null, null
+)
+
 
 internal actual fun clEnqueueReadBuffer(
     commandQueue: CLCommandQueue,
@@ -146,13 +143,11 @@ internal actual fun clEnqueueReadBuffer(
     offset: Long,
     size: Long,
     dst: ByteArray
-) {
-    clEnqueueReadBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(dst),
-        0, null, null
-    )
-}
+) = clEnqueueReadBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(dst),
+    0, null, null
+)
 
 internal actual fun clEnqueueWriteBuffer(
     commandQueue: CLCommandQueue,
@@ -162,13 +157,11 @@ internal actual fun clEnqueueWriteBuffer(
     size: Long,
     src: FloatArray,
     srcOffset: Int
-) {
-    clEnqueueWriteBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
-        0, null, null
-    )
-}
+) = clEnqueueWriteBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+    0, null, null
+)
 
 internal actual fun clEnqueueWriteBuffer(
     commandQueue: CLCommandQueue,
@@ -178,13 +171,11 @@ internal actual fun clEnqueueWriteBuffer(
     size: Long,
     src: IntArray,
     srcOffset: Int
-) {
-    clEnqueueWriteBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
-        0, null, null
-    )
-}
+) = clEnqueueWriteBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+    0, null, null
+)
 
 internal actual fun clEnqueueWriteBuffer(
     commandQueue: CLCommandQueue,
@@ -194,19 +185,17 @@ internal actual fun clEnqueueWriteBuffer(
     size: Long,
     src: ByteArray,
     srcOffset: Int
-) {
-    clEnqueueWriteBuffer(
-        commandQueue.ptr, mem.ptr, blockingRead, offset,
-        size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
-        0, null, null
-    )
-}
+) = clEnqueueWriteBuffer(
+    commandQueue.ptr, mem.ptr, blockingRead, offset,
+    size, Pointer.to(src).withByteOffset(srcOffset.toLong()),
+    0, null, null
+)
 
 internal actual fun clCreateProgramWithSource(context: CLContext, source: String, error: IntArray) =
     CLProgram(clCreateProgramWithSource(context.ptr, 1, arrayOf(source), null, error))
 
-internal actual fun clBuildProgram(program: CLProgram) =
-    clBuildProgram(program.ptr, 0, null, null, null, null)
+internal actual fun clBuildProgram(program: CLProgram, options: String) =
+    clBuildProgram(program.ptr, 0, null, options, null, null)
 
 internal actual fun clGetProgramBuildInfo(program: CLProgram, device: CLDeviceId): String {
     val size = LongArray(1)
@@ -234,27 +223,21 @@ internal actual fun clEnqueueNDRangeKernel(
     workDim: Int,
     globalWorkSize: LongArray,
     localWorkSize: LongArray
-) {
-    clEnqueueNDRangeKernel(
+) = clEnqueueNDRangeKernel(
         commandQueue.ptr, kernel.ptr, workDim,
         null,
         globalWorkSize,
         localWorkSize,
-        0, null, null)
-}
+0, null, null)
 
-internal actual fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem) {
+internal actual fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem) =
     clSetKernelArg(kernel.ptr, index, Sizeof.cl_mem.toLong(), Pointer.to(mem.ptr))
-}
 
-internal actual fun clSetKernelArg1f(kernel: CLKernel, index: Int, value: Float) {
+internal actual fun clSetKernelArg1f(kernel: CLKernel, index: Int, value: Float) =
     clSetKernelArg(kernel.ptr, index, Sizeof.cl_float.toLong(), Pointer.to(floatArrayOf(value)))
-}
 
-internal actual fun clSetKernelArg1i(kernel: CLKernel, index: Int, value: Int) {
+internal actual fun clSetKernelArg1i(kernel: CLKernel, index: Int, value: Int) =
     clSetKernelArg(kernel.ptr, index, Sizeof.cl_int.toLong(), Pointer.to(intArrayOf(value)))
-}
 
-internal actual fun clSetKernelArg1b(kernel: CLKernel, index: Int, value: Byte) {
+internal actual fun clSetKernelArg1b(kernel: CLKernel, index: Int, value: Byte) =
     clSetKernelArg(kernel.ptr, index, Sizeof.cl_char.toLong(), Pointer.to(byteArrayOf(value)))
-}

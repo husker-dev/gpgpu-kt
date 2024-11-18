@@ -67,22 +67,27 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
                 // ==============
                 BITWISE_AND_ASSIGN -> when {
                     leftValue is Int && rightValue is Number -> left.set(leftValue and rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> left.set(leftValue.toInt() and rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_OR_ASSIGN -> when {
                     leftValue is Int && rightValue is Number -> left.set(leftValue or rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> left.set(leftValue.toInt() or rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_XOR_ASSIGN -> when {
                     leftValue is Int && rightValue is Number -> left.set(leftValue xor rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> left.set(leftValue.toInt() xor rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_SHIFT_RIGHT_ASSIGN -> when {
                     leftValue is Int && rightValue is Number -> left.set(leftValue shr rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> left.set(leftValue.toInt() shr rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_SHIFT_LEFT_ASSIGN -> when {
                     leftValue is Int && rightValue is Number -> left.set(leftValue shl rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> left.set(leftValue.toInt() shl rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
 
@@ -125,22 +130,27 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
                 // ==============
                 BITWISE_AND -> when {
                     leftValue is Int && rightValue is Int -> ExValue(leftValue and rightValue)
+                    leftValue is Byte && rightValue is Int -> ExValue(leftValue.toInt() and rightValue)
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_OR -> when {
                     leftValue is Int && rightValue is Int -> ExValue(leftValue or rightValue)
+                    leftValue is Byte && rightValue is Int -> ExValue(leftValue.toInt() or rightValue)
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_XOR -> when {
                     leftValue is Int && rightValue is Int -> ExValue(leftValue xor rightValue)
+                    leftValue is Byte && rightValue is Int -> ExValue(leftValue.toInt() xor rightValue)
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_SHIFT_RIGHT -> when {
                     leftValue is Int && rightValue is Number -> ExValue(leftValue shr rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> ExValue(leftValue.toInt() shr rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
                 BITWISE_SHIFT_LEFT -> when {
                     leftValue is Int && rightValue is Number -> ExValue(leftValue shl rightValue.toInt())
+                    leftValue is Byte && rightValue is Number -> ExValue(leftValue.toInt() shl rightValue.toInt())
                     else -> throw BadOperator(operator)
                 }
 
@@ -333,6 +343,10 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
                         "PI" -> PI.toFloat()
                         "E" -> E.toFloat()
                         "NaN" -> Float.NaN
+                        "FLOAT_MAX" -> Float.MAX_VALUE
+                        "FLOAT_MIN" -> Float.MIN_VALUE
+                        "INT_MAX" -> Int.MAX_VALUE
+                        "INT_MIN" -> Int.MIN_VALUE
                         else -> throw UnsupportedOperationException("Unsupported predefined field")
                     }
                 )

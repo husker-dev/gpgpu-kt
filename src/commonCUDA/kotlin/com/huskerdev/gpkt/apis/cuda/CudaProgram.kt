@@ -9,11 +9,12 @@ import com.huskerdev.gpkt.utils.CProgramPrinter
 
 
 class CudaProgram(
-    private val context: CudaContext,
+    override val context: CudaContext,
     ast: GPScope
 ): GPProgram(ast){
-    private val module: CUmodule
+    val module: CUmodule
     private val function: CUfunction
+    override var released = false
 
     init {
         val prog = CudaProgramPrinter(ast, buffers, locals).stringify()
@@ -36,7 +37,11 @@ class CudaProgram(
             instances, indexOffset, *arrays)
     }
 
-    override fun dealloc() = Unit
+    override fun release() {
+        if(released) return
+        context.releaseProgram(this)
+        released = true
+    }
 }
 
 private class CudaProgramPrinter(
@@ -85,6 +90,10 @@ private class CudaProgramPrinter(
         "PI" -> "3.141592653589793"
         "E" -> "2.718281828459045"
         "NaN" -> "__int_as_float(0x7fffffff)"
+        "FLOAT_MAX" -> "3.402823e+38"
+        "FLOAT_MIN" -> "1.175494e-38"
+        "INT_MAX" -> "2147483647"
+        "INT_MIN" -> "−2147483648"
         else -> field.obfName
     }
 
