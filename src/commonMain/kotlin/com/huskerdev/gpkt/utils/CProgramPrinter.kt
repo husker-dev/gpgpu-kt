@@ -455,10 +455,11 @@ abstract class CProgramPrinter(
         expression: ConstExpression
     ){
         buffer.append(expression.lexeme.text)
-        if(expression.type.isFloating && "." !in expression.lexeme.text)
-            buffer.append(".0")
-        if(expression.type == FLOAT)
+        if(expression.type.isFloating){
+            if(!expression.lexeme.text.contains("."))
+                buffer.append(".0")
             buffer.append("f")
+        }
     }
 
     protected open fun stringifyBracketExpression(
