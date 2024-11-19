@@ -3,14 +3,14 @@ package com.huskerdev.gpkt.apis.opencl
 import com.huskerdev.gpkt.MemoryUsage
 import kotlin.math.ceil
 
-private const val CL_DEVICE_TYPE_ALL = 0xFFFFFFFFL
+private const val CL_DEVICE_TYPE_GPU = 1L shl 2
 private const val CL_CONTEXT_PLATFORM = 0x1084L
 private const val CL_DEVICE_NAME = 0x102B
 
-private const val CL_MEM_READ_WRITE = (1L shl 0)
-private const val CL_MEM_WRITE_ONLY = (1L shl 1)
-private const val CL_MEM_READ_ONLY = (1L shl 2)
-private const val CL_MEM_COPY_HOST_PTR = (1L shl 5)
+private const val CL_MEM_READ_WRITE = 1L shl 0
+private const val CL_MEM_WRITE_ONLY = 1L shl 1
+private const val CL_MEM_READ_ONLY = 1L shl 2
+private const val CL_MEM_COPY_HOST_PTR = 1L shl 5
 private const val CL_KERNEL_WORK_GROUP_SIZE = 0x11B0
 
 internal expect fun isCLSupported(): Boolean
@@ -66,7 +66,7 @@ class OpenCL {
     }
 
     fun getDevices() =
-        clGetDeviceIDs(clGetPlatformIDs()[0], CL_DEVICE_TYPE_ALL)
+        clGetDeviceIDs(clGetPlatformIDs()[0], CL_DEVICE_TYPE_GPU)
 
     fun getDeviceName(device: CLDeviceId) = clGetDeviceInfo(device, CL_DEVICE_NAME).run {
         String(this, 0, this.size-1)

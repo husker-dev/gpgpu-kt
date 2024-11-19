@@ -9,11 +9,11 @@ import com.huskerdev.gpkt.ast.objects.GPScope
 import com.huskerdev.gpkt.ast.types.Modifiers
 import com.huskerdev.gpkt.ast.types.PrimitiveType
 
-fun threadLocalField(name: String, type: PrimitiveType, value: Expression? = null) =
-    GPField(name, arrayListOf(Modifiers.THREADLOCAL), type, value)
+fun threadLocalField(name: String, type: PrimitiveType, scope: GPScope, value: Expression? = null) =
+    GPField(name, scope.dictionary.nextWord(name), arrayListOf(Modifiers.THREADLOCAL), type, value)
 
-fun externalField(name: String, type: PrimitiveType, value: Expression? = null) =
-    GPField(name, arrayListOf(Modifiers.EXTERNAL), type, value)
+fun externalField(name: String, type: PrimitiveType, scope: GPScope, value: Expression? = null) =
+    GPField(name, scope.dictionary.nextWord(name), arrayListOf(Modifiers.EXTERNAL), type, value)
 
 fun GPField.toStatement(scope: GPScope) =
     FieldStatement(scope, listOf(this))

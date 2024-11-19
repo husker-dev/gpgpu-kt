@@ -81,7 +81,7 @@ object Cuda {
 
     fun dispose(context: CUcontext) {
         cuCtxSetCurrent(context)
-        cuCtxDestroy(context).checkError()
+        cuCtxDestroy(context)
     }
 
     fun dealloc(context: CUcontext, ptr: CUdeviceptr) {

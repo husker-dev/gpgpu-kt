@@ -18,6 +18,10 @@ abstract class CProgramPrinter(
     private val useFunctionDefs: Boolean = true,
     private val useStructClasses: Boolean = true,
 ) {
+    companion object {
+        var debug = false
+    }
+
     private var contextClass: GPClass? = null
 
     open fun stringify(): String{
@@ -34,7 +38,8 @@ abstract class CProgramPrinter(
             buffer.insert(0, "extern \"C\"{")
             buffer.append("}")
         }
-        //println(buffer)
+        if(debug)
+            println(buffer)
         return buffer.toString()
     }
 
@@ -250,7 +255,7 @@ abstract class CProgramPrinter(
 
             // Inputs struct
             if(useLocalStruct) {
-                buffer.append("__in __vv={")
+                buffer.append("__in _v={")
                 buffers.forEachIndexed { index, field ->
                     buffer.append("__v").append(field.obfName)
                     if (index != buffers.lastIndex || locals.isNotEmpty())
@@ -262,7 +267,7 @@ abstract class CProgramPrinter(
                         buffer.append(",")
                 }
                 buffer.append("};")
-                buffer.append("__in*__v=&__vv;")
+                buffer.append("__in*__v=&_v;")
             }
             stringifyMainFunctionBody(header, buffer, function)
             stringifyScopeStatement(header, buffer, statement.function.body!!, false)
