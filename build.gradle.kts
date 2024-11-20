@@ -173,6 +173,10 @@ tasks.withType(KotlinJsCompile::class.java).configureEach {
 publishing {
     publications {
         withType<MavenPublication> {
+            artifact(tasks.register("${name}JavadocJar", Jar::class) {
+                archiveClassifier = "javadoc"
+                archiveAppendix = this@withType.name
+            })
             pom {
                 name = "gpgpu-kt"
                 description = "Cross-platform general-purpose computing Kotlin Multiplatform library"
