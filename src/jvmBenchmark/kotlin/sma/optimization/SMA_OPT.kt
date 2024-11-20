@@ -95,11 +95,11 @@ class GP(
     }
 
     fun cleanup() {
-                context.dispose()
-        data.dealloc()
-        sma.dealloc()
-        result.dealloc()
-        progSMA.dealloc()
-        progSignals.dealloc()
+        context.release()
+        data.release()
+        sma.release()
+        result.release()
+        progSMA.release()
+        progSignals.release()
     }
 }

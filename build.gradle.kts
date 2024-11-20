@@ -7,12 +7,13 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform") version "2.0.21"
+    kotlin("multiplatform") version "2.0.21"
+    id("com.android.library") version "8.5.2"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
 
-    id("com.android.library") version "8.5.2"
-
     id("maven-publish")
+    id("signing")
+    id("io.codearte.nexus-staging") version "0.30.0"
 }
 
 group = "com.huskerdev"
@@ -157,7 +158,6 @@ android {
     }
 }
 
-
 benchmark {
     targets {
         register("jvmBenchmark")
@@ -169,6 +169,57 @@ tasks.withType(KotlinJsCompile::class.java).configureEach {
         target = "es2015"
     }
 }
+
+publishing {
+    publications {
+        withType<MavenPublication> {
+            pom {
+                name = "gpgpu-kt"
+                description = "Cross-platform general-purpose computing Kotlin Multiplatform library"
+                url = "https://github.com/husker-dev/gpgpu-kt"
+
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "husker-dev"
+                        name = "Nikita Shtengauer"
+                        email = "redfancoestar@gmail.com"
+                    }
+                }
+                scm {
+                    connection = "https://github.com/husker-dev/gpgpu-kt.git"
+                    developerConnection = "https://github.com/husker-dev/gpgpu-kt.git"
+                    url = "https://github.com/husker-dev/gpgpu-kt"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = project.uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.properties["ossrhUsername"].toString()
+                password = project.properties["ossrhPassword"].toString()
+            }
+        }
+    }
+}
+project.signing {
+    if(project.hasProperty("ossrhUsername"))
+        sign(publishing.publications)
+}
+nexusStaging {
+    packageGroup = group.toString()
+    serverUrl = "https://s01.oss.sonatype.org/service/local/"
+    username = project.properties["ossrhUsername"].toString()
+    password = project.properties["ossrhPassword"].toString()
+}
+
 
 fun KotlinNativeTarget.linkCUDA(){
     if(DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX)
@@ -189,7 +240,6 @@ fun KotlinNativeTarget.linkCUDA(){
                     "-staticLibrary", "cuda.$staticLibExt"
                 )
             }
-
             val nvrtc by creating {
                 includeDirs("$dir/include")
                 extraOpts(

@@ -4,7 +4,6 @@ import com.huskerdev.gpkt.GPApiType
 import com.huskerdev.gpkt.GPSyncApi
 import com.huskerdev.gpkt.ast.GPCompilationException
 import kotlin.random.Random
-import kotlin.system.exitProcess
 
 
 // 1 2 3 4 5 6 7 8
@@ -54,8 +53,8 @@ fun print(type: GPApiType): ByteArray {
         }
     """.trimIndent()}
 
-    val program = try {
-        context.compile("""
+   try {
+       val program = context.compile("""
             // gpkt
             import sma;
             
@@ -72,24 +71,25 @@ fun print(type: GPApiType): ByteArray {
                 result[i] = zeroCrossSignals(data, i);
             }
         """.trimIndent())
+
+
+        val arr1 = context.wrapFloats(exampleArray())
+        val result = context.allocBytes(arr1.length)
+        program.execute(
+            instances = result.length,
+            "data" to arr1,
+            "result" to result
+        )
+
+        val r = result.read()
+        println("${r.toList().take(20)}...")
+        println("...${r.toList().takeLast(20)}")
+        return r
+
     }catch (e: GPCompilationException){
         e.printStackTrace()
-        System.err.println(e.message)
-        exitProcess(0)
+        return byteArrayOf()
     }
-
-    val arr1 = context.wrapFloats(exampleArray())
-    val result = context.allocBytes(arr1.length)
-    program.execute(
-        instances = result.length,
-        "data" to arr1,
-        "result" to result
-    )
-
-    val r = result.read()
-    println("${r.toList().take(20)}...")
-    println("...${r.toList().takeLast(20)}")
-    return r
 }
 
 fun main() {

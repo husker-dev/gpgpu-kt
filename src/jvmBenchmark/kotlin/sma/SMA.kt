@@ -50,9 +50,9 @@ class GP(
     }
 
     fun cleanup() {
-        context.dispose()
-        data.dealloc()
-        result.dealloc()
-        program.dealloc()
+        context.release()
+        data.release()
+        result.release()
+        program.release()
     }
 }
