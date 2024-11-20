@@ -231,24 +231,30 @@ fun KotlinNativeTarget.linkCUDA(){
 
     compilations.getByName("main"){
         cinterops {
-            val dir = System.getenv()["CUDA_PATH"]
-            val staticLibExt = when{
-                DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "lib"
-                else -> "a"
+            val dir = System.getenv()["CUDA_PATH"] ?: "/usr/local/cuda"
+            val libFolder = when{
+                DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "lib/x64"
+                else -> "lib64"
             }
 
             val cuda by creating {
                 includeDirs("$dir/include")
                 extraOpts(
-                    "-libraryPath", "${dir}/lib/x64",
-                    "-staticLibrary", "cuda.$staticLibExt"
+                    "-libraryPath", "$dir/$libFolder",
+                    "-staticLibrary", when{
+                        DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "cuda.lib"
+                        else -> "stubs/libcuda.so"
+                    }
                 )
             }
             val nvrtc by creating {
                 includeDirs("$dir/include")
                 extraOpts(
-                    "-libraryPath", "${dir}/lib/x64",
-                    "-staticLibrary", "nvrtc.$staticLibExt"
+                    "-libraryPath", "$dir/$libFolder",
+                    "-staticLibrary", when{
+                        DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "nvrtc.lib"
+                        else -> "libnvrtc.so"
+                    }
                 )
             }
         }
