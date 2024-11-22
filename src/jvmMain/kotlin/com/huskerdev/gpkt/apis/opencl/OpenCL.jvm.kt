@@ -20,7 +20,7 @@ actual fun isCLSupported(): Boolean = try{
     val numDevices = numDevicesArray[0]
 
     numDevices > 0
-}catch (e: Exception){
+}catch (_: Throwable){
     false
 }
 
