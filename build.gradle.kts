@@ -106,7 +106,7 @@ kotlin {
         val commonMetal by creating {
             dependsOn(commonMain.get())
 
-            //jvmMain.get().dependsOn(this)
+            jvmMain.get().dependsOn(this)
         }
 
         val commonMetalNative by creating {
@@ -131,6 +131,10 @@ kotlin {
                 }
                 api("org.jcuda:jcuda-natives:12.0.0:windows-x86_64")
                 api("org.jcuda:jcuda-natives:12.0.0:linux-x86_64")
+
+                // Metal
+                api("ca.weblite:java-objc-bridge:1.2")
+                api("net.java.dev.jna:jna:5.15.0")
             }
         }
 
