@@ -11,7 +11,7 @@ private const val CL_MEM_READ_WRITE = 1L shl 0
 private const val CL_MEM_WRITE_ONLY = 1L shl 1
 private const val CL_MEM_READ_ONLY = 1L shl 2
 private const val CL_MEM_COPY_HOST_PTR = 1L shl 5
-private const val CL_KERNEL_WORK_GROUP_SIZE = 0x11B0
+internal const val CL_KERNEL_WORK_GROUP_SIZE = 0x11B0
 
 internal expect fun isCLSupported(): Boolean
 
@@ -53,7 +53,7 @@ internal expect fun clBuildProgram(program: CLProgram, options: String): Int
 internal expect fun clGetProgramBuildInfo(program: CLProgram, device: CLDeviceId): String
 internal expect fun clCreateKernel(program: CLProgram, main: String): CLKernel
 internal expect fun clGetKernelWorkGroupInfo(kernel: CLKernel, device: CLDeviceId, param: Int): LongArray
-internal expect fun clEnqueueNDRangeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray): Int
+internal expect fun clEnqueueNDRangeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray?): Int
 
 internal expect fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem): Int
 internal expect fun clSetKernelArg1f(kernel: CLKernel, index: Int, value: Float): Int
@@ -170,22 +170,20 @@ class OpenCL {
     fun createKernel(program: CLProgram, main: String): CLKernel =
         clCreateKernel(program, main)
 
-    fun executeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, device: CLDeviceId, workGroupSize: Long) {
-        val maxGroupSize = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE)[0]
-
+    fun executeKernel(commandQueue: CLCommandQueue, kernel: CLKernel, maxGroupSize: Long, instances: Long) {
         val count: Long
         val groups: Long
-        if(workGroupSize < maxGroupSize){
-            count = workGroupSize
+        if(instances < maxGroupSize){
+            count = instances
             groups = 1
         }else {
-            count = ceil(workGroupSize.toDouble() / maxGroupSize).toLong() * maxGroupSize
+            count = ceil(instances.toDouble() / maxGroupSize).toLong() * maxGroupSize
             groups = maxGroupSize
         }
 
         clEnqueueNDRangeKernel(commandQueue, kernel, 1,
             longArrayOf(count),
-            longArrayOf(groups)
+            null
         ).checkError()
     }
 

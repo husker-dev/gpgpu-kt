@@ -222,7 +222,7 @@ internal actual fun clEnqueueNDRangeKernel(
     kernel: CLKernel,
     workDim: Int,
     globalWorkSize: LongArray,
-    localWorkSize: LongArray
+    localWorkSize: LongArray?
 ) = clEnqueueNDRangeKernel(
         commandQueue.ptr, kernel.ptr, workDim,
         null,

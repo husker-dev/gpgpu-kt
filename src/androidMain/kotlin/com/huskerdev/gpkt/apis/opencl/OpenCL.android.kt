@@ -66,7 +66,7 @@ class OpenCLBindings {
         @JvmStatic external fun nGetBuildInfo(program: Long, device: Long): String
         @JvmStatic external fun nCreateKernel(program: Long, main: String): Long
         @JvmStatic external fun nGetKernelWorkGroupInfo(program: Long, device: Long, param: Int): LongArray
-        @JvmStatic external fun nEnqueueNDRangeKernel(commandQueue: Long, kernel: Long, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray): Int
+        @JvmStatic external fun nEnqueueNDRangeKernel(commandQueue: Long, kernel: Long, workDim: Int, globalWorkSize: LongArray, localWorkSize: LongArray?): Int
 
         @JvmStatic external fun nSetKernelArg(kernel: Long, index: Int, mem: Long): Int
         @JvmStatic external fun nSetKernelArg1f(kernel: Long, index: Int, value: Float): Int
@@ -219,7 +219,7 @@ internal actual fun clEnqueueNDRangeKernel(
     kernel: CLKernel,
     workDim: Int,
     globalWorkSize: LongArray,
-    localWorkSize: LongArray
+    localWorkSize: LongArray?
 ) = nEnqueueNDRangeKernel(commandQueue.ptr, kernel.ptr, workDim, globalWorkSize, localWorkSize)
 
 internal actual fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem) =

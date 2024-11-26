@@ -237,7 +237,9 @@ extern "C" JNIEXPORT jlongArray JNICALL Java_com_huskerdev_gpkt_apis_opencl_Open
 extern "C" JNIEXPORT int JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nEnqueueNDRangeKernel(JNIEnv* env, jclass, jlong commandQueue, jlong kernel, jint workDim, jlongArray _globalWorkSize, jlongArray _localWorkSize) {
     jboolean isCopy = false;
     auto globalWorkSize = (const size_t*) env->GetPrimitiveArrayCritical(_globalWorkSize, &isCopy);
-    auto localWorkSize = (const size_t*) env->GetPrimitiveArrayCritical(_localWorkSize, &isCopy);
+    const size_t* localWorkSize = 0;
+    if(_localWorkSize != 0)
+        localWorkSize = (const size_t*) env->GetPrimitiveArrayCritical(_localWorkSize, &isCopy);
 
     int err = clEnqueueNDRangeKernel(
         (cl_command_queue)commandQueue, (cl_kernel)kernel, workDim,
@@ -245,7 +247,8 @@ extern "C" JNIEXPORT int JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindi
         0, nullptr, nullptr
     );
     env->ReleasePrimitiveArrayCritical(_globalWorkSize, (void*)globalWorkSize, JNI_ABORT);
-    env->ReleasePrimitiveArrayCritical(_localWorkSize, (void*)localWorkSize, JNI_ABORT);
+    if(_localWorkSize != 0)
+        env->ReleasePrimitiveArrayCritical(_localWorkSize, (void*)localWorkSize, JNI_ABORT);
     return err;
 }
 

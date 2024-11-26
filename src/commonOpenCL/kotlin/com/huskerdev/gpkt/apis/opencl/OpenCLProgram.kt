@@ -15,6 +15,7 @@ class OpenCLProgram(
     private val cl = context.opencl
     val program: CLProgram
     val kernel: CLKernel
+    val maxGroupSize: Long
 
     override var released = false
 
@@ -23,6 +24,7 @@ class OpenCLProgram(
 
         program = cl.compileProgram(context.device.peer, context.peer, prog)
         kernel = cl.createKernel(program, "__m")
+        maxGroupSize = clGetKernelWorkGroupInfo(kernel, context.device.peer, CL_KERNEL_WORK_GROUP_SIZE)[0]
     }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
@@ -38,7 +40,7 @@ class OpenCLProgram(
         }
         cl.setArgument1i(kernel, buffers.size, instances) // Set count variable
         cl.setArgument1i(kernel, buffers.size+1, indexOffset) // Set offset variable
-        cl.executeKernel(context.commandQueue, kernel, context.device.peer, instances.toLong())
+        cl.executeKernel(context.commandQueue, kernel, maxGroupSize, instances.toLong())
     }
 
     override fun release() {
@@ -78,7 +80,7 @@ private class OpenCLProgramPrinter(
             type = function.returnType.toString(),
             name = "__m",
             args = buffers.map {
-                if (it.type.isArray) "__global ${toCType(header, it.type)}*__v${it.obfName}"
+                if (it.type.isArray) "__global ${toCType(header, it.type)}* restrict __v${it.obfName}"
                 else "${toCType(header, it.type)} __v${it.obfName}"
             } + listOf("int __c", "int __o")
         )
@@ -92,6 +94,10 @@ private class OpenCLProgramPrinter(
         buffer.append("int ${function.arguments[0].obfName}=get_global_id(0)+__o;")
         buffer.append("if(${function.arguments[0].obfName}>=__c+__o)return;")
     }
+
+    override fun convertArrayName(name: String, size: Int) =
+        if(size == -1) "* restrict $name"
+        else super.convertArrayName(name, size)
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "M_PI"

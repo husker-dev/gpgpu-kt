@@ -63,7 +63,7 @@ private class CudaProgramPrinter(
             type = function.returnType.toString(),
             name = "__m",
             args = listOf("int __c", "int __o") + buffers.map {
-                if (it.type.isArray) "${toCType(header, it.type)}*__v${it.obfName}"
+                if (it.type.isArray) "${toCType(header, it.type)}* __restrict__ __v${it.obfName}"
                 else "${toCType(header, it.type)} __v${it.obfName}"
             }
         )
@@ -85,6 +85,10 @@ private class CudaProgramPrinter(
     override fun stringifyModifiersInStruct(field: GPField) = ""
     override fun stringifyModifiersInLocal(field: GPField) = ""
     override fun stringifyModifiersInArg(field: GPField) = ""
+
+    override fun convertArrayName(name: String, size: Int) =
+        if(size == -1) "* __restrict__ $name"
+        else super.convertArrayName(name, size)
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "3.141592653589793"
