@@ -49,6 +49,7 @@ abstract class CProgramPrinter(
     abstract fun stringifyModifiersInGlobal(obj: Any): String
     abstract fun stringifyModifiersInLocal(field: GPField): String
     abstract fun stringifyModifiersInArg(field: GPField): String
+    abstract fun stringifyModifiersInLocalsStruct(): String
 
     protected open fun stringifyStatement(
         header: MutableMap<String, String>,
@@ -267,7 +268,7 @@ abstract class CProgramPrinter(
                         buffer.append(",")
                 }
                 buffer.append("};")
-                buffer.append("__in*__v=&_v;")
+                buffer.append("${stringifyModifiersInLocalsStruct()} __in*__v=&_v;")
             }
             stringifyMainFunctionBody(header, buffer, function)
             stringifyScopeStatement(header, buffer, statement.function.body!!, false)
@@ -287,7 +288,7 @@ abstract class CProgramPrinter(
                 args.add(0, "${contextClass!!.obfName} *__s")
 
             if(useLocalStruct)
-                args.add(0, "__in *__v")
+                args.add(0, "${stringifyModifiersInLocalsStruct()} __in *__v")
 
             val type = function.returnType
             val pureName = if (type is ArrayPrimitiveType<*>)

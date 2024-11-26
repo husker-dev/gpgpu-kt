@@ -136,6 +136,7 @@ private class JavacProgramPrinter(
         else ""
 
     override fun stringifyModifiersInArg(field: GPField) = ""
+    override fun stringifyModifiersInLocalsStruct() = ""
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "E", "PI" -> "(float)${field.name}"

@@ -193,6 +193,7 @@ class ParsingTest {
             override fun stringifyModifiersInGlobal(obj: Any) = ""
             override fun stringifyModifiersInLocal(field: GPField) = ""
             override fun stringifyModifiersInArg(field: GPField) = ""
+            override fun stringifyModifiersInLocalsStruct() = ""
         }.apply {
             println(stringify())
         }

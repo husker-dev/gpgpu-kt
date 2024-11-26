@@ -49,7 +49,13 @@ internal expect fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, valu
 internal expect fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int)
 internal expect fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int)
 
-internal expect fun mtlExecute(commandBuffer: MTLCommandBuffer, commandEncoder: MTLComputeCommandEncoder, instances: Int)
+internal expect fun maxTotalThreadsPerThreadgroup(pipeline: MTLComputePipelineState): Int
+
+internal expect fun mtlExecute(
+        commandBuffer: MTLCommandBuffer,
+        commandEncoder: MTLComputeCommandEncoder,
+        gridSize: Int,
+        threadGroupSize: Int)
 
 class FailedToAllocateMemoryException(size: Int):
         Exception("Failed to allocate memory with size: $size bytes")

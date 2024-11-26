@@ -73,6 +73,7 @@ class WasmProgramPrinter(
     override fun stringifyModifiersInGlobal(obj: Any) = ""
     override fun stringifyModifiersInLocal(field: GPField) = ""
     override fun stringifyModifiersInArg(field: GPField) = ""
+    override fun stringifyModifiersInLocalsStruct() = ""
 
     override fun stringifyFieldStatement(
         header: MutableMap<String, String>,
