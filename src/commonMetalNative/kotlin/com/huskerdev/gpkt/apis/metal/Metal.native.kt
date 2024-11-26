@@ -5,6 +5,7 @@ import platform.Foundation.NSError
 import platform.Metal.*
 import platform.posix.memcpy
 
+actual val metalSupported = true
 
 actual class MTLDevice(val ptr: MTLDeviceProtocol)
 actual class MTLCommandQueue(val ptr: MTLCommandQueueProtocol)

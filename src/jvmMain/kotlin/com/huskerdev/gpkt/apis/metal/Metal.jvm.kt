@@ -8,6 +8,8 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import com.sun.jna.ptr.PointerByReference
 
+actual val metalSupported: Boolean = System.getProperty("os.name").contains("mac")
+
 private const val MTLPurgeableStateEmpty = 4
 private const val MTLStorageModeShared = 0
 private const val MTLResourceStorageModeShift = 4

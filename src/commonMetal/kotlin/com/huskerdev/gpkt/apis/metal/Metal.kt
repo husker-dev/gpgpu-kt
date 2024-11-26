@@ -1,6 +1,7 @@
 
 package com.huskerdev.gpkt.apis.metal
 
+expect val metalSupported: Boolean
 
 expect class MTLDevice
 expect class MTLCommandQueue

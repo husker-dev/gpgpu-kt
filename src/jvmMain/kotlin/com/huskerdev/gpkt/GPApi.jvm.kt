@@ -9,6 +9,7 @@ import com.huskerdev.gpkt.apis.jdk.ClassCompiler
 import com.huskerdev.gpkt.apis.jdk.JavacAsyncApi
 import com.huskerdev.gpkt.apis.jdk.JavacSyncApi
 import com.huskerdev.gpkt.apis.metal.MetalSyncApi
+import com.huskerdev.gpkt.apis.metal.metalSupported
 import com.huskerdev.gpkt.apis.opencl.OpenCL
 import com.huskerdev.gpkt.apis.opencl.OpenCLAsyncApi
 import com.huskerdev.gpkt.apis.opencl.OpenCLSyncApi
@@ -34,7 +35,7 @@ internal actual val defaultAsyncApisOrder: Array<GPApiType> =
 internal actual fun createSyncApiInstance(type: GPApiType): GPSyncApi? = when{
     type == GPApiType.CUDA && Cuda.supported -> CudaSyncApi()
     type == GPApiType.OpenCL && OpenCL.supported -> OpenCLSyncApi()
-    type == GPApiType.Metal -> MetalSyncApi()
+    type == GPApiType.Metal && metalSupported -> MetalSyncApi()
     type == GPApiType.Javac && ClassCompiler.supported -> JavacSyncApi()
     type == GPApiType.Interpreter -> InterpreterSyncApi()
     else -> null
