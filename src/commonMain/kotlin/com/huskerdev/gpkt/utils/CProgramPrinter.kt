@@ -545,6 +545,7 @@ abstract class CProgramPrinter(
         is FloatType, is FloatArrayType -> "float"
         is IntType, is IntArrayType -> "int"
         is ByteType, is ByteArrayType, is BooleanType -> "char"
+        is ClassType -> type.classNameObf
         else -> type.toString()
     }
 

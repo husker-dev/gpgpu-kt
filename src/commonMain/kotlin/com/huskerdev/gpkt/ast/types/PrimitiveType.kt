@@ -71,6 +71,7 @@ interface ArrayPrimitiveType<S: PrimitiveType>: PrimitiveType {
 
 interface ClassType: SinglePrimitiveType<Nothing> {
     val className: String
+    val classNameObf: String
 }
 
 object VoidType: SinglePrimitiveType<Nothing> {
