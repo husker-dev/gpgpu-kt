@@ -7,7 +7,7 @@ import com.huskerdev.gpkt.ast.types.PrimitiveType
 
 
 class GPField(
-    val name: String,
+    var name: String,
     val obfName: String = name,
     val modifiers: MutableList<Modifiers>,
     val type: PrimitiveType,

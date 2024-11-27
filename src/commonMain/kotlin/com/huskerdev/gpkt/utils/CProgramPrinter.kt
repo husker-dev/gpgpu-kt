@@ -31,7 +31,7 @@ abstract class CProgramPrinter(
         stringifyScope(header, buffer, ast, false)
 
         val headerBuffer = StringBuilder()
-        header.map { it.value }.joinTo(headerBuffer)
+        header.map { it.value }.joinTo(headerBuffer, separator = "")
         buffer.insert(0, headerBuffer)
 
         if(useExternC) {
@@ -263,7 +263,9 @@ abstract class CProgramPrinter(
                         buffer.append(",")
                 }
                 locals.forEachIndexed { index, field ->
-                    stringifyExpression(header, buffer, field.initialExpression!!, false)
+                    if(field.initialExpression != null)
+                        stringifyExpression(header, buffer, field.initialExpression!!, false)
+                    else buffer.append("0")
                     if (index != buffers.lastIndex)
                         buffer.append(",")
                 }
@@ -318,13 +320,17 @@ abstract class CProgramPrinter(
             return
         val clazz = classStatement.classObj
 
-        buffer.append("typedef struct{")
-        clazz.variables.values.joinTo(buffer, separator = ";"){
+        val classBuffer = StringBuilder()
+
+        classBuffer.append("typedef struct{")
+        clazz.variables.values.joinTo(classBuffer, separator = ";"){
             convertToFuncArg(header, it)
         }
         if(clazz.variables.isNotEmpty())
-            buffer.append(";")
-        buffer.append("}").append(clazz.obfName).append(";")
+            classBuffer.append(";")
+        classBuffer.append("}").append(clazz.obfName).append(";")
+
+        header["__class_${clazz.name}"] = classBuffer.toString()
 
         contextClass = clazz
         clazz.body?.scopeObj?.statements?.forEach {

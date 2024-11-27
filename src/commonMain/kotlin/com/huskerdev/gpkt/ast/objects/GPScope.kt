@@ -43,7 +43,7 @@ open class GPScope(
         ?: VOID
 
     fun isInIterableScope(): Boolean =
-        iterable || parentScope?.isInIterableScope() ?: false
+        iterable || parentScope?.isInIterableScope() == true
 
     fun addField(field: GPField, lexeme: Lexeme?, codeBlock: String?){
         if(lexeme != null && codeBlock != null && findField(field.name) != null)
