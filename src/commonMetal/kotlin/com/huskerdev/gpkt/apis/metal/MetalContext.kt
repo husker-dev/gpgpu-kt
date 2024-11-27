@@ -9,8 +9,7 @@ abstract class MetalContext(
     protected val devicePeer = metalDevice.peer
     override val device = metalDevice
 
-    private val commandQueue = mtlNewCommandQueue(metalDevice.peer)
-    val commandBuffer = mtlNewCommandBuffer(commandQueue)
+    val commandQueue = mtlNewCommandQueue(metalDevice.peer)
 
     override val allocated = arrayListOf<GPResource>()
 
@@ -24,7 +23,6 @@ abstract class MetalContext(
         if(released) return
         allocated.toList().forEach(GPResource::release)
         mtlDeallocCommandQueue(commandQueue)
-        mtlDeallocCommandBuffer(commandBuffer)
         released = true
     }
 

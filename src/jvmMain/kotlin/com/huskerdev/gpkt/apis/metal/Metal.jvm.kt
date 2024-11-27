@@ -24,11 +24,14 @@ actual class MTLComputePipelineState(val ptr: Proxy)
 actual class MTLComputeCommandEncoder(val ptr: Proxy)
 actual class MTLBuffer(val ptr: Proxy)
 
+@Suppress("unused")
 class MTLSize(
     @JvmField var width: Long = 0,
     @JvmField var height: Long = 0,
     @JvmField var depth: Long = 0,
-): Structure(), Structure.ByReference
+): Structure(), Structure.ByReference{
+    override fun getFieldOrder() = listOf("width", "height", "depth")
+}
 
 interface MTL: Library {
     companion object {
@@ -71,14 +74,14 @@ internal actual fun mtlCreatePipeline(
     device: MTLDevice,
     function: MTLFunction
 ) = MTLComputePipelineState(
-    device.ptr.sendProxy("newComputePipelineStateWithFunction:", function.ptr, "error:", null)
+    device.ptr.sendProxy("newComputePipelineStateWithFunction:error:", function.ptr, null)
 )
 
 internal actual fun mtlCreateCommandEncoder(
     commandBuffer: MTLCommandBuffer,
     pipeline: MTLComputePipelineState
 ) = MTLComputeCommandEncoder(commandBuffer.ptr.sendProxy("computeCommandEncoder")).apply {
-    ptr.send("setComputePipelineState", pipeline.ptr)
+    ptr.send("setComputePipelineState:", pipeline.ptr)
 }
 
 internal actual fun mtlDeallocBuffer(buffer: MTLBuffer) {
@@ -119,13 +122,13 @@ internal actual fun mtlWrapBytes(device: MTLDevice, array: ByteArray) =
 
 
 internal actual fun mtlReadFloats(buffer: MTLBuffer, length: Int, offset: Int) =
-    buffer.ptr.sendPointer("contents").getFloatArray(0, length)
+    buffer.ptr.sendPointer("contents").getFloatArray(offset.toLong(), length)
 
 internal actual fun mtlReadInts(buffer: MTLBuffer, length: Int, offset: Int) =
-    buffer.ptr.sendPointer("contents").getIntArray(0, length)
+    buffer.ptr.sendPointer("contents").getIntArray(offset.toLong(), length)
 
 internal actual fun mtlReadBytes(buffer: MTLBuffer, length: Int, offset: Int) =
-    buffer.ptr.sendPointer("contents").getByteArray(0, length)
+    buffer.ptr.sendPointer("contents").getByteArray(offset.toLong(), length)
 
 
 internal actual fun mtlWriteFloats(buffer: MTLBuffer, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int) =
@@ -138,29 +141,36 @@ internal actual fun mtlWriteInts(buffer: MTLBuffer, src: IntArray, length: Int, 
 internal actual fun mtlWriteBytes(buffer: MTLBuffer, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int) =
     buffer.ptr.sendPointer("contents").write(dstOffset.toLong(), src, srcOffset, length)
 
-internal actual fun mtlSetBufferAt(commandEncoder: MTLComputeCommandEncoder, buffer: MTLBuffer, index: Int) =
-    commandEncoder.ptr.send("setBuffer:offset:atIndex:", buffer, 0u, index) as Unit
+internal actual fun mtlSetBufferAt(commandEncoder: MTLComputeCommandEncoder, buffer: MTLBuffer, index: Int) {
+    commandEncoder.ptr.send("setBuffer:offset:atIndex:", buffer.ptr, 0, index)
+}
 
+internal actual fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, value: Float, index: Int) {
+    commandEncoder.ptr.send("setBytes:length:atIndex:", floatArrayOf(value), Float.SIZE_BYTES, index)
+}
 
-internal actual fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, value: Float, index: Int) =
-    commandEncoder.ptr.send("setBytes:length:atIndex:", floatArrayOf(value), Float.SIZE_BYTES, index) as Unit
+internal actual fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int) {
+    commandEncoder.ptr.send("setBytes:length:atIndex:", intArrayOf(value), Int.SIZE_BYTES, index)
+}
 
-internal actual fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int) =
-    commandEncoder.ptr.send("setBytes:length:atIndex:", intArrayOf(value), Int.SIZE_BYTES, index) as Unit
+internal actual fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int) {
+    commandEncoder.ptr.send("setBytes:length:atIndex:", byteArrayOf(value), 1, index)
+}
 
-internal actual fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int) =
-    commandEncoder.ptr.send("setBytes:length:atIndex:", byteArrayOf(value), 1, index) as Unit
-
+internal actual fun maxTotalThreadsPerThreadgroup(pipeline: MTLComputePipelineState) =
+    pipeline.ptr.sendInt("maxTotalThreadsPerThreadgroup")
 
 internal actual fun mtlExecute(
     commandBuffer: MTLCommandBuffer,
     commandEncoder: MTLComputeCommandEncoder,
-    instances: Int
+    gridSize: Int,
+    threadGroupSize: Int
 ) {
-    val gridSize = MTLSize(instances.toLong(), 1, 1)
-    val threadGroupSize = MTLSize(instances.toLong(), 1, 1)
-
-    commandEncoder.ptr.send("dispatchThreads:threadsPerThreadgroup:", gridSize, threadGroupSize)
+    commandEncoder.ptr.send(
+        "dispatchThreads:threadsPerThreadgroup:",
+        MTLSize(gridSize.toLong(), 1, 1),
+        MTLSize(threadGroupSize.toLong(), 1, 1)
+    )
     commandEncoder.ptr.send("endEncoding")
     commandBuffer.ptr.send("commit")
     commandBuffer.ptr.send("waitUntilCompleted")

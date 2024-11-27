@@ -85,6 +85,7 @@ private class CudaProgramPrinter(
     override fun stringifyModifiersInStruct(field: GPField) = ""
     override fun stringifyModifiersInLocal(field: GPField) = ""
     override fun stringifyModifiersInArg(field: GPField) = ""
+    override fun stringifyModifiersInLocalsStruct() = ""
 
     override fun convertArrayName(name: String, size: Int) =
         if(size == -1) "* __restrict__ $name"

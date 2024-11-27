@@ -77,11 +77,16 @@ internal actual fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlExecute(commandBuffer: MTLCommandBuffer, commandEncoder: MTLComputeCommandEncoder, instances: Int){
-    val gridSize = MTLSizeMake(instances.toULong(), 1u, 1u)
-    val threadGroupSize = MTLSizeMake(instances.toULong(), 1u, 1u)
-
-    commandEncoder.ptr.dispatchThreads(gridSize, threadGroupSize)
+internal actual fun mtlExecute(
+    commandBuffer: MTLCommandBuffer,
+    commandEncoder: MTLComputeCommandEncoder,
+    gridSize: Int,
+    threadGroupSize: Int
+){
+    commandEncoder.ptr.dispatchThreads(
+        MTLSizeMake(gridSize.toULong(), 1u, 1u),
+        MTLSizeMake(threadGroupSize.toULong(), 1u, 1u)
+    )
     commandEncoder.ptr.endEncoding()
     commandBuffer.ptr.commit()
     commandBuffer.ptr.waitUntilCompleted()
@@ -223,3 +228,5 @@ internal actual fun mtlWriteBytes(buffer: MTLBuffer, src: ByteArray, length: Int
     }
 }
 
+internal actual fun maxTotalThreadsPerThreadgroup(pipeline: MTLComputePipelineState) =
+    pipeline.ptr.maxTotalThreadsPerThreadgroup.toInt()

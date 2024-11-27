@@ -69,6 +69,8 @@ private class OpenCLProgramPrinter(
     override fun stringifyModifiersInArg(field: GPField) =
         stringifyModifiersInLocal(field)
 
+    override fun stringifyModifiersInLocalsStruct() = ""
+
     override fun stringifyMainFunctionDefinition(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
