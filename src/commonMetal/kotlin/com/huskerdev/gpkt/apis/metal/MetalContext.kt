@@ -37,7 +37,6 @@ abstract class MetalContext(
         mtlDeallocLibrary(program.library)
         mtlDeallocFunction(program.function)
         mtlDeallocPipeline(program.pipeline)
-        mtlDeallocCommandEncoder(program.commandEncoder)
     }
 
     protected fun <T: GPResource> addResource(memory: T): T{

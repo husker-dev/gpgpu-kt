@@ -18,8 +18,8 @@ class MetalProgram(
     val library: MTLLibrary
     val function: MTLFunction
     val pipeline: MTLComputePipelineState
-    val commandBuffer: MTLCommandBuffer
-    val commandEncoder: MTLComputeCommandEncoder
+    var commandBuffer: MTLCommandBuffer
+    var commandEncoder: MTLComputeCommandEncoder
 
     init {
         val prog = MetalProgramPrinter(ast, buffers, locals).stringify()
@@ -32,6 +32,8 @@ class MetalProgram(
     }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
+        commandBuffer = mtlNewCommandBuffer(context.commandQueue)
+        commandEncoder = mtlCreateCommandEncoder(commandBuffer, pipeline)
         buffers.forEachIndexed { i, field ->
             when(val value = map[field.name]!!){
                 is Float -> mtlSetFloatAt(commandEncoder, value, i)
@@ -50,13 +52,13 @@ class MetalProgram(
         val gridSizeX = (instances + blockSizeX - 1) / blockSizeX
 
         mtlExecute(commandBuffer, commandEncoder, instances, gridSizeX)
+        mtlDeallocCommandEncoder(commandEncoder)
+        mtlDeallocCommandBuffer(commandBuffer)
     }
 
     override fun release() {
         if(released) return
         context.releaseProgram(this)
-        mtlDeallocCommandEncoder(commandEncoder)
-        mtlDeallocCommandBuffer(commandBuffer)
         released = true
     }
 }
@@ -79,6 +81,10 @@ class MetalProgramPrinter(
         )
     }
     override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
+
+    override fun convertArrayName(name: String, size: Int) =
+        if(size == -1) "* __restrict $name"
+        else super.convertArrayName(name, size)
 
     override fun convertPredefinedFieldName(field: GPField) = when(field.name){
         "PI" -> "M_PI"

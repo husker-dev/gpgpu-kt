@@ -8,7 +8,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import com.sun.jna.ptr.PointerByReference
 
-actual val metalSupported: Boolean = System.getProperty("os.name").contains("mac")
+actual val metalSupported: Boolean = System.getProperty("os.name").lowercase().contains("mac")
 
 private const val MTLPurgeableStateEmpty = 4
 private const val MTLStorageModeShared = 0
@@ -89,23 +89,29 @@ internal actual fun mtlDeallocBuffer(buffer: MTLBuffer) {
     buffer.ptr.send("release")
 }
 
-internal actual fun mtlDeallocLibrary(library: MTLLibrary) =
-    library.ptr.send("release") as Unit
+internal actual fun mtlDeallocLibrary(library: MTLLibrary) {
+    library.ptr.send("release")
+}
 
-internal actual fun mtlDeallocFunction(function: MTLFunction) =
-    function.ptr.send("release") as Unit
+internal actual fun mtlDeallocFunction(function: MTLFunction) {
+    function.ptr.send("release")
+}
 
-internal actual fun mtlDeallocCommandQueue(queue: MTLCommandQueue) =
-    queue.ptr.send("release") as Unit
+internal actual fun mtlDeallocCommandQueue(queue: MTLCommandQueue) {
+    queue.ptr.send("release")
+}
 
-internal actual fun mtlDeallocCommandBuffer(buffer: MTLCommandBuffer) =
-    buffer.ptr.send("release") as Unit
+internal actual fun mtlDeallocCommandBuffer(buffer: MTLCommandBuffer) {
+    buffer.ptr.send("release")
+}
 
-internal actual fun mtlDeallocPipeline(pipeline: MTLComputePipelineState) =
-    pipeline.ptr.send("release") as Unit
+internal actual fun mtlDeallocPipeline(pipeline: MTLComputePipelineState) {
+    pipeline.ptr.send("release")
+}
 
-internal actual fun mtlDeallocCommandEncoder(commandEncoder: MTLComputeCommandEncoder) =
-    commandEncoder.ptr.send("release") as Unit
+internal actual fun mtlDeallocCommandEncoder(commandEncoder: MTLComputeCommandEncoder) {
+    commandEncoder.ptr.send("release")
+}
 
 
 internal actual fun mtlCreateBuffer(device: MTLDevice, length: Int) =

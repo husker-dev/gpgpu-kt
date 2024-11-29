@@ -13,6 +13,7 @@ abstract class CProgramPrinter(
     // Printer settings
     private val useExternC: Boolean = false,
     private val useLocalStruct: Boolean = true,
+    private val useLocalStructCreation: Boolean = true,
     private val useArrayStruct: Boolean = true,
     private val useArrayStructCast: Boolean = true, // C++ struct creation style (active when 'useArrayStruct' is true)
     private val useFunctionDefs: Boolean = true,
@@ -107,7 +108,7 @@ abstract class CProgramPrinter(
     ) = stringifyScope(header, buffer, statement.scopeObj, brackets)
 
 
-    protected fun stringifyScope(
+    protected open fun stringifyScope(
         header: MutableMap<String, String>,
         buffer: StringBuilder,
         scope: GPScope,
@@ -255,7 +256,7 @@ abstract class CProgramPrinter(
             buffer.append("{")
 
             // Inputs struct
-            if(useLocalStruct) {
+            if(useLocalStruct && useLocalStructCreation) {
                 buffer.append("__in _v={")
                 buffers.forEachIndexed { index, field ->
                     buffer.append("__v").append(field.obfName)
