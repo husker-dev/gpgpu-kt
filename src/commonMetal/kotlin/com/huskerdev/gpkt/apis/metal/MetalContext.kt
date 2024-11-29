@@ -22,21 +22,24 @@ abstract class MetalContext(
     override fun release() {
         if(released) return
         allocated.toList().forEach(GPResource::release)
-        mtlDeallocCommandQueue(commandQueue)
+        mtlRelease(commandQueue)
         released = true
     }
 
     override fun releaseMemory(memory: MemoryPointer<*>) {
         allocated -= memory
-        mtlDeallocBuffer((memory as MetalMemoryPointer<*>).buffer)
+        mtlRelease((memory as MetalMemoryPointer<*>).buffer)
     }
 
     override fun releaseProgram(program: GPProgram) {
         allocated -= program
         program as MetalProgram
-        mtlDeallocLibrary(program.library)
-        mtlDeallocFunction(program.function)
-        mtlDeallocPipeline(program.pipeline)
+        mtlRelease(program.argumentBuffer)
+        mtlRelease(program.argumentEncoder)
+
+        mtlRelease(program.library)
+        mtlRelease(program.function)
+        mtlRelease(program.pipeline)
     }
 
     protected fun <T: GPResource> addResource(memory: T): T{

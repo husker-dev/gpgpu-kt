@@ -288,7 +288,7 @@ abstract class CProgramPrinter(
 
             // If function is class member, then add context argument
             if(useStructClasses && contextClass != null)
-                args.add(0, "${contextClass!!.obfName} *__s")
+                args.add(0, "${stringifyModifiersInLocalsStruct()} ${contextClass!!.obfName} *__s")
 
             if(useLocalStruct)
                 args.add(0, "${stringifyModifiersInLocalsStruct()} __in *__v")

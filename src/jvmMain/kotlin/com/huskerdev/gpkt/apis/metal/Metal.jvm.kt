@@ -10,20 +10,23 @@ import com.sun.jna.ptr.PointerByReference
 
 actual val metalSupported: Boolean = System.getProperty("os.name").lowercase().contains("mac")
 
-private const val MTLPurgeableStateEmpty = 4
 private const val MTLStorageModeShared = 0
 private const val MTLResourceStorageModeShift = 4
 private const val MTLResourceStorageModeShared = MTLStorageModeShared shl MTLResourceStorageModeShift
 
-actual class MTLDevice(val ptr: Proxy)
-actual class MTLCommandQueue(val ptr: Proxy)
-actual class MTLCommandBuffer(val ptr: Proxy)
-actual class MTLLibrary(val ptr: Proxy)
-actual class MTLFunction(val ptr: Proxy)
-actual class MTLComputePipelineState(val ptr: Proxy)
-actual class MTLComputeCommandEncoder(val ptr: Proxy)
-actual class MTLBuffer(val ptr: Proxy)
-actual class MTLArgumentEncoder(val ptr: Proxy)
+actual abstract class ObjCDisposable {
+    abstract val ptr: Proxy
+}
+
+actual class MTLDevice(override val ptr: Proxy): ObjCDisposable()
+actual class MTLCommandQueue(override val ptr: Proxy): ObjCDisposable()
+actual class MTLCommandBuffer(override val ptr: Proxy): ObjCDisposable()
+actual class MTLLibrary(override val ptr: Proxy): ObjCDisposable()
+actual class MTLFunction(override val ptr: Proxy): ObjCDisposable()
+actual class MTLComputePipelineState(override val ptr: Proxy): ObjCDisposable()
+actual class MTLComputeCommandEncoder(override val ptr: Proxy): ObjCDisposable()
+actual class MTLBuffer(override val ptr: Proxy): ObjCDisposable()
+actual class MTLArgumentEncoder(override val ptr: Proxy): ObjCDisposable()
 
 @Suppress("unused")
 class MTLSize(
@@ -32,6 +35,14 @@ class MTLSize(
     @JvmField var depth: Long = 0,
 ): Structure(), Structure.ByReference{
     override fun getFieldOrder() = listOf("width", "height", "depth")
+}
+
+@Suppress("unused")
+class NSRange(
+    @JvmField var loc: Long = 0,
+    @JvmField var len: Long = 0
+): Structure(), Structure.ByReference{
+    override fun getFieldOrder() = listOf("loc", "len")
 }
 
 interface MTL: Library {
@@ -88,40 +99,15 @@ internal actual fun mtlCreateCommandEncoder(
 internal actual fun mtlCreateArgumentEncoderWithIndex(function: MTLFunction, index: Int) =
     MTLArgumentEncoder(function.ptr.sendProxy("newArgumentEncoderWithBufferIndex:", index))
 
-internal actual fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder, commandEncoder: MTLComputeCommandEncoder): MTLBuffer {
-    val length = argumentEncoder.ptr.getInt("encodedLength")
+internal actual fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder): MTLBuffer {
+    val length = argumentEncoder.ptr.sendInt("encodedLength")
     val argumentBuffer = device.ptr.sendProxy("newBufferWithLength:options:", length, MTLResourceStorageModeShared)
     argumentEncoder.ptr.send("setArgumentBuffer:offset:", argumentBuffer, 0)
     return MTLBuffer(argumentBuffer)
 }
 
-internal actual fun mtlDeallocBuffer(buffer: MTLBuffer) {
-    buffer.ptr.send("setPurgeableState:", MTLPurgeableStateEmpty)
-    buffer.ptr.send("release")
-}
-
-internal actual fun mtlDeallocLibrary(library: MTLLibrary) {
-    library.ptr.send("release")
-}
-
-internal actual fun mtlDeallocFunction(function: MTLFunction) {
-    function.ptr.send("release")
-}
-
-internal actual fun mtlDeallocCommandQueue(queue: MTLCommandQueue) {
-    queue.ptr.send("release")
-}
-
-internal actual fun mtlDeallocCommandBuffer(buffer: MTLCommandBuffer) {
-    buffer.ptr.send("release")
-}
-
-internal actual fun mtlDeallocPipeline(pipeline: MTLComputePipelineState) {
-    pipeline.ptr.send("release")
-}
-
-internal actual fun mtlDeallocCommandEncoder(commandEncoder: MTLComputeCommandEncoder) {
-    commandEncoder.ptr.send("release")
+internal actual fun mtlRelease(disposable: ObjCDisposable) {
+    disposable.ptr.send("release")
 }
 
 
@@ -146,7 +132,6 @@ internal actual fun mtlReadInts(buffer: MTLBuffer, length: Int, offset: Int) =
 
 internal actual fun mtlReadBytes(buffer: MTLBuffer, length: Int, offset: Int) =
     buffer.ptr.sendPointer("contents").getByteArray(offset.toLong(), length)
-
 
 internal actual fun mtlWriteFloats(buffer: MTLBuffer, src: FloatArray, length: Int, srcOffset: Int, dstOffset: Int) =
     buffer.ptr.sendPointer("contents").write(dstOffset.toLong() * Float.SIZE_BYTES, src, srcOffset, length)

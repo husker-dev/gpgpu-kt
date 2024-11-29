@@ -7,14 +7,17 @@ import platform.posix.memcpy
 
 actual val metalSupported = true
 
-actual class MTLDevice(val ptr: MTLDeviceProtocol)
-actual class MTLCommandQueue(val ptr: MTLCommandQueueProtocol)
-actual class MTLCommandBuffer(val ptr: MTLCommandBufferProtocol)
-actual class MTLLibrary(val ptr: MTLLibraryProtocol)
-actual class MTLFunction(val ptr: MTLFunctionProtocol)
-actual class MTLComputePipelineState(val ptr: MTLComputePipelineStateProtocol)
-actual class MTLComputeCommandEncoder(val ptr: MTLComputeCommandEncoderProtocol)
-actual class MTLBuffer(val ptr: MTLBufferProtocol)
+actual abstract class ObjCDisposable
+
+actual class MTLDevice(val ptr: MTLDeviceProtocol): ObjCDisposable()
+actual class MTLCommandQueue(val ptr: MTLCommandQueueProtocol): ObjCDisposable()
+actual class MTLCommandBuffer(val ptr: MTLCommandBufferProtocol): ObjCDisposable()
+actual class MTLLibrary(val ptr: MTLLibraryProtocol): ObjCDisposable()
+actual class MTLFunction(val ptr: MTLFunctionProtocol): ObjCDisposable()
+actual class MTLComputePipelineState(val ptr: MTLComputePipelineStateProtocol): ObjCDisposable()
+actual class MTLComputeCommandEncoder(val ptr: MTLComputeCommandEncoderProtocol): ObjCDisposable()
+actual class MTLBuffer(val ptr: MTLBufferProtocol): ObjCDisposable()
+actual class MTLArgumentEncoder(val ptr: MTLArgumentEncoderProtocol): ObjCDisposable()
 
 expect fun getDevices(): Array<MTLDeviceProtocol>
 
@@ -54,26 +57,47 @@ internal actual fun mtlCreateCommandEncoder(commandBuffer: MTLCommandBuffer, pip
     return MTLComputeCommandEncoder(encoder)
 }
 
+internal actual fun mtlCreateArgumentEncoderWithIndex(function: MTLFunction, index: Int) =
+    MTLArgumentEncoder(function.ptr.newArgumentEncoderWithBufferIndex(index.toULong()))
+
+internal actual fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder): MTLBuffer {
+    val length = argumentEncoder.ptr.encodedLength
+    val argumentBuffer = device.ptr.newBufferWithLength(length, MTLResourceStorageModeShared)
+        ?: throw FailedToAllocateMemoryException(length.toInt())
+    argumentEncoder.ptr.setArgumentBuffer(argumentBuffer, 0u)
+    return MTLBuffer(argumentBuffer)
+}
+
 internal actual fun mtlSetBufferAt(commandEncoder: MTLComputeCommandEncoder, buffer: MTLBuffer, index: Int) {
     commandEncoder.ptr.setBuffer(buffer.ptr, 0u, index.toULong())
 }
 
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, value: Float, index: Int) = memScoped {
-    val valueVar = alloc(value)
-    commandEncoder.ptr.setBytes(valueVar.ptr, Float.SIZE_BYTES.toULong(), index.toULong())
+internal actual fun mtlSetBufferAt(argumentEncoder: MTLArgumentEncoder, buffer: MTLBuffer, index: Int) {
+    argumentEncoder.ptr.setBuffer(buffer.ptr, 0u, index.toULong())
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int) = memScoped {
+internal actual fun mtlSetFloatAt(argumentEncoder: MTLArgumentEncoder, value: Float, index: Int) = memScoped {
     val valueVar = alloc(value)
-    commandEncoder.ptr.setBytes(valueVar.ptr, Int.SIZE_BYTES.toULong(), index.toULong())
+    val ptr = argumentEncoder.ptr.constantDataAtIndex(index.toULong())
+    memcpy(ptr, valueVar.ptr, 4u)
+    Unit
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int) = memScoped {
+internal actual fun mtlSetIntAt(argumentEncoder: MTLArgumentEncoder, value: Int, index: Int) = memScoped {
     val valueVar = alloc(value)
-    commandEncoder.ptr.setBytes(valueVar.ptr, 1u, index.toULong())
+    val ptr = argumentEncoder.ptr.constantDataAtIndex(index.toULong())
+    memcpy(ptr, valueVar.ptr, 4u)
+    Unit
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun mtlSetByteAt(argumentEncoder: MTLArgumentEncoder, value: Byte, index: Int) = memScoped {
+    val valueVar = alloc(value)
+    val ptr = argumentEncoder.ptr.constantDataAtIndex(index.toULong())
+    memcpy(ptr, valueVar.ptr, 1u)
+    Unit
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -93,36 +117,9 @@ internal actual fun mtlExecute(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocBuffer(buffer: MTLBuffer){
-    buffer.ptr.setPurgeableState(MTLPurgeableStateEmpty)
-    objc_release(buffer.objcPtr())
+internal actual fun mtlRelease(disposable: ObjCDisposable){
+    objc_release(disposable.objcPtr())
 }
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocLibrary(library: MTLLibrary) =
-    objc_release(library.objcPtr())
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocFunction(function: MTLFunction) =
-    objc_release(function.objcPtr())
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocCommandQueue(queue: MTLCommandQueue) {
-    objc_release(queue.objcPtr())
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocCommandBuffer(buffer: MTLCommandBuffer) {
-    objc_release(buffer.objcPtr())
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocPipeline(pipeline: MTLComputePipelineState) =
-    objc_release(pipeline.objcPtr())
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun mtlDeallocCommandEncoder(commandEncoder: MTLComputeCommandEncoder) =
-    objc_release(commandEncoder.objcPtr())
 
 internal actual fun mtlCreateBuffer(device: MTLDevice, length: Int) =
     MTLBuffer(device.ptr.newBufferWithLength(length.toULong(), MTLResourceStorageModeShared)

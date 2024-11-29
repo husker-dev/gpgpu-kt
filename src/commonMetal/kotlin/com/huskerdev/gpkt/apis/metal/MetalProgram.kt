@@ -5,6 +5,7 @@ import com.huskerdev.gpkt.ast.*
 import com.huskerdev.gpkt.ast.objects.GPField
 import com.huskerdev.gpkt.ast.objects.GPFunction
 import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.ast.types.ArrayPrimitiveType
 import com.huskerdev.gpkt.utils.CProgramPrinter
 import kotlin.math.min
 
@@ -33,9 +34,8 @@ class MetalProgram(
         commandBuffer = mtlNewCommandBuffer(context.commandQueue)
         commandEncoder = mtlCreateCommandEncoder(commandBuffer, pipeline)
 
-        // TODO: release
         argumentEncoder = mtlCreateArgumentEncoderWithIndex(function, 0)
-        argumentBuffer = mtlCreateAndBindArgumentBuffer(context.device.peer, argumentEncoder, commandEncoder)
+        argumentBuffer = mtlCreateAndBindArgumentBuffer(context.device.peer, argumentEncoder)
     }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
@@ -61,8 +61,8 @@ class MetalProgram(
         val gridSizeX = (instances + blockSizeX - 1) / blockSizeX
 
         mtlExecute(commandBuffer, commandEncoder, instances, gridSizeX)
-        mtlDeallocCommandEncoder(commandEncoder)
-        mtlDeallocCommandBuffer(commandBuffer)
+        mtlRelease(commandEncoder)
+        mtlRelease(commandBuffer)
     }
 
     override fun release() {
@@ -76,20 +76,64 @@ class MetalProgramPrinter(
     ast: GPScope,
     buffers: List<GPField>,
     locals: List<GPField>
-): CProgramPrinter(ast, buffers, locals){
+): CProgramPrinter(ast, buffers, locals,
+    useLocalStructCreation = false
+){
+    override fun stringifyScope(
+        header: MutableMap<String, String>,
+        buffer: StringBuilder,
+        scope: GPScope,
+        brackets: Boolean
+    ) {
+        if(scope.parentScope == null) {
+            buffer.append("struct Arguments {")
+            fun stringify(index: Int, field: GPField) {
+                val modifiers = stringifyModifiersInStruct(field)
+                if (modifiers.isNotEmpty())
+                    buffer.append(modifiers).append(" ")
+
+                buffer.append(toCType(header, field.type))
+                    .append(" ")
+                    .append(
+                        if (field.type is ArrayPrimitiveType<*>)
+                            convertArrayName(field.obfName, field.type.size)
+                        else field.obfName
+                    )
+                buffer.append(" [[id(").append(index).append(")]];")
+            }
+            buffers.forEachIndexed { i, field -> stringify(i, field) }
+            buffer.append("int offset;};")
+        }
+        super.stringifyScope(header, buffer, scope, brackets)
+    }
+
     override fun stringifyMainFunctionDefinition(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) {
         buffer.append("kernel ")
         appendCFunctionDefinition(
             buffer = buffer,
             type = "void",
             name = "_m",
-            args = buffers.map {
-                if (it.type.isDynamicArray) "device ${toCType(header, it.type)}*__v${it.obfName}"
-                else "device ${toCType(header, it.type)}&__v${it.obfName}"
-            } + listOf("device int&__o", "uint ${function.arguments[0].obfName} [[thread_position_in_grid]]")
+            args = listOf("constant Arguments &args [[buffer(0)]]", "uint _i [[thread_position_in_grid]]")
         )
     }
-    override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) = Unit
+    override fun stringifyMainFunctionBody(header: MutableMap<String, String>, buffer: StringBuilder, function: GPFunction) {
+        buffer.append("int ").append(function.arguments[0].obfName).append("=_i+args.offset;")
+        buffer.append("__in _v={")
+        buffers.forEachIndexed { index, field ->
+            buffer.append("args.").append(field.obfName)
+            if (index != buffers.lastIndex || locals.isNotEmpty())
+                buffer.append(",")
+        }
+        locals.forEachIndexed { index, field ->
+            if(field.initialExpression != null)
+                stringifyExpression(header, buffer, field.initialExpression!!, false)
+            else buffer.append("0")
+            if (index != buffers.lastIndex)
+                buffer.append(",")
+        }
+        buffer.append("};")
+        buffer.append("${stringifyModifiersInLocalsStruct()} __in*__v=&_v;")
+    }
 
     override fun convertArrayName(name: String, size: Int) =
         if(size == -1) "* __restrict $name"

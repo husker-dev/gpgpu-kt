@@ -3,15 +3,17 @@ package com.huskerdev.gpkt.apis.metal
 
 expect val metalSupported: Boolean
 
-expect class MTLDevice
-expect class MTLCommandQueue
-expect class MTLCommandBuffer
-expect class MTLLibrary
-expect class MTLFunction
-expect class MTLComputePipelineState
-expect class MTLComputeCommandEncoder
-expect class MTLBuffer
-expect class MTLArgumentEncoder
+expect abstract class ObjCDisposable
+
+expect class MTLDevice: ObjCDisposable
+expect class MTLCommandQueue: ObjCDisposable
+expect class MTLCommandBuffer: ObjCDisposable
+expect class MTLLibrary: ObjCDisposable
+expect class MTLFunction: ObjCDisposable
+expect class MTLComputePipelineState: ObjCDisposable
+expect class MTLComputeCommandEncoder: ObjCDisposable
+expect class MTLBuffer: ObjCDisposable
+expect class MTLArgumentEncoder: ObjCDisposable
 
 internal expect fun mtlCopyAllDevices(): Array<MTLDevice>
 
@@ -24,15 +26,9 @@ internal expect fun mtlGetFunction(library: MTLLibrary, name: String): MTLFuncti
 internal expect fun mtlCreatePipeline(device: MTLDevice, function: MTLFunction): MTLComputePipelineState
 internal expect fun mtlCreateCommandEncoder(commandBuffer: MTLCommandBuffer, pipeline: MTLComputePipelineState): MTLComputeCommandEncoder
 internal expect fun mtlCreateArgumentEncoderWithIndex(function: MTLFunction, index: Int): MTLArgumentEncoder
-internal expect fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder, commandEncoder: MTLComputeCommandEncoder): MTLBuffer
+internal expect fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder): MTLBuffer
 
-internal expect fun mtlDeallocBuffer(buffer: MTLBuffer)
-internal expect fun mtlDeallocLibrary(library: MTLLibrary)
-internal expect fun mtlDeallocFunction(function: MTLFunction)
-internal expect fun mtlDeallocCommandQueue(queue: MTLCommandQueue)
-internal expect fun mtlDeallocCommandBuffer(buffer: MTLCommandBuffer)
-internal expect fun mtlDeallocPipeline(pipeline: MTLComputePipelineState)
-internal expect fun mtlDeallocCommandEncoder(commandEncoder: MTLComputeCommandEncoder)
+internal expect fun mtlRelease(disposable: ObjCDisposable)
 
 internal expect fun mtlCreateBuffer(device: MTLDevice, length: Int): MTLBuffer
 internal expect fun mtlWrapFloats(device: MTLDevice, array: FloatArray): MTLBuffer
