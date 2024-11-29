@@ -59,52 +59,55 @@ class ClassCreationExpression(
 //  Operator expressions
 // ======================
 
-abstract class OperatorExpression(val operator: Operator): Expression
+interface OperatorExpression: Expression {
+    val operator: Operator
+}
 
 // AxB
-class AxBExpression(
-    operator: Operator,
+data class AxBExpression(
+    override val operator: Operator,
     override val type: PrimitiveType,
     val left: Expression,
     val right: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(operator){
+): OperatorExpression{
     override fun clone(scope: GPScope) =
         AxBExpression(operator, type, left.clone(scope), right.clone(scope), lexemeIndex, lexemeLength)
 }
 
 // Ax
-class AxExpression(
-    operator: Operator,
+data class AxExpression(
+    override val operator: Operator,
     override val type: PrimitiveType,
     val left: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(operator) {
+): OperatorExpression {
     override fun clone(scope: GPScope) =
         AxExpression(operator, type, left.clone(scope), lexemeIndex, lexemeLength)
 }
 
 // Ax
-class XBExpression(
-    operator: Operator,
+data class XBExpression(
+    override val operator: Operator,
     override val type: PrimitiveType,
     val right: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(operator) {
+): OperatorExpression {
     override fun clone(scope: GPScope) =
         XBExpression(operator, type, right.clone(scope), lexemeIndex, lexemeLength)
 }
 
 // A[]
-class ArrayAccessExpression(
+data class ArrayAccessExpression(
     val array: Expression,
     val index: Expression,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(Operator.ARRAY_ACCESS) {
+): OperatorExpression {
+    override val operator = Operator.ARRAY_ACCESS
     override val type = (array.type as ArrayPrimitiveType<*>).single
     override fun canAssign() =
         array is FieldExpression && !array.field.isReadonly
@@ -113,20 +116,21 @@ class ArrayAccessExpression(
 }
 
 // A()
-class FunctionCallExpression(
+data class FunctionCallExpression(
     val obj: Expression?,
     val function: GPFunction,
     val arguments: List<Expression>,
     override val lexemeIndex: Int = 0,
     override val lexemeLength: Int = 0
-): OperatorExpression(Operator.FUNCTION) {
+): OperatorExpression {
+    override val operator = Operator.FUNCTION
     override val type = function.returnType
     override fun clone(scope: GPScope) =
         FunctionCallExpression(obj?.clone(scope), scope.findFunction(function.name)!!, arguments.map { it.clone(scope) })
 }
 
 // A
-class FieldExpression(
+data class FieldExpression(
     val obj: Expression?,
     val field: GPField,
     override val lexemeIndex: Int = 0,
@@ -139,7 +143,7 @@ class FieldExpression(
 }
 
 // (type)A
-class CastExpression(
+data class CastExpression(
     override val type: PrimitiveType,
     val right: Expression,
     override val lexemeIndex: Int = 0,

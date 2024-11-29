@@ -58,7 +58,7 @@ class ExScope(
                 if(Modifiers.EXTERNAL !in field.modifiers) {
                     val value = if (field.initialExpression != null)
                         executeExpression(this, field.initialExpression!!).castToType(field.type)
-                    else null
+                    else ExValue(null)
                     addField(field.name, ExField(field.type, value))
                 }
             }

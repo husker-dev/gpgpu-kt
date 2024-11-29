@@ -336,9 +336,12 @@ fun executeExpression(scope: ExScope, expression: Expression): ExValue {
                 val objVal = executeExpression(scope, expression.obj).get() as ExClassObject
                 objVal.scope.findField(expression.field.name)!!.value!!
             } else {
-                if (name !in allPredefinedFields)
-                    scope.findField(name)!!.value!!
-                else ExValue(
+                if (name !in allPredefinedFields) {
+                    val field = scope.findField(name) ?:
+                        throw UnsupportedOperationException("Field not found: $name")
+                    field.value ?:
+                        throw UnsupportedOperationException("Field $name has 'null' value. Probably expected 'ExValue(null)'")
+                }else ExValue(
                     when (name) {
                         "PI" -> PI.toFloat()
                         "E" -> E.toFloat()
