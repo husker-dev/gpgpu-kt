@@ -21,6 +21,9 @@ class MetalProgram(
     var commandBuffer: MTLCommandBuffer
     var commandEncoder: MTLComputeCommandEncoder
 
+    val argumentEncoder: MTLArgumentEncoder
+    val argumentBuffer: MTLBuffer
+
     init {
         val prog = MetalProgramPrinter(ast, buffers, locals).stringify()
 
@@ -29,22 +32,28 @@ class MetalProgram(
         pipeline = mtlCreatePipeline(context.device.peer, function)
         commandBuffer = mtlNewCommandBuffer(context.commandQueue)
         commandEncoder = mtlCreateCommandEncoder(commandBuffer, pipeline)
+
+        // TODO: release
+        argumentEncoder = mtlCreateArgumentEncoderWithIndex(function, 0)
+        argumentBuffer = mtlCreateAndBindArgumentBuffer(context.device.peer, argumentEncoder, commandEncoder)
     }
 
     override fun executeRangeImpl(indexOffset: Int, instances: Int, map: Map<String, Any>) {
         commandBuffer = mtlNewCommandBuffer(context.commandQueue)
         commandEncoder = mtlCreateCommandEncoder(commandBuffer, pipeline)
+        mtlSetBufferAt(commandEncoder, argumentBuffer, 0)
+
         buffers.forEachIndexed { i, field ->
             when(val value = map[field.name]!!){
-                is Float -> mtlSetFloatAt(commandEncoder, value, i)
-                is Int -> mtlSetIntAt(commandEncoder, value, i)
-                is Byte -> mtlSetByteAt(commandEncoder, value, i)
-                is Boolean -> mtlSetByteAt(commandEncoder, if(value) 1 else 0, i)
-                is MetalMemoryPointer<*> -> mtlSetBufferAt(commandEncoder, value.buffer, i)
+                is Float -> mtlSetFloatAt(argumentEncoder, value, i)
+                is Int -> mtlSetIntAt(argumentEncoder, value, i)
+                is Byte -> mtlSetByteAt(argumentEncoder, value, i)
+                is Boolean -> mtlSetByteAt(argumentEncoder, if(value) 1 else 0, i)
+                is MetalMemoryPointer<*> -> mtlSetBufferAt(argumentEncoder, value.buffer, i)
                 else -> throw UnsupportedOperationException()
             }
         }
-        mtlSetIntAt(commandEncoder, indexOffset, buffers.size)
+        mtlSetIntAt(argumentEncoder, indexOffset, buffers.size)
 
         val maxBlockDimX = maxTotalThreadsPerThreadgroup(pipeline)
 

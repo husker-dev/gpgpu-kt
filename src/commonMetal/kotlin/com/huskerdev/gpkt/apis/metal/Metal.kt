@@ -11,6 +11,7 @@ expect class MTLFunction
 expect class MTLComputePipelineState
 expect class MTLComputeCommandEncoder
 expect class MTLBuffer
+expect class MTLArgumentEncoder
 
 internal expect fun mtlCopyAllDevices(): Array<MTLDevice>
 
@@ -22,6 +23,8 @@ internal expect fun mtlCreateLibrary(device: MTLDevice, source: String): MTLLibr
 internal expect fun mtlGetFunction(library: MTLLibrary, name: String): MTLFunction
 internal expect fun mtlCreatePipeline(device: MTLDevice, function: MTLFunction): MTLComputePipelineState
 internal expect fun mtlCreateCommandEncoder(commandBuffer: MTLCommandBuffer, pipeline: MTLComputePipelineState): MTLComputeCommandEncoder
+internal expect fun mtlCreateArgumentEncoderWithIndex(function: MTLFunction, index: Int): MTLArgumentEncoder
+internal expect fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder, commandEncoder: MTLComputeCommandEncoder): MTLBuffer
 
 internal expect fun mtlDeallocBuffer(buffer: MTLBuffer)
 internal expect fun mtlDeallocLibrary(library: MTLLibrary)
@@ -45,9 +48,10 @@ internal expect fun mtlWriteInts(buffer: MTLBuffer, src: IntArray, length: Int, 
 internal expect fun mtlWriteBytes(buffer: MTLBuffer, src: ByteArray, length: Int, srcOffset: Int, dstOffset: Int)
 
 internal expect fun mtlSetBufferAt(commandEncoder: MTLComputeCommandEncoder, buffer: MTLBuffer, index: Int)
-internal expect fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, value: Float, index: Int)
-internal expect fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int)
-internal expect fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int)
+internal expect fun mtlSetBufferAt(argumentEncoder: MTLArgumentEncoder, buffer: MTLBuffer, index: Int)
+internal expect fun mtlSetFloatAt(argumentEncoder: MTLArgumentEncoder, value: Float, index: Int)
+internal expect fun mtlSetIntAt(argumentEncoder: MTLArgumentEncoder, value: Int, index: Int)
+internal expect fun mtlSetByteAt(argumentEncoder: MTLArgumentEncoder, value: Byte, index: Int)
 
 internal expect fun maxTotalThreadsPerThreadgroup(pipeline: MTLComputePipelineState): Int
 

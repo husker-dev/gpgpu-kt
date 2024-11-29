@@ -23,6 +23,7 @@ actual class MTLFunction(val ptr: Proxy)
 actual class MTLComputePipelineState(val ptr: Proxy)
 actual class MTLComputeCommandEncoder(val ptr: Proxy)
 actual class MTLBuffer(val ptr: Proxy)
+actual class MTLArgumentEncoder(val ptr: Proxy)
 
 @Suppress("unused")
 class MTLSize(
@@ -82,6 +83,16 @@ internal actual fun mtlCreateCommandEncoder(
     pipeline: MTLComputePipelineState
 ) = MTLComputeCommandEncoder(commandBuffer.ptr.sendProxy("computeCommandEncoder")).apply {
     ptr.send("setComputePipelineState:", pipeline.ptr)
+}
+
+internal actual fun mtlCreateArgumentEncoderWithIndex(function: MTLFunction, index: Int) =
+    MTLArgumentEncoder(function.ptr.sendProxy("newArgumentEncoderWithBufferIndex:", index))
+
+internal actual fun mtlCreateAndBindArgumentBuffer(device: MTLDevice, argumentEncoder: MTLArgumentEncoder, commandEncoder: MTLComputeCommandEncoder): MTLBuffer {
+    val length = argumentEncoder.ptr.getInt("encodedLength")
+    val argumentBuffer = device.ptr.sendProxy("newBufferWithLength:options:", length, MTLResourceStorageModeShared)
+    argumentEncoder.ptr.send("setArgumentBuffer:offset:", argumentBuffer, 0)
+    return MTLBuffer(argumentBuffer)
 }
 
 internal actual fun mtlDeallocBuffer(buffer: MTLBuffer) {
@@ -151,16 +162,23 @@ internal actual fun mtlSetBufferAt(commandEncoder: MTLComputeCommandEncoder, buf
     commandEncoder.ptr.send("setBuffer:offset:atIndex:", buffer.ptr, 0, index)
 }
 
-internal actual fun mtlSetFloatAt(commandEncoder: MTLComputeCommandEncoder, value: Float, index: Int) {
-    commandEncoder.ptr.send("setBytes:length:atIndex:", floatArrayOf(value), Float.SIZE_BYTES, index)
+internal actual fun mtlSetBufferAt(argumentEncoder: MTLArgumentEncoder, buffer: MTLBuffer, index: Int) {
+    argumentEncoder.ptr.send("setBuffer:offset:atIndex:", buffer.ptr, 0, index)
 }
 
-internal actual fun mtlSetIntAt(commandEncoder: MTLComputeCommandEncoder, value: Int, index: Int) {
-    commandEncoder.ptr.send("setBytes:length:atIndex:", intArrayOf(value), Int.SIZE_BYTES, index)
+internal actual fun mtlSetFloatAt(argumentEncoder: MTLArgumentEncoder, value: Float, index: Int) {
+    val ptr = argumentEncoder.ptr.sendPointer("constantDataAtIndex:", index)
+    ptr.setFloat(0, value)
 }
 
-internal actual fun mtlSetByteAt(commandEncoder: MTLComputeCommandEncoder, value: Byte, index: Int) {
-    commandEncoder.ptr.send("setBytes:length:atIndex:", byteArrayOf(value), 1, index)
+internal actual fun mtlSetIntAt(argumentEncoder: MTLArgumentEncoder, value: Int, index: Int) {
+    val ptr = argumentEncoder.ptr.sendPointer("constantDataAtIndex:", index)
+    ptr.setInt(0, value)
+}
+
+internal actual fun mtlSetByteAt(argumentEncoder: MTLArgumentEncoder, value: Byte, index: Int) {
+    val ptr = argumentEncoder.ptr.sendPointer("constantDataAtIndex:", index)
+    ptr.setByte(0, value)
 }
 
 internal actual fun maxTotalThreadsPerThreadgroup(pipeline: MTLComputePipelineState) =
