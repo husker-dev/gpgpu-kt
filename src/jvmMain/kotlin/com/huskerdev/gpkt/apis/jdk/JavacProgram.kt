@@ -170,7 +170,7 @@ private class JavacProgramPrinter(
     ) {
         val clazz = classStatement.classObj
 
-        buffer.append("private static class ").append(clazz.obfName).append("{")
+        buffer.append("private class ").append(clazz.obfName).append("{")
         clazz.variables.values.joinTo(buffer, separator = ";"){
             convertToFuncArg(header, it)
         }
@@ -223,6 +223,7 @@ private class JavacProgramPrinter(
         is FloatArrayType -> "float[]"
         is IntArrayType -> "int[]"
         is ByteArrayType -> "byte[]"
+        is ClassType -> type.classNameObf
         else -> type.toString()
     }
 

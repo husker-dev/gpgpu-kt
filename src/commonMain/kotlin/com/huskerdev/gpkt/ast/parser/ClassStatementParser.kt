@@ -81,6 +81,7 @@ fun parseClassStatement(
     // Type
     val type = object: ClassType {
         override val className = name
+        override val classNameObf = obfName
         override val toArray = { _: Int -> throw UnsupportedOperationException() }
         override val toDynamicArray = { throw UnsupportedOperationException() }
         override val bytes = when {
@@ -94,7 +95,7 @@ fun parseClassStatement(
         override val isArray = false
         override val isDynamicArray = false
         override val isConstArray = false
-        override fun toString() = obfName
+        override fun toString() = name
     }
 
     // Body
