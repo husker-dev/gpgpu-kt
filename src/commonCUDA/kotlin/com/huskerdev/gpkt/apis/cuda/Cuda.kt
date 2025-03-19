@@ -19,7 +19,7 @@ internal expect fun cuGetErrorString(code: Int): String
 internal expect fun cuDeviceGetCount(): Int
 internal expect fun cuDeviceGet(index: Int): CUdevice
 internal expect fun cuDeviceGetName(device: CUdevice): String
-internal expect fun cuDeviceGetMemory(device: CUdevice): Long
+internal expect fun cuDeviceGetMemory(device: CUdevice): ULong
 internal expect fun cuCtxCreate(flags: Int, device: CUdevice): CUcontext
 internal expect fun cuCtxSetCurrent(context: CUcontext?): Int
 internal expect fun cuCtxDestroy(context: CUcontext): Int

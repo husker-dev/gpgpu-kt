@@ -209,14 +209,11 @@ private fun Int.checkError(){
         throw Exception(errorToString(this))
 }
 
-private fun ByteArray.toLong(): Long {
+private fun ByteArray.toLong(): ULong {
     var result = 0L
-    var shift = 0
-    for (byte in this) {
-        result = result or (byte.toLong() shl shift)
-        shift += 8
-    }
-    return result
+    for (i in this.indices)
+        result = result or (this[i].toLong() and 0xFF.toLong() shl (8 * i))
+    return result.toULong()
 }
 
 private fun errorToString(code: Int) = when(code){

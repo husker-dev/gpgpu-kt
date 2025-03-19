@@ -51,10 +51,10 @@ internal actual fun cuDeviceGetName(device: CUdevice): String {
     return createString(nameBuffer)
 }
 
-internal actual fun cuDeviceGetMemory(device: CUdevice): Long {
+internal actual fun cuDeviceGetMemory(device: CUdevice): ULong {
     val buffer = LongArray(1)
     cuMemGetInfo(LongArray(1), buffer)
-    return buffer[0]
+    return buffer[0].toULong()
 }
 
 internal actual fun cuCtxCreate(flags: Int, device: CUdevice): CUcontext {

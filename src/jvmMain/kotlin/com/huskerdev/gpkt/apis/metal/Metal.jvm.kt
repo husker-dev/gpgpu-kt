@@ -63,7 +63,7 @@ internal actual fun mtlGetDeviceName(device: MTLDevice) =
     device.ptr.sendString("name")
 
 internal actual fun mtlGetDeviceMemory(device: MTLDevice) =
-    device.ptr.send("recommendedMaxWorkingSetSize") as Long
+    (device.ptr.send("recommendedMaxWorkingSetSize") as Long).toULong()
 
 internal actual fun mtlNewCommandQueue(device: MTLDevice) =
     MTLCommandQueue(device.ptr.sendProxy("newCommandQueue"))

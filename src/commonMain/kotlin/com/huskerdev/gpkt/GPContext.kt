@@ -8,7 +8,7 @@ interface GPContext: GPResource{
     val modules: GPModules
 
     val allocated: List<GPResource>
-    val memory: Long
+    val memory: ULong
 
     fun compile(ast: GPScope): GPProgram
     fun compile(code: String) =

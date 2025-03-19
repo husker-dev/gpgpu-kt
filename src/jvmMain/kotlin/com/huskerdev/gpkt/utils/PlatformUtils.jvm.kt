@@ -11,5 +11,5 @@ actual fun runThread(f: () -> Unit) = object: AbstractThread {
     override fun waitEnd() = thread.join()
 }
 
-actual val ram: Long
-    get() = Runtime.getRuntime().freeMemory()
+actual val ram: ULong
+    get() = Runtime.getRuntime().freeMemory().toULong()

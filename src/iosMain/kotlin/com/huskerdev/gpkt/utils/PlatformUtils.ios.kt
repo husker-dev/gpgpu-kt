@@ -7,4 +7,4 @@ actual fun runThread(f: () -> Unit): AbstractThread {
     TODO("Not yet implemented")
 }
 
-actual val ram: Long = 0
+actual val ram: ULong = 0u
