@@ -13,6 +13,8 @@ class WebGPUAsyncContext(
 
     override val allocated = arrayListOf<GPResource>()
 
+    override val memory = 0uL
+
     override var released = false
     override val modules = GPModules()
 
