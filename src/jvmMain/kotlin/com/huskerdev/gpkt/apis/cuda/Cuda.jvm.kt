@@ -3,6 +3,7 @@ package com.huskerdev.gpkt.apis.cuda
 import jcuda.Pointer
 import jcuda.driver.JCudaDriver
 import jcuda.driver.JCudaDriver.*
+import jcuda.nvrtc.JNvrtc
 import jcuda.nvrtc.JNvrtc.*
 
 
@@ -14,6 +15,7 @@ actual class nvrtcProgram(val ptr: jcuda.nvrtc.nvrtcProgram)
 actual class CUfunction(val ptr: jcuda.driver.CUfunction)
 
 internal actual fun isCUDASupported() = try {
+    JNvrtc.setExceptionsEnabled(true)
     cuInit(0)
     val buffer = IntArray(1)
     cuDeviceGetCount(buffer)
@@ -21,10 +23,10 @@ internal actual fun isCUDASupported() = try {
         println("[INFO] CUDA is supported, but can not find supported devices.")
         false
     }else true
-}catch (e: UnsatisfiedLinkError){
+}catch (_: UnsatisfiedLinkError){
     println("[INFO] Failed to load CUDA. Check toolkit installation.")
     false
-}catch (t: Throwable){
+}catch (_: Throwable){
     false
 }
 
