@@ -6,6 +6,7 @@ import kotlin.math.ceil
 private const val CL_DEVICE_TYPE_GPU = 1L shl 2
 private const val CL_CONTEXT_PLATFORM = 0x1084L
 private const val CL_DEVICE_NAME = 0x102B
+private const val CL_DEVICE_GLOBAL_MEM_SIZE = 0x101F
 
 private const val CL_MEM_READ_WRITE = 1L shl 0
 private const val CL_MEM_WRITE_ONLY = 1L shl 1
@@ -71,6 +72,8 @@ class OpenCL {
     fun getDeviceName(device: CLDeviceId) = clGetDeviceInfo(device, CL_DEVICE_NAME).run {
         String(this, 0, this.size-1)
     }
+
+    fun getDeviceMemory(device: CLDeviceId) = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE).toLong()
 
     fun createContext(platform: CLPlatformId, device: CLDeviceId) =
         clCreateContext(arrayOf(CL_CONTEXT_PLATFORM, platform), device)
@@ -204,6 +207,16 @@ class OpenCL {
 private fun Int.checkError(){
     if(this != 0)
         throw Exception(errorToString(this))
+}
+
+private fun ByteArray.toLong(): Long {
+    var result = 0L
+    var shift = 0
+    for (byte in this) {
+        result = result or (byte.toLong() shl shift)
+        shift += 8
+    }
+    return result
 }
 
 private fun errorToString(code: Int) = when(code){

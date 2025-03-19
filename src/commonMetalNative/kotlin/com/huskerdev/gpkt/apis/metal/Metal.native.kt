@@ -28,6 +28,9 @@ internal actual fun mtlCopyAllDevices(): Array<MTLDevice> = getDevices().map {
 internal actual fun mtlGetDeviceName(device: MTLDevice) =
     device.ptr.name
 
+internal actual fun mtlGetDeviceMemory(device: MTLDevice) =
+    device.ptr.recommendedMaxWorkingSetSize.toLong()
+
 internal actual fun mtlNewCommandQueue(device: MTLDevice) =
     MTLCommandQueue(device.ptr.newCommandQueue()!!)
 

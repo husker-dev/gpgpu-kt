@@ -15,6 +15,8 @@ abstract class OpenCLContext(
 
     override val allocated = arrayListOf<GPResource>()
 
+    override val memory = opencl.getDeviceMemory(clDevice.peer)
+
     override var released = false
     override val modules = GPModules()
 

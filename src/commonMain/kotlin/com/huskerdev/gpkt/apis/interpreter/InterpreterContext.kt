@@ -2,10 +2,13 @@ package com.huskerdev.gpkt.apis.interpreter
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.objects.GPScope
+import com.huskerdev.gpkt.utils.ram
 
 abstract class InterpreterContext: GPContext {
     override val modules = GPModules()
     override var released = false
+
+    override val memory = ram
 
     override val allocated = arrayListOf<GPResource>()
 

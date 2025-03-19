@@ -13,6 +13,8 @@ abstract class MetalContext(
 
     override val allocated = arrayListOf<GPResource>()
 
+    override val memory = mtlGetDeviceMemory(metalDevice.peer)
+
     override var released = false
     override val modules = GPModules()
 

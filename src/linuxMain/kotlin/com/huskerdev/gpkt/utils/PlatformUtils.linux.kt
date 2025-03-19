@@ -8,3 +8,5 @@ actual fun runThread(f: () -> Unit): AbstractThread = object: AbstractThread{
     }
     override fun waitEnd() = Unit
 }
+
+actual val ram: Long = 0

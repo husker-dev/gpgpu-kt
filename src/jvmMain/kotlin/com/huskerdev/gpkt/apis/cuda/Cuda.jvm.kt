@@ -49,6 +49,12 @@ internal actual fun cuDeviceGetName(device: CUdevice): String {
     return createString(nameBuffer)
 }
 
+internal actual fun cuDeviceGetMemory(device: CUdevice): Long {
+    val buffer = LongArray(1)
+    cuMemGetInfo(LongArray(1), buffer)
+    return buffer[0]
+}
+
 internal actual fun cuCtxCreate(flags: Int, device: CUdevice): CUcontext {
     val context = jcuda.driver.CUcontext()
     cuCtxCreate(context, 0, device.ptr)

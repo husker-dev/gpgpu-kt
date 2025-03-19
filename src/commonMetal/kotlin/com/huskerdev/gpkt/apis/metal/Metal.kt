@@ -18,6 +18,7 @@ expect class MTLArgumentEncoder: ObjCDisposable
 internal expect fun mtlCopyAllDevices(): Array<MTLDevice>
 
 internal expect fun mtlGetDeviceName(device: MTLDevice): String
+internal expect fun mtlGetDeviceMemory(device: MTLDevice): Long
 internal expect fun mtlNewCommandQueue(device: MTLDevice): MTLCommandQueue
 internal expect fun mtlNewCommandBuffer(queue: MTLCommandQueue): MTLCommandBuffer
 

@@ -37,6 +37,13 @@ internal actual fun cuDeviceGetName(device: CUdevice) = memScoped {
 }
 
 @OptIn(ExperimentalForeignApi::class)
+internal actual fun cuDeviceGetMemory(device: CUdevice) = memScoped {
+    val buffer = allocArray<LongVar>(1)
+    cuda.cuMemGetInfo(buffer, 1, device.ptr)
+    buffer.readLong(1)
+}
+
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun cuCtxCreate(flags: Int, device: CUdevice) = memScoped {
     val buffer = alloc<cuda.CUcontextVar>()
     cuda.cuCtxCreate!!(buffer.ptr, flags.toUInt(), device.ptr)

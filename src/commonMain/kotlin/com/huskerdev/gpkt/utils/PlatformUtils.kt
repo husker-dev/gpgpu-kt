@@ -9,6 +9,8 @@ private const val MIN_OPERATIONS_PER_THREAD = 2000
 expect val threads: Int
 expect fun runThread(f: () -> Unit): AbstractThread
 
+expect val ram: Long
+
 
 interface AbstractThread {
     fun waitEnd()
