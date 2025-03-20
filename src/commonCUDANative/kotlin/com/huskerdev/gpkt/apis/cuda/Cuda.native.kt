@@ -38,9 +38,10 @@ internal actual fun cuDeviceGetName(device: CUdevice) = memScoped {
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun cuDeviceGetMemory(device: CUdevice) = memScoped {
-    val buffer = allocArray<LongVar>(1)
-    cuda.cuMemGetInfo(buffer, 1, device.ptr)
-    buffer.readLong(1)
+    val buffer1 = allocArray<ULongVar>(1)
+    val buffer2 = allocArray<ULongVar>(1)
+    cuda.cuMemGetInfo!!(buffer1, buffer2)
+    buffer2[0].toULong()
 }
 
 @OptIn(ExperimentalForeignApi::class)
