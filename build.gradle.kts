@@ -173,10 +173,13 @@ tasks.withType(KotlinJsCompile::class.java).configureEach {
 publishing {
     publications {
         withType<MavenPublication> {
+            /*
             artifact(tasks.register("${name}JavadocJar", Jar::class) {
                 archiveClassifier = "javadoc"
                 archiveAppendix = this@withType.name
             })
+
+             */
             pom {
                 name = "gpgpu-kt"
                 description = "Cross-platform general-purpose computing Kotlin Multiplatform library"
@@ -205,16 +208,19 @@ publishing {
     }
 }
 
-project.signing {
-    if(project.hasProperty("ossrhUsername"))
+signing {
+    setRequired {
+        gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
+    }
+    if(hasProperty("ossrhUsername"))
         sign(publishing.publications)
 }
 
 publishOnCentral {
-    repoOwner = project.properties["ossrhUsername"].toString()
+    repoOwner = properties["ossrhUsername"].toString()
 
-    mavenCentral.user = project.properties["ossrhUsername"].toString()
-    mavenCentral.password = project.properties["ossrhPassword"].toString()
+    mavenCentral.user = properties["ossrhUsername"].toString()
+    mavenCentral.password = properties["ossrhPassword"].toString()
 }
 
 
