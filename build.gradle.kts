@@ -1,6 +1,4 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -11,9 +9,7 @@ plugins {
     id("com.android.library") version "8.5.2"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
 
-    id("maven-publish")
-    id("signing")
-    id("io.codearte.nexus-staging") version "0.30.0"
+    id("org.danilopianini.publish-on-central") version "8.0.4"
 }
 
 group = "com.huskerdev"
@@ -207,25 +203,18 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            url = project.uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = project.properties["ossrhUsername"].toString()
-                password = project.properties["ossrhPassword"].toString()
-            }
-        }
-    }
 }
+
 project.signing {
     if(project.hasProperty("ossrhUsername"))
         sign(publishing.publications)
 }
-nexusStaging {
-    packageGroup = group.toString()
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
-    username = project.properties["ossrhUsername"].toString()
-    password = project.properties["ossrhPassword"].toString()
+
+publishOnCentral {
+    repoOwner = project.properties["ossrhUsername"].toString()
+
+    mavenCentral.user = project.properties["ossrhUsername"].toString()
+    mavenCentral.password = project.properties["ossrhPassword"].toString()
 }
 
 
