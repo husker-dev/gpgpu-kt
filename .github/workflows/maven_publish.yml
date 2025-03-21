@@ -30,7 +30,7 @@ jobs:
 
       - name: "Building and publishing"
         run: >
-          ./gradlew publish 
+          ./gradlew uploadAllPublicationsToProjectLocalRepository zipMavenCentralPortalPublication releaseMavenCentralPortalPublication
           -Dorg.gradle.jvmargs=-Xmx4096M
           -Dorg.gradle.project.signing.password=${{ secrets.GPG_PASSPHRASE }}
           -Dorg.gradle.project.signing.secretKeyRingFile=${{ github.workspace }}/gradle/secring.gpg
