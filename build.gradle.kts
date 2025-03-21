@@ -1,3 +1,4 @@
+import io.gitee.pkmer.enums.PublishingType
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
@@ -9,7 +10,9 @@ plugins {
     id("com.android.library") version "8.5.2"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
 
-    id("org.danilopianini.publish-on-central") version "8.0.4"
+    id("maven-publish")
+    id("signing")
+    id("io.gitee.pkmer.pkmerboot-central-publisher") version "1.1.1"
 }
 
 group = "com.huskerdev"
@@ -27,7 +30,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget = JvmTarget.JVM_11
         }
         compilations.create("benchmark") {
             associateWith(this@jvm.compilations.getByName("main"))
@@ -55,7 +58,7 @@ kotlin {
     androidTarget {
         publishLibraryVariants("release")
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_1_8)
+            jvmTarget = JvmTarget.JVM_1_8
         }
     }
 
@@ -216,11 +219,29 @@ signing {
         sign(publishing.publications)
 }
 
-publishOnCentral {
-    repoOwner = properties["ossrhUsername"].toString()
+publishing {
+    repositories {
+        maven {
+            name = "Local"
+            url = uri(layout.buildDirectory.dir("repos/bundles")) // Specify the local staging repo path in the configuration.
+        }
+    }
+}
 
-    mavenCentral.user = properties["ossrhUsername"].toString()
-    mavenCentral.password = properties["ossrhPassword"].toString()
+pkmerBoot {
+    sonatypeMavenCentral{
+        // the same with publishing.repositories.maven.url in the configuration.
+        stagingRepository = layout.buildDirectory.dir("repos/bundles")
+        /**
+         * get username and password from
+         * <a href="https://central.sonatype.com/account"> central sonatype account</a>
+         */
+        username = properties["ossrhUsername"].toString()
+        password = properties["ossrhPassword"].toString()
+
+        // Optional the publishingType default value is PublishingType.AUTOMATIC
+        publishingType = PublishingType.AUTOMATIC
+    }
 }
 
 
