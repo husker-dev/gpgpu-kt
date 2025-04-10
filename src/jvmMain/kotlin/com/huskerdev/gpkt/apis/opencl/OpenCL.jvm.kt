@@ -97,17 +97,17 @@ internal actual fun clReleaseProgram(program: CLProgram) =
 internal actual fun clReleaseKernel(kernel: CLKernel) =
     clReleaseKernel(kernel.ptr)
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long) =
-    CLMem(clCreateBuffer(context.ptr, usage, size, null, null))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, errRet: IntArray) =
+    CLMem(clCreateBuffer(context.ptr, usage, size, null, errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray) =
-    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray, errRet: IntArray) =
+    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray) =
-    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray, errRet: IntArray) =
+    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray) =
-    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), null))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray, errRet: IntArray) =
+    CLMem(clCreateBuffer(context.ptr, usage, size, Pointer.to(array), errRet))
 
 internal actual fun clEnqueueReadBuffer(
     commandQueue: CLCommandQueue,
@@ -134,7 +134,6 @@ internal actual fun clEnqueueReadBuffer(
     size, Pointer.to(dst),
     0, null, null
 )
-
 
 internal actual fun clEnqueueReadBuffer(
     commandQueue: CLCommandQueue,
@@ -228,7 +227,7 @@ internal actual fun clEnqueueNDRangeKernel(
         null,
         globalWorkSize,
         localWorkSize,
-0, null, null)
+        0, null, null)
 
 internal actual fun clSetKernelArg(kernel: CLKernel, index: Int, mem: CLMem) =
     clSetKernelArg(kernel.ptr, index, Sizeof.cl_mem.toLong(), Pointer.to(mem.ptr))

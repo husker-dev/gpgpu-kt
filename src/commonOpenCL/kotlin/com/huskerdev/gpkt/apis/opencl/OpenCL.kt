@@ -36,10 +36,10 @@ internal expect fun clReleaseMemObject(mem: CLMem): Int
 internal expect fun clReleaseProgram(program: CLProgram): Int
 internal expect fun clReleaseKernel(kernel: CLKernel): Int
 
-internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long): CLMem
-internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray): CLMem
-internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray): CLMem
-internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, errRet: IntArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray, errRet: IntArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray, errRet: IntArray): CLMem
+internal expect fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray, errRet: IntArray): CLMem
 
 internal expect fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: FloatArray): Int
 internal expect fun clEnqueueReadBuffer(commandQueue: CLCommandQueue, mem: CLMem, blockingRead: Boolean, offset: Long, size: Long, dst: IntArray): Int
@@ -88,35 +88,51 @@ class OpenCL {
         MemoryUsage.READ_WRITE -> CL_MEM_READ_WRITE
     } or with
 
-    fun deallocMemory(mem: CLMem) {
+    fun deallocMemory(mem: CLMem) =
         clReleaseMemObject(mem).checkError()
-    }
 
-    fun deallocProgram(program: CLProgram) {
+    fun deallocProgram(program: CLProgram) =
         clReleaseProgram(program).checkError()
-    }
 
-    fun deallocKernel(kernel: CLKernel) {
+    fun deallocKernel(kernel: CLKernel) =
         clReleaseKernel(kernel).checkError()
+
+    fun allocate(context: CLContext, size: Int, usage: MemoryUsage): CLMem {
+        val error = IntArray(1)
+        val result = clCreateBuffer(context, usage.toCL(), size.toLong(), error)
+        error[0].checkError()
+        return result
     }
 
-    fun allocate(context: CLContext, size: Int, usage: MemoryUsage) =
-        clCreateBuffer(context, usage.toCL(), size.toLong())
+    fun wrapFloats(context: CLContext, array: FloatArray, usage: MemoryUsage): CLMem {
+        val error = IntArray(1)
+        val result = clCreateBuffer(
+            context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+            array.size.toLong() * Float.SIZE_BYTES, array, error
+        )
+        error[0].checkError()
+        return result
+    }
 
-    fun wrapFloats(context: CLContext, array: FloatArray, usage: MemoryUsage) = clCreateBuffer(
-        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
-        array.size.toLong() * Float.SIZE_BYTES, array
-    )
+    fun wrapInts(context: CLContext, array: IntArray, usage: MemoryUsage): CLMem {
+        val error = IntArray(1)
+        val result = clCreateBuffer(
+            context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+            array.size.toLong() * Int.SIZE_BYTES, array, error
+        )
+        error[0].checkError()
+        return result
+    }
 
-    fun wrapInts(context: CLContext, array: IntArray, usage: MemoryUsage) = clCreateBuffer(
-        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
-        array.size.toLong() * Int.SIZE_BYTES, array
-    )
-
-    fun wrapBytes(context: CLContext, array: ByteArray, usage: MemoryUsage) = clCreateBuffer(
-        context, usage.toCL(CL_MEM_COPY_HOST_PTR),
-        array.size.toLong(), array
-    )
+    fun wrapBytes(context: CLContext, array: ByteArray, usage: MemoryUsage): CLMem {
+        val error = IntArray(1)
+        val result = clCreateBuffer(
+            context, usage.toCL(CL_MEM_COPY_HOST_PTR),
+            array.size.toLong(), array, error
+        )
+        error[0].checkError()
+        return result
+    }
 
     fun readFloats(commandQueue: CLCommandQueue, src: CLMem, length: Int, offset: Int) = FloatArray(length).apply {
         clEnqueueReadBuffer(

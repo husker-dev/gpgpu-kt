@@ -88,31 +88,40 @@ extern "C" JNIEXPORT int JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindi
     return clReleaseKernel((cl_kernel)kernel);
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jlong size) {
-    return (jlong) clCreateBuffer((cl_context)context, flags, size, nullptr, nullptr);
-}
-
-extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateFloatBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jfloatArray array) {
-    jboolean isCopy = false;
-    auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
-    auto result = (jlong) clCreateBuffer((cl_context)context, flags, 4 * env->GetArrayLength(array), arr, nullptr);
-    env->ReleasePrimitiveArrayCritical(array, arr, JNI_ABORT);
+extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jlong size, jintArray errRet) {
+    cl_int err[1];
+    auto result = (jlong) clCreateBuffer((cl_context)context, flags, size, nullptr, err);
+    env->SetIntArrayRegion(errRet, 0, 1, err);
     return result;
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateIntBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jintArray array) {
+extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateFloatBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jfloatArray array, jintArray errRet) {
+    cl_int err[1];
     jboolean isCopy = false;
     auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
-    auto result = (jlong) clCreateBuffer((cl_context)context, flags, 4 * env->GetArrayLength(array), arr, nullptr);
+    auto result = (jlong) clCreateBuffer((cl_context)context, flags, 4 * env->GetArrayLength(array), arr, err);
     env->ReleasePrimitiveArrayCritical(array, arr, JNI_ABORT);
+    env->SetIntArrayRegion(errRet, 0, 1, err);
     return result;
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateByteBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jbyteArray array) {
+extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateIntBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jintArray array, jintArray errRet) {
+    cl_int err[1];
     jboolean isCopy = false;
     auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
-    auto result = (jlong) clCreateBuffer((cl_context)context, flags, env->GetArrayLength(array), arr, nullptr);
+    auto result = (jlong) clCreateBuffer((cl_context)context, flags, 4 * env->GetArrayLength(array), arr, err);
     env->ReleasePrimitiveArrayCritical(array, arr, JNI_ABORT);
+    env->SetIntArrayRegion(errRet, 0, 1, err);
+    return result;
+}
+
+extern "C" JNIEXPORT jlong JNICALL Java_com_huskerdev_gpkt_apis_opencl_OpenCLBindings_nCreateByteBuffer(JNIEnv* env, jclass, jlong context, jlong flags, jbyteArray array, jintArray errRet) {
+    cl_int err[1];
+    jboolean isCopy = false;
+    auto arr = env->GetPrimitiveArrayCritical(array, &isCopy);
+    auto result = (jlong) clCreateBuffer((cl_context)context, flags, env->GetArrayLength(array), arr, err);
+    env->ReleasePrimitiveArrayCritical(array, arr, JNI_ABORT);
+    env->SetIntArrayRegion(errRet, 0, 1, err);
     return result;
 }
 

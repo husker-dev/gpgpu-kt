@@ -48,10 +48,10 @@ class OpenCLBindings {
         @JvmStatic external fun nReleaseProgram(program: Long): Int
         @JvmStatic external fun nReleaseKernel(kernel: Long): Int
 
-        @JvmStatic external fun nCreateBuffer(context: Long, flags: Long, size: Long): Long
-        @JvmStatic external fun nCreateFloatBuffer(context: Long, flags: Long, array: FloatArray): Long
-        @JvmStatic external fun nCreateIntBuffer(context: Long, flags: Long, array: IntArray): Long
-        @JvmStatic external fun nCreateByteBuffer(context: Long, flags: Long, array: ByteArray): Long
+        @JvmStatic external fun nCreateBuffer(context: Long, flags: Long, size: Long, errRet: IntArray): Long
+        @JvmStatic external fun nCreateFloatBuffer(context: Long, flags: Long, array: FloatArray, errRet: IntArray): Long
+        @JvmStatic external fun nCreateIntBuffer(context: Long, flags: Long, array: IntArray, errRet: IntArray): Long
+        @JvmStatic external fun nCreateByteBuffer(context: Long, flags: Long, array: ByteArray, errRet: IntArray): Long
 
         @JvmStatic external fun nReadFloatBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: FloatArray): Int
         @JvmStatic external fun nReadIntBuffer(commandQueue: Long, mem: Long, blockingRad: Boolean, offset: Long, size: Long, dst: IntArray): Int
@@ -130,17 +130,17 @@ internal actual fun clReleaseProgram(program: CLProgram) =
 internal actual fun clReleaseKernel(kernel: CLKernel) =
     nReleaseKernel(kernel.ptr)
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long) =
-    CLMem(nCreateBuffer(context.ptr, usage, size))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, errRet: IntArray) =
+    CLMem(nCreateBuffer(context.ptr, usage, size, errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray) =
-    CLMem(nCreateFloatBuffer(context.ptr, usage, array))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: FloatArray, errRet: IntArray) =
+    CLMem(nCreateFloatBuffer(context.ptr, usage, array, errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray) =
-    CLMem(nCreateIntBuffer(context.ptr, usage, array))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: IntArray, errRet: IntArray) =
+    CLMem(nCreateIntBuffer(context.ptr, usage, array, errRet))
 
-internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray) =
-    CLMem(nCreateByteBuffer(context.ptr, usage, array))
+internal actual fun clCreateBuffer(context: CLContext, usage: Long, size: Long, array: ByteArray, errRet: IntArray) =
+    CLMem(nCreateByteBuffer(context.ptr, usage, array, errRet))
 
 internal actual fun clEnqueueReadBuffer(
     commandQueue: CLCommandQueue,
