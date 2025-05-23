@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
-    kotlin("multiplatform") version "2.2.0-RC"
+    kotlin("multiplatform") version "2.1.0"
     id("com.android.library") version "8.5.2"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
     id("org.jetbrains.kotlinx.atomicfu") version "0.27.0"
@@ -17,7 +17,7 @@ plugins {
 }
 
 group = "com.huskerdev"
-version = "1.0.6"
+version = "1.0.7"
 
 repositories {
     google()
