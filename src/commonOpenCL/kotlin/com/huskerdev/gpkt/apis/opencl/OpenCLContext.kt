@@ -2,6 +2,8 @@ package com.huskerdev.gpkt.apis.opencl
 
 import com.huskerdev.gpkt.*
 import com.huskerdev.gpkt.ast.objects.GPScope
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 
 
 abstract class OpenCLContext(
@@ -13,6 +15,7 @@ abstract class OpenCLContext(
     val peer = opencl.createContext(clDevice.platform, clDevice.peer)
     val commandQueue = clCreateCommandQueue(peer, clDevice.peer)
 
+    private val lock = reentrantLock()
     override val allocated = arrayListOf<GPResource>()
 
     override val memory = opencl.getDeviceMemory(clDevice.peer)
@@ -25,25 +28,33 @@ abstract class OpenCLContext(
 
     override fun release() {
         if(released) return
-        allocated.toList().forEach(GPResource::release)
+        lock.withLock {
+            allocated.toList().forEach(GPResource::release)
+        }
         clReleaseCommandQueue(commandQueue)
         opencl.disposeContext(peer)
         released = true
     }
 
     override fun releaseMemory(memory: MemoryPointer<*>) {
-        allocated -= memory
+        lock.withLock {
+            allocated -= memory
+        }
         opencl.deallocMemory((memory as OpenCLMemoryPointer<*>).mem)
     }
 
     override fun releaseProgram(program: GPProgram) {
-        allocated -= program
+        lock.withLock {
+            allocated -= program
+        }
         opencl.deallocProgram((program as OpenCLProgram).program)
         opencl.deallocKernel(program.kernel)
     }
 
     protected fun <T: GPResource> addResource(memory: T): T{
-        allocated += memory
+        lock.withLock {
+            allocated += memory
+        }
         return memory
     }
 }

@@ -6,9 +6,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
-    kotlin("multiplatform") version "2.0.21"
+    kotlin("multiplatform") version "2.2.0-RC"
     id("com.android.library") version "8.5.2"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.11"
+    id("org.jetbrains.kotlinx.atomicfu") version "0.27.0"
 
     id("maven-publish")
     id("signing")
@@ -16,7 +17,7 @@ plugins {
 }
 
 group = "com.huskerdev"
-version = "1.0.5"
+version = "1.0.dev"
 
 repositories {
     google()
@@ -206,6 +207,12 @@ publishing {
             }
         }
     }
+    repositories {
+        maven {
+            name = "Local"
+            url = uri(layout.buildDirectory.dir("repos/bundles"))
+        }
+    }
 }
 
 signing {
@@ -216,27 +223,13 @@ signing {
         sign(publishing.publications)
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "Local"
-            url = uri(layout.buildDirectory.dir("repos/bundles")) // Specify the local staging repo path in the configuration.
-        }
-    }
-}
-
 pkmerBoot {
     sonatypeMavenCentral{
-        // the same with publishing.repositories.maven.url in the configuration.
         stagingRepository = layout.buildDirectory.dir("repos/bundles")
-        /**
-         * get username and password from
-         * <a href="https://central.sonatype.com/account"> central sonatype account</a>
-         */
+
         username = properties["ossrhUsername"].toString()
         password = properties["ossrhPassword"].toString()
 
-        // Optional the publishingType default value is PublishingType.AUTOMATIC
         publishingType = PublishingType.AUTOMATIC
     }
 }
